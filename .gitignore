@@ -1,0 +1,12 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+data/cache/
+data/chroma/
+.venv
+.env
+.idea/
+.vscode/
+
