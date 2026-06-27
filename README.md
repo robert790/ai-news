@@ -4,27 +4,31 @@
 
 ## What this is
 
-A vertical AI product that fills a gap nobody in Europe owns yet: **Romanian-language AI news, with personalized learning and job matching**. The news feed is the entry point. The learning is the value. The jobs are the outcome.
+A relaxed engineering workspace for staying current with AI: read today's news, see what's trending on GitHub, learn what's behind the stories, find jobs that match your skills. One product, three tabs, coffee-friendly.
 
-### Three modules
+### Three modules (three tabs)
 
-| Module | What it does | Status |
+| Tab | What it does | Status |
 |---|---|---|
-| **📰 News Feed** | Romanian summaries of global + local AI news | v0.1 built |
-| **🎓 Learn** | "Explain this story" with AI Road context · "What should I learn next?" | v0.4 (next) |
-| **💼 Jobs** | Aggregated AI jobs + skill matching | v0.6 |
+| **📰 News AI** | Daily AI stories + trending GitHub repos, Romanian summaries | v0.2 built |
+| **🎓 AI Learning Path** | Beginner → Intermediate → Advanced paths, links to AI Road | v0.4 (next) |
+| **💼 AI Job Transition** | Skill-gap matching, mock jobs, will be live in v0.6 | v0.6 |
 
 ### The user flow
 
 ```
-Read news story (Romanian, 2-3 sentences)
+Open app → News tab → scan stories + trending repos
   ↓ "I want to understand this better"
-Deep dive · pulls relevant AI Road chapter via RAG
+Learning tab → pick level → see relevant AI Road chapter
   ↓ "What jobs need this skill?"
-Job board filtered by what you've learned
+Jobs tab → see matches → see skill gap → back to Learning to close it
 ```
 
-One product. Three reasons to return.
+### Sources
+
+- **Hacker News** — AI-tagged stories, scored by community
+- **findarepo.com** — daily top 10 GitHub repos by 7-day star growth (measured, not estimated)
+- Hugging Face papers, Import AI, The Batch, OECD AI, Romanian tech press — coming in v0.3
 
 ## Why this wins
 
@@ -74,11 +78,11 @@ streamlit run app.py                  # http://localhost:8501
 ## Roadmap
 
 - [x] **v0.1** — HN scraper + Romanian summary + Streamlit UI
-- [ ] **v0.2** — Add HF papers + 1 Romanian tech source
-- [ ] **v0.3** — Relevance filter (Romania/EU/global)
+- [x] **v0.2** — 3-tab workspace · News + Learning + Jobs · findarepo trending repos
+- [ ] **v0.3** — Add HF papers, Import AI, The Batch as News sources
 - [ ] **v0.4** — Learn module · Chroma + RAG over AI Road
 - [ ] **v0.5** — Eval harness (summary accuracy, deep-dive quality)
-- [ ] **v0.6** — Jobs module · aggregator + skill matching
+- [ ] **v0.6** — Jobs module · live aggregator + skill matching
 - [ ] **v1.0** — Deploy to HF Spaces, custom domain, auth, free vs paid tier
 - [ ] **v2.0 (much later)** — NFC card access for premium (Ziarul Digital physical edition)
 

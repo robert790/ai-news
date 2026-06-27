@@ -1,11 +1,11 @@
-"""Streamlit UI for AI News · v0.1.
+"""Streamlit UI for Ziarul Digital · v0.2.
+
+The relaxed engineering workspace. Three tabs:
+  1. 📰 News AI    — daily AI news + trending repos (Hacker News + findarepo)
+  2. 🎓 Learning   — AI learning path (placeholder for v0.4 RAG module)
+  3. 💼 Jobs       — AI job transition helper (placeholder for v0.6)
 
 Run: streamlit run app.py
-
-The UI:
-- Pulls fresh stories on first load + every 30 min
-- Shows a clean feed of AI news with Romanian summaries
-- Has a placeholder for the future "Premium · Explain" button
 """
 import streamlit as st
 from datetime import datetime
@@ -15,97 +15,287 @@ from pathlib import Path
 # Make project root importable
 sys.path.insert(0, str(Path(__file__).parent))
 
-from scrapers import fetch_hackernews_ai
+from scrapers import (
+    fetch_hackernews_ai,
+    fetch_findarepo_daily,
+    repos_to_news_items,
+)
 from llm import summarize_batch
 from llm.summarizer import summarize
 import config
 
 
+# ===== Page config =====
 st.set_page_config(
-    page_title="AI News · RO",
+    page_title="Ziarul Digital",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
-# ---- Header ----
-st.title("AI News · RO")
-st.caption("Știri AI globale și locale, rezumate în română. Prima sursă: Hacker News. Mai multe vin.")
 
-# ---- Status banner ----
-with st.container():
-    cols = st.columns([2, 1, 1])
-    cols[0].markdown(
-        f"**Limbă:** {config.APP_LANGUAGE.upper()}  ·  "
-        f"**Cache:** {config.NEWS_CACHE_HOURS}h  ·  "
-        f"**Premium:** {'🟢 enabled' if config.PREMIUM_ENABLED else '⚪ coming soon'}"
-    )
-    if not config.has_deepseek():
-        cols[1].warning("⚠ Demo mode · adaugă DEEPSEEK_API_KEY pentru rezumate reale")
-    else:
-        cols[1].success("✓ DeepSeek connected")
-    cols[2].markdown(f"🔄 _Updated {datetime.now().strftime('%H:%M')}_")
-
-st.divider()
-
-
-# ---- Data loading ----
-@st.cache_data(ttl=1800, show_spinner="Se încarcă știrile...")
-def load_news():
-    raw = fetch_hackernews_ai(limit=20)
-    return summarize_batch(raw)
-
-
-with st.spinner("Se aduc știrile de pe Hacker News..."):
-    items = load_news()
-
-
-# ---- Filter chips ----
-filter_cols = st.columns(4)
-filter_cols[0].button("🔥 Toate", type="primary", use_container_width=True)
-filter_cols[1].button("🇷🇴 România", use_container_width=True, disabled=True, help="vine în curând")
-filter_cols[2].button("🇪🇺 Europa", use_container_width=True, disabled=True, help="vine în curând")
-filter_cols[3].button("🌍 Global", use_container_width=True, disabled=True, help="vine în curând")
-
-st.write("")
-
-
-# ---- Feed ----
-if not items:
-    st.error("Nu s-au putut încărca știri. Verifică conexiunea sau încearcă mai târziu.")
-else:
-    st.subheader(f"📰 {len(items)} știri · Hacker News · ultimele 7 zile")
-    st.caption("Rezumatele sunt generate automat. _Premium tier_ va permite explicarea în profunzime folosind cursul AI Road.")
-
-    for item in items:
-        with st.container(border=True):
-            cols = st.columns([6, 1])
-
-            with cols[0]:
-                st.markdown(f"### [{item.title}]({item.url})")
-                st.markdown(f"_{item.summary}_")
-                meta = f"`{item.source}` · ⬆ {item.score} · 👤 {item.author or 'unknown'}"
-                if item.published_at:
-                    try:
-                        dt = datetime.fromisoformat(item.published_at)
-                        meta += f" · 🕐 {dt.strftime('%d %b %H:%M')}"
-                    except Exception:
-                        pass
-                st.caption(meta)
-
-            with cols[1]:
-                if config.PREMIUM_ENABLED:
-                    st.button("🔍 Explică", key=f"explain-{item.external_id}", use_container_width=True)
-                else:
-                    st.button("🔒 Premium", key=f"locked-{item.external_id}", disabled=True, use_container_width=True, help="vine în curând")
-
-
-# ---- Footer ----
-st.divider()
+# ===== Custom CSS — relaxed dark workspace =====
 st.markdown("""
-<div style="text-align: center; color: #7c7a72; font-size: 13px; padding: 24px 0;">
-  <strong>AI News · RO</strong> · v0.1 · primul pas.<br>
-  Urmează: surse românești, filtrare EU, premium tier cu explicații din <em>The AI Road</em>.<br>
-  <a href="../ai-beginners-guide/index.html">Citește cursul →</a>
-</div>
+<style>
+  /* Dark workspace palette · warm, not corporate */
+  .stApp { background-color: #1a1815; color: #e8e3d8; }
+  section.main > div { padding-top: 2rem; }
+
+  /* Tabs */
+  .stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+    background-color: transparent;
+    border-bottom: 1px solid #3a3530;
+  }
+  .stTabs [data-baseweb="tab"] {
+    background-color: transparent;
+    color: #8a8478;
+    padding: 0.75rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+  .stTabs [aria-selected="true"] {
+    color: #d4a574 !important;
+    border-bottom: 2px solid #d4a574 !important;
+  }
+
+  /* Headings */
+  h1 { color: #f4ede0 !important; font-weight: 300 !important; }
+  h2 { color: #e8e3d8 !important; font-weight: 400 !important; }
+  h3 { color: #d4a574 !important; font-weight: 500 !important; }
+  p, li, span, div { color: #c4bdb0; }
+
+  /* Caption + small text */
+  .stCaption, [data-testid="stCaption"] { color: #8a8478 !important; }
+
+  /* Cards (containers with borders) */
+  [data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: #242019;
+    border: 1px solid #3a3530 !important;
+    border-radius: 12px !important;
+    padding: 1rem 1.25rem !important;
+  }
+
+  /* Buttons */
+  .stButton > button {
+    background-color: transparent;
+    color: #d4a574;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    transition: all .15s;
+  }
+  .stButton > button:hover {
+    background-color: #2f2a23;
+    border-color: #d4a574;
+  }
+
+  /* Markdown links */
+  a { color: #d4a574 !important; }
+  a:hover { color: #e8b889 !important; }
+
+  /* Code blocks */
+  code {
+    background-color: #2f2a23 !important;
+    color: #d4a574 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+</style>
 """, unsafe_allow_html=True)
+
+
+# ===== Header =====
+col_title, col_status = st.columns([3, 1])
+with col_title:
+    st.markdown("# 📡 Ziarul Digital")
+    st.markdown("*Daily AI for engineers. Sip your coffee, scan the world.*")
+with col_status:
+    st.markdown(f"`{datetime.now().strftime('%a %d %b · %H:%M')}`")
+    if not config.has_deepseek():
+        st.caption("⚠ demo mode · add DEEPSEEK_API_KEY")
+    else:
+        st.caption("✓ DeepSeek connected")
+
+
+# ===== Tabs =====
+tab_news, tab_learn, tab_jobs = st.tabs(["📰 NEWS AI", "🎓 AI LEARNING PATH", "💼 AI JOB TRANSITION"])
+
+
+# =====================================================================
+# TAB 1: NEWS AI
+# =====================================================================
+with tab_news:
+
+    st.markdown("### What's new today")
+    st.caption("Romanian summaries · global sources · daily updated")
+
+    # ----- Section A: Hacker News AI stories -----
+    st.markdown("")
+    st.markdown("#### 🔥 Top stories")
+    st.caption("From Hacker News, scored by community")
+
+    @st.cache_data(ttl=1800, show_spinner="Se aduc știrile...")
+    def load_news():
+        raw = fetch_hackernews_ai(limit=15)
+        return summarize_batch(raw)
+
+    with st.spinner(""):
+        news_items = load_news()
+
+    if not news_items:
+        st.warning("Nu s-au putut încărca știri. Verifică conexiunea.")
+    else:
+        for item in news_items:
+            with st.container(border=True):
+                cols = st.columns([5, 1])
+                with cols[0]:
+                    st.markdown(f"##### [{item.title}]({item.url})")
+                    st.markdown(f"_{item.summary}_")
+                    meta_bits = [f"`{item.source}`", f"⬆ {item.score}"]
+                    if item.author:
+                        meta_bits.append(f"👤 {item.author}")
+                    st.caption(" · ".join(meta_bits))
+                with cols[1]:
+                    if config.PREMIUM_ENABLED:
+                        st.button("🔍 Explică", key=f"news-{item.external_id}", use_container_width=True)
+                    else:
+                        st.button("🔒 Premium", key=f"locked-{item.external_id}", disabled=True, use_container_width=True)
+
+    # ----- Section B: findarepo trending repos -----
+    st.markdown("")
+    st.markdown("#### ⭐ Trending repos (7-day growth)")
+    st.caption("From findarepo.com · measured star velocity, not estimates")
+
+    @st.cache_data(ttl=3600, show_spinner="Se aduc repo-urile...")
+    def load_repos():
+        return fetch_findarepo_daily(limit=10)
+
+    with st.spinner(""):
+        repos = load_repos()
+
+    if not repos:
+        st.warning("Nu s-au putut încărca repo-uri de pe findarepo.")
+    else:
+        for r in repos:
+            with st.container(border=True):
+                cols = st.columns([6, 1])
+                with cols[0]:
+                    st.markdown(f"##### [{r.full_name}]({r.url})")
+                    st.markdown(f"_{r.description}_")
+                    st.caption(f"`{r.language}` · ★ {r.stars} total · ↗ **+{r.growth}/7d** stars")
+                with cols[1]:
+                    st.button("💾 Save", key=f"save-{r.full_name}", use_container_width=True)
+
+
+# =====================================================================
+# TAB 2: AI LEARNING PATH (placeholder for v0.4)
+# =====================================================================
+with tab_learn:
+
+    st.markdown("### 🎓 AI Learning Path")
+    st.caption("Learn what's behind today's news · powered by The AI Road curriculum")
+
+    st.markdown("")
+
+    # Show 3 example starting paths
+    col_a, col_b, col_c = st.columns(3)
+
+    with col_a:
+        with st.container(border=True):
+            st.markdown("##### 🟢 Beginner")
+            st.markdown("Start from zero")
+            st.caption("What neural networks are, how to talk to AI, reading your first paper.")
+            st.button("Start", key="learn-beg", use_container_width=True)
+
+    with col_b:
+        with st.container(border=True):
+            st.markdown("##### 🟡 Intermediate")
+            st.markdown("You know the basics")
+            st.caption("Build your first RAG app, fine-tune a model, deploy an agent.")
+            st.button("Start", key="learn-int", use_container_width=True)
+
+    with col_c:
+        with st.container(border=True):
+            st.markdown("##### 🔴 Advanced")
+            st.markdown("Ship things in production")
+            st.caption("Eval harnesses, observability, multi-agent systems, frontier awareness.")
+            st.button("Start", key="learn-adv", use_container_width=True)
+
+    st.markdown("")
+    st.info("🚧 **Coming in v0.4** — Adaptive learning that links each chapter to today's news. Your progress syncs across devices.")
+
+    # Quick link to the full course
+    st.markdown("")
+    st.markdown("**📖 Full course available now:** [The AI Road](../ai-beginners-guide/index.html) — 15 chapters, glossary, resources.")
+
+
+# =====================================================================
+# TAB 3: AI JOB TRANSITION HELPER (placeholder for v0.6)
+# =====================================================================
+with tab_jobs:
+
+    st.markdown("### 💼 AI Job Transition Helper")
+    st.caption("Find jobs that match what you're learning · identify skill gaps")
+
+    st.markdown("")
+
+    # Mock filters for the UI
+    col_filter1, col_filter2, col_filter3 = st.columns(3)
+
+    with col_filter1:
+        st.markdown("**Your current skills**")
+        st.multiselect(
+            "What do you know?",
+            ["Python", "JavaScript", "Prompting", "LangChain", "RAG", "Fine-tuning", "PyTorch", "Vector DBs"],
+            default=["Prompting"],
+            key="job-skills",
+        )
+
+    with col_filter2:
+        st.markdown("**Your target role**")
+        st.selectbox(
+            "Where do you want to be?",
+            ["LLM Engineer", "AI Product Manager", "AI Solutions Architect", "ML Engineer", "AI Consultant"],
+            key="job-role",
+        )
+
+    with col_filter3:
+        st.markdown("**Location**")
+        st.selectbox(
+            "Where?",
+            ["Remote (EU)", "Bucharest", "Romania", "Berlin", "London", "Anywhere"],
+            key="job-loc",
+        )
+
+    st.markdown("")
+
+    # Mock results preview
+    st.markdown("#### 🎯 Matches for you")
+    st.caption("3 jobs · last refreshed 2h ago")
+
+    mock_jobs = [
+        {"title": "LLM Engineer", "company": "DRUID AI", "location": "Bucharest", "match": "82%", "skills_gap": "LangChain, Vector DBs"},
+        {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%", "skills_gap": "Eval, RAG"},
+        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%", "skills_gap": "GPU infrastructure"},
+    ]
+
+    for j in mock_jobs:
+        with st.container(border=True):
+            cols = st.columns([5, 1])
+            with cols[0]:
+                st.markdown(f"##### {j['title']} · {j['company']}")
+                st.caption(f"📍 {j['location']} · Skills gap: {j['skills_gap']}")
+            with cols[1]:
+                st.markdown(f"### {j['match']}")
+                st.caption("match score")
+
+    st.markdown("")
+    st.info("🚧 **Coming in v0.6** — Live job feed from LinkedIn, Indeed, and Romanian platforms. Real skill matching with LLM extraction. Personalized learning paths to close gaps.")
+
+
+# ===== Footer =====
+st.markdown("")
+st.markdown("---")
+st.caption("Ziarul Digital · v0.2 · built for engineers who sip coffee · sources: Hacker News, findarepo.com, Hugging Face, Import AI, The Batch")
