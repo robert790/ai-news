@@ -1,16 +1,20 @@
-"""Streamlit UI for Ziarul Digital · v0.3.
+"""Streamlit UI for Ziarul Digital · v1.0 redesign.
 
-The relaxed engineering workspace. Three tabs:
-  1. 📰 News AI    — daily AI research + discussions + repos + analysis
-                     (HuggingFace Papers · HackerNews · Lobsters ·
-                      findarepo · GitHub Trending · Import AI)
-  2. 🎓 Learning   — AI learning path (placeholder for v0.4 RAG module)
-  3. 💼 Jobs       — AI job transition helper (placeholder for v0.6)
+Four tabs, Headspace-inspired infusion palette:
+  1. ☀️ ASTĂZI   — morning glance: top 3 from each category, 30 sec
+  2. 📡 ȘTIRI   — deep dive on 6 sources
+  3. 📚 ÎNVAȚĂ  — AI Road course (v0.4 placeholder for RAG)
+  4. 🛠 APLICĂ  — Prompt Bible (placeholder for the folder)
+
+Design tokens live in theme.py. Each tab gets its own accent color via
+nth-child CSS rules — coral for news, sage for learning/jobs, lavender
+for prompts.
 
 Run: streamlit run app.py
 """
 import streamlit as st
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import sys
 from pathlib import Path
 
@@ -28,6 +32,7 @@ from scrapers import (
 from llm import summarize_batch
 from llm.summarizer import summarize
 import config
+from theme import render_css, COLORS, TAB_ACCENT
 
 
 # ===== Page config =====
@@ -39,120 +44,290 @@ st.set_page_config(
 )
 
 
-# ===== Custom CSS — relaxed dark workspace =====
-st.markdown("""
-<style>
-  /* Dark workspace palette · warm, not corporate */
-  .stApp { background-color: #1a1815; color: #e8e3d8; }
-  section.main > div { padding-top: 2rem; }
+# ===== Theme CSS =====
+st.markdown(render_css(), unsafe_allow_html=True)
 
-  /* Tabs */
-  .stTabs [data-baseweb="tab-list"] {
-    gap: 0.5rem;
-    background-color: transparent;
-    border-bottom: 1px solid #3a3530;
-  }
-  .stTabs [data-baseweb="tab"] {
-    background-color: transparent;
-    color: #8a8478;
-    padding: 0.75rem 1.25rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    letter-spacing: 0.04em;
-  }
-  .stTabs [aria-selected="true"] {
-    color: #d4a574 !important;
-    border-bottom: 2px solid #d4a574 !important;
-  }
 
-  /* Headings */
-  h1 { color: #f4ede0 !important; font-weight: 300 !important; }
-  h2 { color: #e8e3d8 !important; font-weight: 400 !important; }
-  h3 { color: #d4a574 !important; font-weight: 500 !important; }
-  p, li, span, div { color: #c4bdb0; }
+# ===== Helpers =====
+@st.cache_data(ttl=1800, show_spinner=False)
+def load_hn():
+    return fetch_hackernews_ai(limit=8)
 
-  /* Caption + small text */
-  .stCaption, [data-testid="stCaption"] { color: #8a8478 !important; }
 
-  /* Cards (containers with borders) */
-  [data-testid="stVerticalBlockBorderWrapper"] {
-    background-color: #242019;
-    border: 1px solid #3a3530 !important;
-    border-radius: 12px !important;
-    padding: 1rem 1.25rem !important;
-  }
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_hf():
+    return fetch_hf_papers(limit=8)
 
-  /* Buttons */
-  .stButton > button {
-    background-color: transparent;
-    color: #d4a574;
-    border: 1px solid #3a3530;
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    transition: all .15s;
-  }
-  .stButton > button:hover {
-    background-color: #2f2a23;
-    border-color: #d4a574;
-  }
 
-  /* Markdown links */
-  a { color: #d4a574 !important; }
-  a:hover { color: #e8b889 !important; }
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_repos():
+    return fetch_findarepo_daily(limit=8)
 
-  /* Code blocks */
-  code {
-    background-color: #2f2a23 !important;
-    color: #d4a574 !important;
-    font-family: 'JetBrains Mono', monospace !important;
-  }
-</style>
-""", unsafe_allow_html=True)
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_github():
+    return fetch_github_trending(limit=8)
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def load_lobsters():
+    return fetch_lobsters(limit=8)
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def load_importai():
+    return fetch_importai(limit=5)
+
+
+def fmt_date(iso_str: str) -> str:
+    """Render an ISO timestamp as '2h ago' / 'yesterday' / '3d ago'."""
+    if not iso_str:
+        return ""
+    try:
+        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        now = datetime.now(ZoneInfo("UTC"))
+        delta = now - dt
+        if delta.days == 0:
+            hours = delta.seconds // 3600
+            if hours == 0:
+                mins = max(delta.seconds // 60, 1)
+                return f"{mins}m ago"
+            return f"{hours}h ago"
+        if delta.days == 1:
+            return "yesterday"
+        if delta.days < 7:
+            return f"{delta.days}d ago"
+        return dt.strftime("%b %d")
+    except (ValueError, AttributeError):
+        return iso_str[:10] or ""
 
 
 # ===== Header =====
-col_title, col_status = st.columns([3, 1])
-with col_title:
-    st.markdown("# 📡 Ziarul Digital")
-    st.markdown("*Daily AI for engineers. Sip your coffee, scan the world.*")
-with col_status:
-    st.markdown(f"`{datetime.now().strftime('%a %d %b · %H:%M')}`")
-    if not config.has_llm():
-        st.caption("⚠ demo mode · add GROQ_API_KEY")
-    else:
-        st.caption("✓ Groq connected")
+def render_header():
+    """Top hero block. Calm, editorial, with date greeting."""
+    col1, col2 = st.columns([5, 1])
+    with col1:
+        st.markdown(
+            '<h1 style="margin-bottom: 0.25rem;">Ziarul Digital</h1>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); margin-top: 0;">'
+            'Every morning, your AI briefing in 60 seconds.'
+            '</p>',
+            unsafe_allow_html=True,
+        )
+    with col2:
+        now = datetime.now(ZoneInfo("Europe/Bucharest"))
+        date_label = now.strftime("%A · %d %B").lower()
+        st.markdown(
+            f'<div style="text-align: right; font-family: JetBrains Mono, monospace; '
+            f'font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em;">'
+            f'☀️ {date_label}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if config.has_llm():
+            st.markdown(
+                '<div style="text-align: right; font-family: JetBrains Mono, monospace; '
+                'font-size: 0.7rem; color: var(--sage); margin-top: 4px;">'
+                '<span class="pulse-dot"></span>Groq connected</div>',
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                '<div style="text-align: right; font-family: JetBrains Mono, monospace; '
+                'font-size: 0.7rem; color: var(--muted-2); margin-top: 4px;">'
+                '⚠ demo mode</div>',
+                unsafe_allow_html=True,
+            )
+
+
+render_header()
+st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
 
 
 # ===== Tabs =====
-tab_news, tab_learn, tab_jobs = st.tabs(["📰 NEWS AI", "🎓 AI LEARNING PATH", "💼 AI JOB TRANSITION"])
+tab_astazi, tab_stiri, tab_invata, tab_aplica = st.tabs([
+    "☀️ ASTĂZI",
+    "📡 ȘTIRI",
+    "📚 ÎNVAȚĂ",
+    "🛠 APLICĂ",
+])
 
 
 # =====================================================================
-# TAB 1: NEWS AI
+# TAB 1: ASTĂZI — morning glance, 30 sec
 # =====================================================================
-with tab_news:
+with tab_astazi:
+    st.markdown(
+        '<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
+        'margin-top: -0.5rem; margin-bottom: 2rem;">'
+        'Cele mai importante 3 din fiecare. Bea-ți cafeaua, scanează lumea.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("### What's new today")
-    st.caption("Romanian summaries · global sources · daily updated")
+    # ---- 3 columns: News / Tools / Jobs ----
+    col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 
-    # -----------------------------------------------------------------
-    # Section 1 · Today's Research · HuggingFace Daily Papers
-    # -----------------------------------------------------------------
-    st.markdown("")
+    # === Top News (coral) ===
+    with col_news:
+        st.markdown(
+            '<h4 style="color: var(--coral); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin-bottom: 1rem;"><span class="pulse-dot"></span>Top știri</h4>',
+            unsafe_allow_html=True,
+        )
+        hn = load_hn()
+        if hn:
+            top_news = hn[:3]
+            for i, item in enumerate(top_news):
+                with st.container(border=True):
+                    st.markdown(
+                        f'<div class="reveal reveal-{i+1}">',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f'**[{item.title[:80]}]({item.url})**')
+                    summary = (item.summary or "")[:160]
+                    if summary:
+                        st.caption(summary + ("..." if len(item.summary) > 160 else ""))
+                    st.caption(f"⬆ {item.score} · {fmt_date(item.published_at)}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.caption("Nu s-au putut încărca știri.")
+
+    # === Top Tools (sky) ===
+    with col_tools:
+        st.markdown(
+            '<h4 style="color: var(--sky); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin-bottom: 1rem;">⭐ Top unelte</h4>',
+            unsafe_allow_html=True,
+        )
+        repos = load_repos()
+        if repos:
+            top_repos = repos[:3]
+            for i, r in enumerate(top_repos):
+                with st.container(border=True):
+                    st.markdown(
+                        f'<div class="reveal reveal-{i+1}">',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f"**[{r.full_name}]({r.url})**")
+                    desc = (r.description or "")[:120]
+                    if desc:
+                        st.caption(desc + ("..." if len(r.description) > 120 else ""))
+                    st.caption(f"★ {r.stars} · ↗ +{r.growth}/7d · `{r.language}`")
+                    st.markdown('</div>', unsafe_allow_html=True)
+        else:
+            st.caption("Nu s-au putut încărca unelte.")
+
+    # === Top Jobs (sage, mock for now) ===
+    with col_jobs:
+        st.markdown(
+            '<h4 style="color: var(--sage); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin-bottom: 1rem;">💼 Top joburi</h4>',
+            unsafe_allow_html=True,
+        )
+        mock_jobs = [
+            {"title": "LLM Engineer", "company": "DRUID AI", "location": "Bucharest", "match": "82%"},
+            {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%"},
+            {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%"},
+        ]
+        for i, j in enumerate(mock_jobs):
+            with st.container(border=True):
+                st.markdown(
+                    f'<div class="reveal reveal-{i+1}">',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(f"**{j['title']}**")
+                st.caption(f"{j['company']} · 📍 {j['location']}")
+                st.markdown(
+                    f'<div style="font-family: Newsreader, serif; font-size: 1.5rem; '
+                    f'color: var(--sage); margin-top: 0.3rem;">{j["match"]}</div>',
+                    unsafe_allow_html=True,
+                )
+                st.caption("match score")
+                st.markdown('</div>', unsafe_allow_html=True)
+        st.caption("🚧 Live job feed vine în v0.6")
+
+    # ---- Divider ----
+    st.markdown(
+        '<div style="height: 1px; background: var(--border); margin: 2.5rem 0 1.5rem;"></div>',
+        unsafe_allow_html=True,
+    )
+
+    # ---- Bottom row: Today's lesson + Today's prompt ----
+    col_lesson, col_prompt = st.columns(2, gap="medium")
+
+    with col_lesson:
+        st.markdown(
+            '<h4 style="color: var(--sage); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin-bottom: 1rem;">📚 Lecția zilei</h4>',
+            unsafe_allow_html=True,
+        )
+        with st.container(border=True):
+            st.markdown("### Ce este un LLM?")
+            st.caption("Capitolul 3 · 5 minute · The AI Road")
+            st.markdown(
+                "Large Language Models sunt rețele neuronale antrenate pe cantități "
+                "masive de text. Învață pattern-uri statistice care le permit să "
+                "genereze text coerent, să răspundă la întrebări, și să raționeze "
+                "într-o oarecare măsură."
+            )
+            st.markdown(
+                '<a href="../ai-beginners-guide/index.html#chapter-3" target="_blank">'
+                'Citește capitolul →</a>',
+                unsafe_allow_html=True,
+            )
+
+    with col_prompt:
+        st.markdown(
+            '<h4 style="color: var(--lavender); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin-bottom: 1rem;">🛠 Prompt de încercat</h4>',
+            unsafe_allow_html=True,
+        )
+        with st.container(border=True):
+            st.markdown("### Explică-mi asta ca și cum aș avea 12 ani")
+            st.caption(
+                '<span style="color: var(--muted);">Forțează LLM-ul să simplifice '
+                "orice concept tehnic. Excelent pentru validarea înțelegerii tale.</span>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                '<pre style="background: var(--surface-2); padding: 0.8rem; '
+                'border-radius: 8px; margin: 0.8rem 0; font-family: JetBrains Mono, '
+                'monospace; font-size: 0.8rem; color: var(--text-2); white-space: '
+                'pre-wrap;">Explică [concept] ca și cum aș avea 12 ani. '
+                'Folosește o analogie din viața de zi cu zi.</pre>',
+                unsafe_allow_html=True,
+            )
+            st.caption("🚧 Prompt Bible completă vine cu folder-ul tău")
+
+
+# =====================================================================
+# TAB 2: ȘTIRI — deep dive on 6 sources
+# =====================================================================
+with tab_stiri:
+
+    st.markdown(
+        '<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
+        'margin-top: -0.5rem; margin-bottom: 2rem;">'
+        'Toate știrile din toate sursele. Romaneste, cu context.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
+
+    # ---- Today's Research (HF Papers) ----
     st.markdown("#### 🔬 Today's Research")
-    st.caption("Top papers trending on HuggingFace")
+    st.caption("Top papers trending on HuggingFace · sky")
 
-    @st.cache_data(ttl=3600, show_spinner="Se încarcă cercetarea...")
-    def load_research():
-        return fetch_hf_papers(limit=5)
-
-    with st.spinner(""):
-        papers = summarize_batch(load_research())
-
-    if not papers:
-        st.warning("Nu s-au putut încărca lucrări de pe HuggingFace.")
-    else:
+    papers = summarize_batch(load_hf()[:5])
+    if papers:
         for p in papers:
             with st.container(border=True):
                 cols = st.columns([6, 1])
@@ -165,224 +340,251 @@ with tab_news:
                     st.caption(" · ".join(meta_bits))
                 with cols[1]:
                     if config.PREMIUM_ENABLED:
-                        st.button("🔍 Explică", key=f"paper-{p.external_id}", use_container_width=True)
+                        st.button("🔍", key=f"paper-{p.external_id}", use_container_width=True)
                     else:
                         st.button("🔒", key=f"paper-lock-{p.external_id}", disabled=True, use_container_width=True)
 
-    # -----------------------------------------------------------------
-    # Section 2 · Community Buzz · HackerNews + Lobsters side-by-side
-    # -----------------------------------------------------------------
-    st.markdown("")
+    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+
+    # ---- Community Buzz (HN + Lobsters) ----
     st.markdown("#### 💬 Community Buzz")
-    st.caption("What the dev community is talking about")
+    st.caption("Discussions from HackerNews · coral and Lobsters · sage")
 
-    col_hn, col_lob = st.columns(2)
-
-    @st.cache_data(ttl=1800, show_spinner="Se încarcă discuțiile...")
-    def load_hn():
-        return summarize_batch(fetch_hackernews_ai(limit=6))
-
-    @st.cache_data(ttl=1800, show_spinner="Se încarcă Lobsters...")
-    def load_lobsters():
-        return summarize_batch(fetch_lobsters(limit=6))
+    col_hn, col_lob = st.columns(2, gap="medium")
 
     with col_hn:
-        st.markdown("**🔥 HackerNews**")
-        with st.spinner(""):
-            hn_items = load_hn()
-        if not hn_items:
+        st.markdown(
+            '<div style="color: var(--coral); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; '
+            'margin-bottom: 0.5rem;">🔥 HackerNews</div>',
+            unsafe_allow_html=True,
+        )
+        hn_items = summarize_batch(load_hn()[:6])
+        if hn_items:
+            for item in hn_items:
+                with st.container(border=True):
+                    st.markdown(f"[{item.title}]({item.url})")
+                    st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'} · {fmt_date(item.published_at)}")
+        else:
             st.caption("Nu s-au putut încărca știri HN.")
-        for item in hn_items:
-            with st.container(border=True):
-                st.markdown(f"[{item.title}]({item.url})")
-                st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'}")
 
     with col_lob:
-        st.markdown("**🦞 Lobsters**")
-        with st.spinner(""):
-            lob_items = load_lobsters()
-        if not lob_items:
+        st.markdown(
+            '<div style="color: var(--sage); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; '
+            'margin-bottom: 0.5rem;">🦞 Lobsters</div>',
+            unsafe_allow_html=True,
+        )
+        lob_items = summarize_batch(load_lobsters()[:6])
+        if lob_items:
+            for item in lob_items:
+                with st.container(border=True):
+                    st.markdown(f"[{item.title}]({item.url})")
+                    st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'} · {fmt_date(item.published_at)}")
+        else:
             st.caption("Nu s-au putut încărca povești Lobsters.")
-        for item in lob_items:
-            with st.container(border=True):
-                st.markdown(f"[{item.title}]({item.url})")
-                st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'}")
 
-    # -----------------------------------------------------------------
-    # Section 3 · Trending Repos · findarepo + GitHub Trending
-    # -----------------------------------------------------------------
-    st.markdown("")
+    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+
+    # ---- Trending Repos ----
     st.markdown("#### ⭐ Trending Repos")
-    st.caption("Hottest GitHub repos right now")
+    st.caption("findarepo · lavender and GitHub Trending · sky")
 
-    col_fr, col_gh = st.columns(2)
-
-    @st.cache_data(ttl=3600, show_spinner="Se încarcă findarepo...")
-    def load_repos():
-        return fetch_findarepo_daily(limit=6)
-
-    @st.cache_data(ttl=3600, show_spinner="Se încarcă GitHub Trending...")
-    def load_gh_trending():
-        return fetch_github_trending(limit=6)
+    col_fr, col_gh = st.columns(2, gap="medium")
 
     with col_fr:
-        st.markdown("**📊 findarepo (7-day growth)**")
-        with st.spinner(""):
-            repos = load_repos()
-        if not repos:
+        st.markdown(
+            '<div style="color: var(--lavender); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; '
+            'margin-bottom: 0.5rem;">📊 findarepo · 7-day growth</div>',
+            unsafe_allow_html=True,
+        )
+        repos = load_repos()[:6]
+        if repos:
+            for r in repos:
+                with st.container(border=True):
+                    st.markdown(f"[{r.full_name}]({r.url})")
+                    st.caption(f"★ {r.stars} total · ↗ +{r.growth}/7d · `{r.language}`")
+        else:
             st.caption("Nu s-au putut încărca repo-uri findarepo.")
-        for r in repos:
-            with st.container(border=True):
-                st.markdown(f"[{r.full_name}]({r.url})")
-                st.caption(f"★ {r.stars} total · ↗ +{r.growth}/7d · `{r.language}`")
 
     with col_gh:
-        st.markdown("**🔥 GitHub Trending (today)**")
-        with st.spinner(""):
-            gh_items = load_gh_trending()
-        if not gh_items:
-            st.caption("Nu s-au putut încărca repo-uri GitHub Trending.")
-        for it in gh_items:
-            with st.container(border=True):
-                st.markdown(f"[{it.title}]({it.url})")
-                tags_short = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
-                st.caption(f"⬆ {it.score} stars today · `{tags_short}`")
+        st.markdown(
+            '<div style="color: var(--sky); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; '
+            'margin-bottom: 0.5rem;">🔥 GitHub Trending · today</div>',
+            unsafe_allow_html=True,
+        )
+        gh_items = load_github()[:6]
+        if gh_items:
+            for it in gh_items:
+                with st.container(border=True):
+                    st.markdown(f"[{it.title}]({it.url})")
+                    tags_short = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
+                    st.caption(f"⬆ {it.score} stars today · `{tags_short}`")
+        else:
+            st.caption("Nu s-au putut încărca repo-uri GitHub.")
 
-    # -----------------------------------------------------------------
-    # Section 4 · Weekly Analysis · Import AI
-    # -----------------------------------------------------------------
-    st.markdown("")
+    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+
+    # ---- Weekly Analysis ----
     st.markdown("#### 📰 Deep Analysis")
-    st.caption("Weekly essays from Jack Clark's Import AI")
+    st.caption("Weekly essays from Jack Clark's Import AI · coral")
 
-    @st.cache_data(ttl=86400, show_spinner="Se încarcă Import AI...")
-    def load_importai():
-        return summarize_batch(fetch_importai(limit=3))
-
-    with st.spinner(""):
-        ai_items = load_importai()
-
-    if not ai_items:
-        st.warning("Nu s-au putut încărca articole Import AI.")
-    else:
+    ai_items = summarize_batch(load_importai()[:3])
+    if ai_items:
         for it in ai_items:
             with st.container(border=True):
                 cols = st.columns([6, 1])
                 with cols[0]:
                     st.markdown(f"##### [{it.title}]({it.url})")
                     st.markdown(f"_{it.summary}_")
-                    st.caption(f"📝 {it.author} · {it.published_at[:10]}")
+                    st.caption(f"📝 {it.author} · {fmt_date(it.published_at)}")
                 with cols[1]:
-                    st.button("📖 Citește", key=f"ai-{it.external_id}", use_container_width=True)
+                    st.button("📖", key=f"ai-{it.external_id}", use_container_width=True)
 
 
 # =====================================================================
-# TAB 2: AI LEARNING PATH (placeholder for v0.4)
+# TAB 3: ÎNVAȚĂ — AI Road course (v0.4 placeholder for RAG)
 # =====================================================================
-with tab_learn:
+with tab_invata:
 
-    st.markdown("### 🎓 AI Learning Path")
-    st.caption("Learn what's behind today's news · powered by The AI Road curriculum")
+    st.markdown(
+        '<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
+        'margin-top: -0.5rem; margin-bottom: 2rem;">'
+        'Învață ce e în spatele știrilor. Cursul complet, în română.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("")
-
-    # Show 3 example starting paths
-    col_a, col_b, col_c = st.columns(3)
-
-    with col_a:
-        with st.container(border=True):
-            st.markdown("##### 🟢 Beginner")
-            st.markdown("Start from zero")
-            st.caption("What neural networks are, how to talk to AI, reading your first paper.")
-            st.button("Start", key="learn-beg", use_container_width=True)
-
-    with col_b:
-        with st.container(border=True):
-            st.markdown("##### 🟡 Intermediate")
-            st.markdown("You know the basics")
-            st.caption("Build your first RAG app, fine-tune a model, deploy an agent.")
-            st.button("Start", key="learn-int", use_container_width=True)
-
-    with col_c:
-        with st.container(border=True):
-            st.markdown("##### 🔴 Advanced")
-            st.markdown("Ship things in production")
-            st.caption("Eval harnesses, observability, multi-agent systems, frontier awareness.")
-            st.button("Start", key="learn-adv", use_container_width=True)
-
-    st.markdown("")
-    st.info("🚧 **Coming in v0.4** — Adaptive learning that links each chapter to today's news. Your progress syncs across devices.")
-
-    # Quick link to the full course
-    st.markdown("")
-    st.markdown("**📖 Full course available now:** [The AI Road](../ai-beginners-guide/index.html) — 15 chapters, glossary, resources.")
-
-
-# =====================================================================
-# TAB 3: AI JOB TRANSITION HELPER (placeholder for v0.6)
-# =====================================================================
-with tab_jobs:
-
-    st.markdown("### 💼 AI Job Transition Helper")
-    st.caption("Find jobs that match what you're learning · identify skill gaps")
-
-    st.markdown("")
-
-    # Mock filters for the UI
-    col_filter1, col_filter2, col_filter3 = st.columns(3)
-
-    with col_filter1:
-        st.markdown("**Your current skills**")
-        st.multiselect(
-            "What do you know?",
-            ["Python", "JavaScript", "Prompting", "LangChain", "RAG", "Fine-tuning", "PyTorch", "Vector DBs"],
-            default=["Prompting"],
-            key="job-skills",
+    # Hero card
+    with st.container(border=True):
+        st.markdown("### The AI Road")
+        st.caption("Curs complet, 15 capitole · pentru ingineri care vor să înțeleagă AI-ul dincolo de buzzwords")
+        st.markdown(
+            "Un ghid practic care te duce de la zero la product-ready. "
+            "Fiecare capitol leagă teoria de ce se întâmplă azi în știri."
+        )
+        st.markdown(
+            '<a href="../ai-beginners-guide/index.html" target="_blank">'
+            '→ Deschide cursul complet</a>',
+            unsafe_allow_html=True,
         )
 
-    with col_filter2:
-        st.markdown("**Your target role**")
-        st.selectbox(
-            "Where do you want to be?",
-            ["LLM Engineer", "AI Product Manager", "AI Solutions Architect", "ML Engineer", "AI Consultant"],
-            key="job-role",
-        )
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
 
-    with col_filter3:
-        st.markdown("**Location**")
-        st.selectbox(
-            "Where?",
-            ["Remote (EU)", "Bucharest", "Romania", "Berlin", "London", "Anywhere"],
-            key="job-loc",
-        )
+    # Chapter preview
+    st.markdown("#### Cuprins")
+    st.caption("În v0.4, fiecare capitol va fi queryabil prin RAG — pune o întrebare, primești context + legătură.")
 
-    st.markdown("")
-
-    # Mock results preview
-    st.markdown("#### 🎯 Matches for you")
-    st.caption("3 jobs · last refreshed 2h ago")
-
-    mock_jobs = [
-        {"title": "LLM Engineer", "company": "DRUID AI", "location": "Bucharest", "match": "82%", "skills_gap": "LangChain, Vector DBs"},
-        {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%", "skills_gap": "Eval, RAG"},
-        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%", "skills_gap": "GPU infrastructure"},
+    chapters = [
+        ("1", "Ce este AI-ul astăzi", "MIT, hype, realitate"),
+        ("2", "Machine learning în 10 minute", "Supervised, unsupervised, reinforcement"),
+        ("3", "Ce este un LLM", "Transformers, tokenizare, atenție"),
+        ("4", "Cum antrenezi un model", "Pre-training, fine-tuning, RLHF"),
+        ("5", "RAG — retrieval augmented generation", "Cum adaugi cunoștințe externe LLM-ului"),
+        ("6", "Fine-tuning și adapters", "LoRA, QLoRA, PEFT"),
+        ("7", "Agenți și tool use", "Când LLM-ul încetează să fie doar chatbot"),
+        ("8", "Evaluare și metrici", "Cum știi dacă modelul tău e bun"),
+        ("9", "Producție și cost", "Inference, latency, token economics"),
+        ("10", "Safety și alignment", "Ce poate merge prost, cum reduci riscurile"),
     ]
-
-    for j in mock_jobs:
+    for num, title, blurb in chapters:
         with st.container(border=True):
-            cols = st.columns([5, 1])
+            cols = st.columns([1, 5])
             with cols[0]:
-                st.markdown(f"##### {j['title']} · {j['company']}")
-                st.caption(f"📍 {j['location']} · Skills gap: {j['skills_gap']}")
+                st.markdown(
+                    f'<div style="font-family: Newsreader, serif; font-size: 2rem; '
+                    f'color: var(--sage); line-height: 1;">{num}</div>',
+                    unsafe_allow_html=True,
+                )
             with cols[1]:
-                st.markdown(f"### {j['match']}")
-                st.caption("match score")
+                st.markdown(f"**{title}**")
+                st.caption(blurb)
 
-    st.markdown("")
-    st.info("🚧 **Coming in v0.6** — Live job feed from LinkedIn, Indeed, and Romanian platforms. Real skill matching with LLM extraction. Personalized learning paths to close gaps.")
+
+# =====================================================================
+# TAB 4: APLICĂ — Prompt Bible (placeholder)
+# =====================================================================
+with tab_aplica:
+
+    st.markdown(
+        '<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
+        'margin-top: -0.5rem; margin-bottom: 2rem;">'
+        'Prompturi gata de folosit. Copiază, lipește, rezolvă.'
+        '</p>',
+        unsafe_allow_html=True,
+    )
+
+    # Coming-soon hero
+    with st.container(border=True):
+        st.markdown("### Prompt Bible")
+        st.markdown(
+            '<p style="color: var(--lavender); font-family: JetBrains Mono, monospace; '
+            'font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; '
+            'margin: 0.5rem 0 1rem;">🚧 În construcție</p>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "Mii de prompturi organizate pe categorii — coding, writing, research, "
+            "brainstorming, debugging, documentare. Cu search, tags, și exemplu de "
+            "output pentru fiecare."
+        )
+        st.markdown(
+            '<p style="color: var(--muted); margin-top: 1rem; font-style: italic;">'
+            "Când folder-ul cu prompturi e gata, le integrăm aici. "
+            "Până atunci, fă-ți cafeaua și folosește ASTĂZI pentru a vedea ce e nou."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+
+    # Mini preview — a few starter prompts so the tab isn't empty
+    st.markdown("#### Starter pack (până vine Prompt Bible completă)")
+    st.caption("Câteva prompturi de bază ca să vezi vibe-ul.")
+
+    starter_prompts = [
+        {
+            "title": "Explained like I'm 12",
+            "category": "Learning",
+            "prompt": "Explică [concept] ca și cum aș avea 12 ani. Folosește o analogie din viața de zi cu zi.",
+        },
+        {
+            "title": "Code review blând",
+            "category": "Coding",
+            "prompt": "Review this code as a senior engineer who's kind, specific, and prioritizes clarity over cleverness. Point out 3 things to improve, 1 thing done well.",
+        },
+        {
+            "title": "Decision framework",
+            "category": "Strategy",
+            "prompt": "I'm deciding between [A] and [B]. Ask me 5 clarifying questions first, then give a recommendation with reasoning.",
+        },
+    ]
+    for p in starter_prompts:
+        with st.container(border=True):
+            st.markdown(f"**{p['title']}**")
+            st.caption(
+                f'<span style="color: var(--lavender); font-family: JetBrains Mono, monospace; '
+                f'font-size: 0.7rem;">{p["category"].upper()}</span>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<pre style="background: var(--surface-2); padding: 0.7rem; '
+                f'border-radius: 6px; margin: 0.6rem 0 0; font-family: JetBrains Mono, '
+                f'monospace; font-size: 0.78rem; color: var(--text-2); white-space: '
+                f'pre-wrap;">{p["prompt"]}</pre>',
+                unsafe_allow_html=True,
+            )
 
 
 # ===== Footer =====
-st.markdown("")
-st.markdown("---")
-st.caption("Ziarul Digital · v0.3 · built for engineers who sip coffee · sources: HuggingFace Papers, HackerNews, Lobsters, findarepo, GitHub Trending, Import AI")
+st.markdown("<div style='height: 3rem;'></div>", unsafe_allow_html=True)
+st.markdown(
+    '<div style="border-top: 1px solid var(--border); padding-top: 1.5rem; '
+    'font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
+    'color: var(--muted-2); text-align: center; letter-spacing: 0.04em;">'
+    'Ziarul Digital · v1.0 · pentru ingineri care beau cafeaua cu ochii pe lume'
+    '</div>',
+    unsafe_allow_html=True,
+)
