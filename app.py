@@ -124,6 +124,26 @@ with col_status:
         st.caption("✓ DeepSeek connected")
 
 
+# ===== DEBUG BLOCK (temporary — helps diagnose env var pickup) =====
+with st.expander("🔧 Debug · env state", expanded=False):
+    import os
+    raw_key = os.getenv("DEEPSEEK_API_KEY", "")
+    all_deep = {k: ("*" * min(len(v), 8) + f" ({len(v)} chars)" if v else "∅")
+                for k, v in os.environ.items()
+                if "DEEP" in k.upper() or "deepseek" in k.lower()}
+    if all_deep:
+        env_dump = "\n  ".join(f"{k}: {v}" for k, v in all_deep.items())
+    else:
+        env_dump = "(none)"
+    st.code(
+        f"DEEPSEEK_API_KEY length : {len(raw_key)}\n"
+        f"DEEPSEEK_API_KEY prefix : {raw_key[:7]!r}\n"
+        f"has_deepseek()          : {config.has_deepseek()}\n"
+        f"All env vars with DEEP/deepseek:\n  {env_dump}",
+        language="text",
+    )
+
+
 # ===== Tabs =====
 tab_news, tab_learn, tab_jobs = st.tabs(["📰 NEWS AI", "🎓 AI LEARNING PATH", "💼 AI JOB TRANSITION"])
 
