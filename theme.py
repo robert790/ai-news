@@ -357,4 +357,17 @@ def render_css() -> str:
   #MainMenu, footer {{ visibility: hidden; }}
   .viewerBadge_link__qRIco {{ display: none !important; }}
   header[data-testid="stHeader"] {{ display: none; }}
+
+  /* Force sidebar visible — workaround for Streamlit auto-collapse on smaller
+     screens combined with hidden header (no hamburger to re-open it). The
+     initial_sidebar_state="expanded" isn't enough on narrow viewports. */
+  section[data-testid="stSidebar"] {{
+    display: block !important;
+    visibility: visible !important;
+    transform: translateX(0) !important;
+    min-width: 240px !important;
+  }}
+  section[data-testid="stSidebar"] > div:first-child {{
+    transform: translateX(0) !important;
+  }}
 </style>"""
