@@ -131,6 +131,34 @@ def subhead(label: str, color: str = "muted"):
     )
 
 
+def column_header(label: str, icon: str, count: int, color: str) -> None:
+    """Render a prominent column header for the Azi landing page.
+
+    Used at the top of each column to make the section structure obvious.
+    Shows icon, label, count, and an accent line in the column's color.
+
+    Args:
+        label:  the column name (e.g., "News", "Tools", "Jobs")
+        icon:   single emoji that represents the column
+        count:  number of items currently in the column
+        color:  hex color used for the label and bottom accent line
+    """
+    count_text = f"{count} {'item' if count == 1 else 'items'}"
+    st.markdown(
+        f'<div style="display: flex; align-items: baseline; gap: 0.6rem; '
+        f'padding-bottom: 0.7rem; margin-bottom: 1rem; '
+        f'border-bottom: 2px solid {color};">'
+        f'<span style="font-size: 1.4rem;">{icon}</span>'
+        f'<span style="font-family: Newsreader, serif; font-size: 1.5rem; '
+        f'font-weight: 600; color: {color}; line-height: 1;">{label}</span>'
+        f'<span style="font-family: JetBrains Mono, monospace; font-size: 0.65rem; '
+        f'color: #8a8478; letter-spacing: 0.08em; text-transform: uppercase; '
+        f'margin-left: auto;">{count_text}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
 # ===== Sidebar =====
 now = datetime.now(ZoneInfo("Europe/Bucharest"))
 date_short = now.strftime("%a %d %b").lower()
@@ -187,45 +215,31 @@ if SECTION == "azi":
         "Top 3 din fiecare. Bea cafeaua, scanează lumea, pleci la treabă.",
     )
 
-    subhead("Știri · Unelte · Joburi", "muted")
-
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 
     with col_news:
-        hn = load_hn()
-        if hn:
-            for i, item in enumerate(hn[:3]):
-                with st.container(border=True):
-                    st.markdown(
-                        f'<div class="reveal reveal-{i+1}" style="color: var(--coral); '
-                        f'font-family: JetBrains Mono, monospace; font-size: 0.68rem; '
-                        f'letter-spacing: 0.06em; text-transform: uppercase; '
-                        f'margin-bottom: 0.5rem;">📡 Știre #{i+1}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(f"**[{item.title[:90]}]({item.url})**")
-                    summary = (item.summary or "")[:140]
-                    if summary:
-                        st.caption(summary + ("..." if len(item.summary or "") > 140 else ""))
-                    st.caption(f"HackerNews · ⬆ {item.score} · {fmt_date(item.published_at)}")
+        hn = load_hn() or []
+        top3 = hn[:3]
+        column_header("News", "📡", len(top3), "#e8a598")
+        for item in top3:
+            with st.container(border=True):
+                st.markdown(f"**[{item.title[:90]}]({item.url})**")
+                summary = (item.summary or "")[:140]
+                if summary:
+                    st.caption(summary + ("..." if len(item.summary or "") > 140 else ""))
+                st.caption(f"HackerNews · ⬆ {item.score} · {fmt_date(item.published_at)}")
 
     with col_tools:
-        repos = load_repos()
-        if repos:
-            for i, r in enumerate(repos[:3]):
-                with st.container(border=True):
-                    st.markdown(
-                        f'<div class="reveal reveal-{i+1}" style="color: var(--sky); '
-                        f'font-family: JetBrains Mono, monospace; font-size: 0.68rem; '
-                        f'letter-spacing: 0.06em; text-transform: uppercase; '
-                        f'margin-bottom: 0.5rem;">⭐ Unealtă #{i+1}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(f"**[{r.full_name}]({r.url})**")
-                    desc = (r.description or "")[:120]
-                    if desc:
-                        st.caption(desc + ("..." if len(r.description or "") > 120 else ""))
-                    st.caption(f"findarepo · ★ {r.stars} · ↗ +{r.growth}/7d · `{r.language}`")
+        repos = load_repos() or []
+        top3 = repos[:3]
+        column_header("Tools", "⭐", len(top3), "#a5c5d4")
+        for r in top3:
+            with st.container(border=True):
+                st.markdown(f"**[{r.full_name}]({r.url})**")
+                desc = (r.description or "")[:120]
+                if desc:
+                    st.caption(desc + ("..." if len(r.description or "") > 120 else ""))
+                st.caption(f"findarepo · ★ {r.stars} · ↗ +{r.growth}/7d · `{r.language}`")
 
     with col_jobs:
         mock_jobs = [
@@ -233,15 +247,9 @@ if SECTION == "azi":
             {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%"},
             {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%"},
         ]
-        for i, j in enumerate(mock_jobs):
+        column_header("Jobs", "💼", len(mock_jobs), "#a8c0ae")
+        for j in mock_jobs:
             with st.container(border=True):
-                st.markdown(
-                    f'<div class="reveal reveal-{i+1}" style="color: var(--sage); '
-                    f'font-family: JetBrains Mono, monospace; font-size: 0.68rem; '
-                    f'letter-spacing: 0.06em; text-transform: uppercase; '
-                    f'margin-bottom: 0.5rem;">💼 Job #{i+1}</div>',
-                    unsafe_allow_html=True,
-                )
                 st.markdown(f"**{j['title']}**")
                 st.caption(f"{j['company']} · 📍 {j['location']}")
                 st.markdown(
@@ -419,6 +427,60 @@ elif SECTION == "learning":
     with cols[0]:
         with st.container(border=True):
             st.markdown(ch.blurb)
+
+            # Methods (BLUE-inspired v0.5)
+            if ch.methods:
+                st.markdown(
+                    f'<div style="height: 0.6rem;"></div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.7rem; color: var(--muted); '
+                    f'letter-spacing: 0.08em; text-transform: uppercase; '
+                    f'margin-bottom: 0.6rem;">'
+                    f'Methods · {len(ch.methods)}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                for m in ch.methods:
+                    if m.recommended:
+                        marker = "◆"
+                        name_color = domain_meta["color"]
+                        badge = (
+                            f'<span style="font-family: JetBrains Mono, monospace; '
+                            f'font-size: 0.6rem; color: {domain_meta["color"]}; '
+                            f'background: {domain_meta["color"]}1a; '
+                            f'padding: 0.1rem 0.5rem; border-radius: 10px; '
+                            f'margin-left: 0.5rem; letter-spacing: 0.06em;">'
+                            f'MAIN</span>'
+                        )
+                    else:
+                        marker = "○"
+                        name_color = "#a8a094"
+                        badge = ""
+                    st.markdown(
+                        f'<div style="margin-bottom: 0.9rem;">'
+                        f'<div style="display: flex; align-items: baseline; '
+                        f'gap: 0.5rem; margin-bottom: 0.25rem;">'
+                        f'<span style="color: {name_color}; font-size: 0.9rem;">{marker}</span>'
+                        f'<span style="font-family: Newsreader, serif; '
+                        f'font-size: 1.05rem; color: {name_color}; '
+                        f'font-weight: 500;">{m.name}</span>'
+                        f'{badge}'
+                        f'</div>'
+                        f'<div style="font-family: Newsreader, serif; '
+                        f'font-style: italic; color: #c4b9a7; '
+                        f'font-size: 0.92rem; margin-left: 1.3rem; '
+                        f'margin-bottom: 0.15rem;">{m.summary}</div>'
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.68rem; color: #8a8478; '
+                        f'margin-left: 1.3rem; letter-spacing: 0.03em;">'
+                        f'When: {m.when_to_use}'
+                        f'</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
 
             # Prerequisites
             if ch.prerequisites:
