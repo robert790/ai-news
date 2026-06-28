@@ -36,6 +36,13 @@ from scrapers import (
 )
 from llm import summarize_batch
 from llm.summarizer import summarize
+from learning import (
+    render_skill_tree,
+    get_chapter,
+    get_all_chapters,
+    DOMAIN_META,
+    COMPLEXITY_META,
+)
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 
@@ -132,6 +139,10 @@ status_html = (
     if config.has_llm()
     else '<span style="color: var(--muted-2);">⚠ demo</span>'
 )
+
+# Session state defaults
+if "selected_chapter" not in st.session_state:
+    st.session_state.selected_chapter = "ch1"
 
 with st.sidebar:
     st.markdown(
@@ -357,60 +368,154 @@ elif SECTION == "news":
 
 
 # =====================================================================
-# SECTION: LEARNING
+# SECTION: LEARNING — Skill tree (v0.4)
 # =====================================================================
 elif SECTION == "learning":
 
     section_header(
         "Learning",
-        "Cursul complet. De la zero la product-ready AI.",
+        "AI Road · skill tree. De la fundație la advanced. Click un nod.",
     )
 
-    with st.container(border=True):
-        st.markdown("### The AI Road")
-        st.markdown(
-            "Un ghid practic care te duce de la zero la product-ready. "
-            "Fiecare capitol leagă teoria de ce se întâmplă azi în știri."
-        )
-        st.markdown(
-            "În v0.4, fiecare capitol va fi queryabil prin RAG — "
-            "pui o întrebare, primești context + legătură directă la capitol."
-        )
-        st.markdown(
-            '<a href="../ai-beginners-guide/index.html" target="_blank">'
-            '→ Deschide cursul complet</a>',
-            unsafe_allow_html=True,
-        )
+    subhead("Cele 15 capitole", "muted")
 
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+    # Skill tree visualization (Cytoscape.js)
+    selected_id = render_skill_tree()
 
-    st.markdown("#### Cuprins")
-    st.caption("Cele 15 capitole ale cursului.")
+    # Initialize / update selection state
+    if selected_id and selected_id in [ch.id for ch in get_all_chapters()]:
+        st.session_state.selected_chapter = selected_id
+    selected_id = st.session_state.get("selected_chapter", "ch1")
 
-    chapters = [
-        ("1",  "Ce este AI-ul astăzi", "MIT, hype, realitate"),
-        ("2",  "Machine learning în 10 minute", "Supervised, unsupervised, reinforcement"),
-        ("3",  "Ce este un LLM", "Transformers, tokenizare, atenție"),
-        ("4",  "Cum antrenezi un model", "Pre-training, fine-tuning, RLHF"),
-        ("5",  "RAG — retrieval augmented generation", "Cum adaugi cunoștințe externe LLM-ului"),
-        ("6",  "Fine-tuning și adapters", "LoRA, QLoRA, PEFT"),
-        ("7",  "Agenți și tool use", "Când LLM-ul încetează să fie doar chatbot"),
-        ("8",  "Evaluare și metrici", "Cum știi dacă modelul tău e bun"),
-        ("9",  "Producție și cost", "Inference, latency, token economics"),
-        ("10", "Safety și alignment", "Ce poate merge prost, cum reduci riscurile"),
-    ]
-    for num, title, blurb in chapters:
+    # --- Chapter detail panel ---
+    ch = get_chapter(selected_id)
+    domain_meta = DOMAIN_META[ch.domain]
+    complexity_meta = COMPLEXITY_META[ch.complexity]
+
+    st.markdown(
+        f'<a id="chapter-detail"></a>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div style="margin-top: 2.5rem;">'
+        f'<div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">'
+        f'<div style="font-family: Newsreader, serif; font-size: 2rem; '
+        f'color: {domain_meta["color"]}; line-height: 1;">{ch.number:02d}</div>'
+        f'<div style="font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
+        f'color: {domain_meta["color"]}; letter-spacing: 0.08em; text-transform: uppercase;">'
+        f'{domain_meta["icon"]} {domain_meta["label"]} · {complexity_meta["label"]}'
+        f'</div>'
+        f'</div>'
+        f'<h2 style="margin-top: 0.25rem; margin-bottom: 0.3rem;">{ch.title}</h2>'
+        f'<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
+        f'font-size: 1.05rem; margin: 0;">{ch.subtitle}</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+
+    cols = st.columns([3, 1])
+    with cols[0]:
         with st.container(border=True):
-            cols = st.columns([1, 6])
+            st.markdown(ch.blurb)
+
+            # Prerequisites
+            if ch.prerequisites:
+                prereq_links = " · ".join(
+                    f"[{get_chapter(p).title[:40]}](#chapter-detail)"
+                    for p in ch.prerequisites
+                )
+                st.markdown(
+                    f'<div style="margin-top: 1rem; font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em;">'
+                    f'Necesită: {prereq_links}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
+
+            st.markdown(
+                '<div style="display: flex; gap: 0.6rem; align-items: center; '
+                'margin-top: 1rem;">'
+                '<span style="font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
+                'color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase;">'
+                'Citește complet:</span>'
+                f'<a href="../ai-beginners-guide/index.html#{ch.anchor}" target="_blank" '
+                f'style="font-family: Inter, sans-serif; font-size: 0.85rem;">'
+                f'→ Deschide capitolul {ch.number} în AI Road</a>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+
+    with cols[1]:
+        with st.container(border=True):
+            st.caption(
+                f'<span style="color: {domain_meta["color"]}; font-family: JetBrains Mono, '
+                f'monospace; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;">'
+                f'{domain_meta["label"]}</span>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<p style="font-family: Newsreader, serif; font-style: italic; '
+                f'color: var(--muted); margin-top: 0.4rem; font-size: 0.92rem; line-height: 1.5;">'
+                f'{domain_meta["blurb"]}</p>',
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                f'<div style="margin-top: 1rem; padding-top: 0.8rem; '
+                f'border-top: 1px solid var(--border); '
+                f'font-family: JetBrains Mono, monospace; font-size: 0.72rem; '
+                f'color: {complexity_meta["color"]};">'
+                f'{complexity_meta["label"]}</div>',
+                unsafe_allow_html=True,
+            )
+
+            # Path navigation — prev/next chapter
+            all_chapters = sorted(get_all_chapters(), key=lambda c: c.number)
+            idx = next((i for i, c in enumerate(all_chapters) if c.id == ch.id), 0)
+            prev_ch = all_chapters[idx - 1] if idx > 0 else None
+            next_ch = all_chapters[idx + 1] if idx < len(all_chapters) - 1 else None
+
+            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+            nav_cols = st.columns(2)
+            with nav_cols[0]:
+                if prev_ch:
+                    if st.button(f"← {prev_ch.number}", key=f"prev-{ch.id}", use_container_width=True):
+                        st.session_state.selected_chapter = prev_ch.id
+                        st.rerun()
+            with nav_cols[1]:
+                if next_ch:
+                    if st.button(f"{next_ch.number} →", key=f"next-{ch.id}", use_container_width=True):
+                        st.session_state.selected_chapter = next_ch.id
+                        st.rerun()
+
+    # --- All chapters list (for those who want to scroll) ---
+    st.markdown("<div style='height: 3rem;'></div>", unsafe_allow_html=True)
+    st.markdown("#### Toate capitolele")
+    st.caption("Sau click direct pe oricare pentru a-l deschide.")
+
+    for c in get_all_chapters():
+        domain = DOMAIN_META[c.domain]
+        is_selected = (c.id == selected_id)
+        border_color = "var(--border-strong)" if is_selected else "var(--border)"
+        with st.container(border=True):
+            cols = st.columns([1, 5, 1])
             with cols[0]:
                 st.markdown(
-                    f'<div style="font-family: Newsreader, serif; font-size: 1.8rem; '
-                    f'color: var(--sage); line-height: 1;">{num}</div>',
+                    f'<div style="font-family: Newsreader, serif; font-size: 1.6rem; '
+                    f'color: {domain["color"]}; line-height: 1;">{c.number:02d}</div>',
                     unsafe_allow_html=True,
                 )
             with cols[1]:
-                st.markdown(f"**{title}**")
-                st.caption(blurb)
+                st.markdown(f"**{c.title}**")
+                st.caption(c.subtitle)
+            with cols[2]:
+                if st.button("Deschide", key=f"open-{c.id}", use_container_width=True):
+                    st.session_state.selected_chapter = c.id
+                    st.rerun()
 
 
 # =====================================================================
