@@ -1,18 +1,12 @@
 """Theme · central design tokens for Ziarul Digital.
 
 Headspace-inspired "infusion" palette: soft warm dark base, four gentle
-accent colors, one per major section. Editorial serif for reading,
-clean sans for UI, mono for tags/meta.
+accent colors (sage / coral / lavender / sky), one per major section.
+Editorial typography (Newsreader serif for reading, Inter for UI,
+JetBrains Mono for tags and meta).
 
-The render_css() function returns a self-contained <style> block that
-Streamlit injects via st.markdown. It encodes:
-  - color tokens (--bg, --surface, --text, --muted, --sage, --coral,
-    --lavender, --sky)
-  - typography stacks
-  - spacing scale
-  - motion tokens (durations + easings)
-  - per-tab accent colors via :nth-child selectors
-  - card hover lift, fade-up reveal keyframes, smooth scroll, shimmer
+Sidebar-first layout: persistent left navigation lets the user flip
+between Azi / News / Learning / Jobs / Prompts without losing context.
 
 Design principle: every pixel must earn its place. No generic gradients,
 no AI-flop aesthetics. Calm + premium + a pleasure to read.
@@ -22,19 +16,20 @@ no AI-flop aesthetics. Calm + premium + a pleasure to read.
 COLORS = {
     # Warm dark base (charcoal, not pure black)
     "bg":         "#1f1d1a",
+    "bg_sidebar": "#161310",   # slightly darker — sidebar contrast
     "surface":    "#2a2723",
     "surface_2":  "#34302a",
     "border":     "#3a3530",
     "border_strong": "#4a443d",
 
     # Text
-    "text":       "#f4ede0",   # paper
+    "text":       "#f4ede0",
     "text_2":     "#d4cebf",
     "muted":      "#8a8478",
     "muted_2":    "#6a6458",
 
-    # Accent "infusion" — soft, one per section
-    "sage":       "#a8c0ae",   # learning + jobs
+    # Accent "infusion"
+    "sage":       "#a8c0ae",   # learning + jobs + azi
     "coral":      "#e8a598",   # news
     "lavender":   "#b5a8c9",   # prompts / apply
     "sky":        "#a5c5d4",   # tools / repos
@@ -46,23 +41,12 @@ COLORS = {
 }
 
 
-# Per-source accent color (used as small badge next to items)
-SOURCE_ACCENT = {
-    "hackernews":      "coral",
-    "huggingface":     "sky",
-    "findarepo":       "lavender",
-    "lobsters":        "sage",
-    "github_trending": "sky",
-    "importai":        "coral",
-}
-
-
-# Per-tab accent (for tab indicator + section accents)
-TAB_ACCENT = {
-    "astazi":  "sage",     # morning glance — calm, neutral
-    "stiri":   "coral",    # news — energetic but soft
-    "invata":  "sage",     # learning
-    "aplica":  "lavender", # prompts
+SECTION_ACCENT = {
+    "azi":      "sage",
+    "news":     "coral",
+    "learning": "sage",
+    "jobs":     "sage",
+    "prompts":  "lavender",
 }
 
 
@@ -90,8 +74,8 @@ SPACING = {
 
 # ===== Motion =====
 MOTION = {
-    "ease":         "cubic-bezier(0.16, 1, 0.3, 1)",     # smooth ease-out
-    "ease_soft":    "cubic-bezier(0.4, 0, 0.2, 1)",     # material-style
+    "ease":         "cubic-bezier(0.16, 1, 0.3, 1)",
+    "ease_soft":    "cubic-bezier(0.4, 0, 0.2, 1)",
     "dur_fast":     "150ms",
     "dur_base":     "240ms",
     "dur_slow":     "400ms",
@@ -101,33 +85,16 @@ MOTION = {
 
 # ===== CSS =====
 def render_css() -> str:
-    """Return the full CSS string for the app."""
     c = COLORS
     f = FONTS
     m = MOTION
-
-    # Per-tab accent colors (used in nth-child rules)
-    tab_colors = {
-        1: c["sage"],       # ASTĂZI
-        2: c["coral"],      # ȘTIRI
-        3: c["sage"],       # ÎNVAȚĂ
-        4: c["lavender"],   # APLICĂ
-    }
-
-    # Build per-tab CSS rules
-    tab_css = "\n".join(
-        f"""  .stTabs [data-baseweb="tab"]:nth-child({i})[aria-selected="true"] {{
-    color: {col} !important;
-    border-bottom: 2px solid {col} !important;
-  }}"""
-        for i, col in tab_colors.items()
-    )
 
     return f"""<style>
   @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {{
     --bg: {c['bg']};
+    --bg-sidebar: {c['bg_sidebar']};
     --surface: {c['surface']};
     --surface-2: {c['surface_2']};
     --border: {c['border']};
@@ -152,6 +119,7 @@ def render_css() -> str:
   }}
 
   html {{ scroll-behavior: smooth; }}
+  * {{ box-sizing: border-box; }}
 
   /* App background */
   .stApp {{
@@ -162,7 +130,11 @@ def render_css() -> str:
     -moz-osx-font-smoothing: grayscale;
   }}
 
-  section.main > div {{ padding-top: 1.5rem; max-width: 1200px; }}
+  section.main > div {{
+    padding-top: 0;
+    padding-bottom: 4rem;
+    max-width: 920px;
+  }}
 
   /* Typography */
   h1, h2, h3, h4, h5, h6 {{
@@ -170,53 +142,111 @@ def render_css() -> str:
     font-weight: 400;
     letter-spacing: -0.01em;
     color: var(--text);
+    margin-top: 0;
   }}
   h1 {{ font-weight: 300; letter-spacing: -0.02em; }}
-  h2 {{ color: var(--text); font-size: 1.75rem; margin: 0 0 0.5rem; }}
-  h3 {{ font-size: 1.25rem; }}
-  h4 {{ font-size: 1.05rem; }}
+  h2 {{ color: var(--text); font-size: 1.85rem; line-height: 1.25; }}
+  h3 {{ font-size: 1.2rem; }}
+  h4 {{ font-size: 1rem; }}
 
   p, li {{ color: var(--text-2); line-height: 1.65; }}
 
-  /* Caption + small text */
+  /* Caption */
   .stCaption, [data-testid="stCaption"] {{
     color: var(--muted) !important;
     font-family: {f['mono']};
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     letter-spacing: 0.02em;
   }}
 
-  /* Tabs */
-  .stTabs [data-baseweb="tab-list"] {{
-    gap: 0;
-    background-color: transparent;
-    border-bottom: 1px solid var(--border);
-    padding: 0;
+  /* Sidebar styling */
+  section[data-testid="stSidebar"] {{
+    background-color: var(--bg-sidebar) !important;
+    border-right: 1px solid var(--border);
   }}
-  .stTabs [data-baseweb="tab"] {{
+  section[data-testid="stSidebar"] > div {{
+    padding-top: 1.5rem;
+    padding-left: 0;
+    padding-right: 0;
+  }}
+
+  /* Sidebar nav items — styled as full-width buttons */
+  section[data-testid="stSidebar"] .stRadio {{
+    margin-top: 0;
+  }}
+  section[data-testid="stSidebar"] .stRadio > label {{
+    display: none;
+  }}
+  section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
+    display: none;
+  }}
+  section[data-testid="stSidebar"] [role="radiogroup"] {{
+    gap: 2px;
+  }}
+  section[data-testid="stSidebar"] [role="radio"] {{
     background-color: transparent;
+    border: none;
     color: var(--muted);
-    padding: 0.85rem 1.25rem;
-    font-family: {f['mono']};
-    font-size: 0.78rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-bottom: 2px solid transparent;
-    transition: color var(--dur-base) var(--ease),
-                border-color var(--dur-base) var(--ease);
+    padding: 0.65rem 1.1rem;
+    font-family: {f['sans']};
+    font-size: 0.92rem;
+    font-weight: 400;
+    border-radius: 8px;
+    margin: 0 0.6rem;
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease),
+                color var(--dur-fast) var(--ease);
+    width: calc(100% - 1.2rem);
   }}
-  .stTabs [data-baseweb="tab"]:hover {{
+  section[data-testid="stSidebar"] [role="radio"]:hover {{
+    background-color: rgba(255, 255, 255, 0.04);
     color: var(--text);
-    background-color: rgba(255, 255, 255, 0.02);
   }}
-{tab_css}
+  section[data-testid="stSidebar"] [role="radio"][aria-checked="true"] {{
+    background-color: rgba(168, 192, 174, 0.12);
+    color: var(--sage);
+  }}
+
+  /* Sidebar branding block */
+  .sidebar-brand {{
+    padding: 0.5rem 1.1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }}
+  .sidebar-brand h2 {{
+    font-family: {f['serif']};
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--text);
+    margin: 0 0 0.2rem;
+    letter-spacing: -0.01em;
+  }}
+  .sidebar-brand p {{
+    font-family: {f['mono']};
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin: 0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }}
+
+  /* Sidebar meta (date, status) */
+  .sidebar-meta {{
+    padding: 1rem 1.1rem 1.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-family: {f['mono']};
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }}
 
   /* Cards */
   [data-testid="stVerticalBlockBorderWrapper"] {{
     background-color: var(--surface);
     border: 1px solid var(--border) !important;
     border-radius: 14px !important;
-    padding: 1.1rem 1.3rem !important;
+    padding: 1.2rem 1.4rem !important;
     transition: transform var(--dur-base) var(--ease),
                 border-color var(--dur-base) var(--ease),
                 box-shadow var(--dur-base) var(--ease);
@@ -234,7 +264,7 @@ def render_css() -> str:
     border: 1px solid var(--border);
     border-radius: 10px;
     font-family: {f['mono']};
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     letter-spacing: 0.04em;
     padding: 0.45rem 0.9rem;
     transition: all var(--dur-fast) var(--ease);
@@ -249,8 +279,8 @@ def render_css() -> str:
   a {{ color: var(--coral) !important; text-decoration: none; transition: opacity var(--dur-fast); }}
   a:hover {{ opacity: 0.75; }}
 
-  /* Code */
-  code {{
+  /* Code blocks */
+  code, pre {{
     background-color: var(--surface-2) !important;
     color: var(--sky) !important;
     font-family: {f['mono']} !important;
@@ -264,32 +294,13 @@ def render_css() -> str:
     from {{ opacity: 0; transform: translateY(8px); }}
     to   {{ opacity: 1; transform: translateY(0); }}
   }}
-  .reveal {{
-    animation: fade-up var(--dur-reveal) var(--ease) both;
-  }}
+  .reveal {{ animation: fade-up var(--dur-reveal) var(--ease) both; }}
   .reveal-1 {{ animation-delay: 0ms; }}
   .reveal-2 {{ animation-delay: 80ms; }}
   .reveal-3 {{ animation-delay: 160ms; }}
   .reveal-4 {{ animation-delay: 240ms; }}
 
-  /* Shimmer for skeleton loaders */
-  @keyframes shimmer {{
-    0%   {{ background-position: -200% 0; }}
-    100% {{ background-position: 200% 0; }}
-  }}
-  .shimmer {{
-    background: linear-gradient(
-      90deg,
-      var(--surface) 0%,
-      var(--surface-2) 50%,
-      var(--surface) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.6s infinite linear;
-    border-radius: 6px;
-  }}
-
-  /* Pulse for "new" badge */
+  /* Pulse for "new" indicators */
   @keyframes pulse-soft {{
     0%, 100% {{ opacity: 0.5; }}
     50%      {{ opacity: 1; }}
@@ -299,14 +310,42 @@ def render_css() -> str:
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--coral);
+    background: var(--sage);
     animation: pulse-soft 2.4s var(--ease-soft) infinite;
     margin-right: 6px;
     vertical-align: middle;
   }}
 
+  /* Section header */
+  .section-header {{
+    margin-bottom: 2rem;
+  }}
+  .section-header h1 {{
+    font-size: 2.2rem;
+    margin: 0 0 0.4rem;
+    line-height: 1.15;
+  }}
+  .section-header .caption {{
+    font-family: {f['serif']};
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin: 0;
+    max-width: 540px;
+  }}
+
+  /* Subsection labels */
+  .subsection-label {{
+    font-family: {f['mono']};
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    color: var(--muted);
+  }}
+
   /* Hide Streamlit chrome */
-  #MainMenu {{ visibility: hidden; }}
-  footer {{ visibility: hidden; }}
+  #MainMenu, footer {{ visibility: hidden; }}
   .viewerBadge_link__qRIco {{ display: none !important; }}
+  header[data-testid="stHeader"] {{ display: none; }}
 </style>"""
