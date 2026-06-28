@@ -1,7 +1,9 @@
-"""Streamlit UI for Ziarul Digital · v0.2.
+"""Streamlit UI for Ziarul Digital · v0.3.
 
 The relaxed engineering workspace. Three tabs:
-  1. 📰 News AI    — daily AI news + trending repos (Hacker News + findarepo)
+  1. 📰 News AI    — daily AI research + discussions + repos + analysis
+                     (HuggingFace Papers · HackerNews · Lobsters ·
+                      findarepo · GitHub Trending · Import AI)
   2. 🎓 Learning   — AI learning path (placeholder for v0.4 RAG module)
   3. 💼 Jobs       — AI job transition helper (placeholder for v0.6)
 
@@ -18,7 +20,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 from scrapers import (
     fetch_hackernews_ai,
     fetch_findarepo_daily,
-    repos_to_news_items,
+    fetch_hf_papers,
+    fetch_lobsters,
+    fetch_github_trending,
+    fetch_importai,
 )
 from llm import summarize_batch
 from llm.summarizer import summarize
@@ -131,62 +136,144 @@ with tab_news:
     st.markdown("### What's new today")
     st.caption("Romanian summaries · global sources · daily updated")
 
-    # ----- Section A: Hacker News AI stories -----
+    # -----------------------------------------------------------------
+    # Section 1 · Today's Research · HuggingFace Daily Papers
+    # -----------------------------------------------------------------
     st.markdown("")
-    st.markdown("#### 🔥 Top stories")
-    st.caption("From Hacker News, scored by community")
+    st.markdown("#### 🔬 Today's Research")
+    st.caption("Top papers trending on HuggingFace")
 
-    @st.cache_data(ttl=1800, show_spinner="Se aduc știrile...")
-    def load_news():
-        raw = fetch_hackernews_ai(limit=15)
-        return summarize_batch(raw)
+    @st.cache_data(ttl=3600, show_spinner="Se încarcă cercetarea...")
+    def load_research():
+        return fetch_hf_papers(limit=5)
 
     with st.spinner(""):
-        news_items = load_news()
+        papers = summarize_batch(load_research())
 
-    if not news_items:
-        st.warning("Nu s-au putut încărca știri. Verifică conexiunea.")
+    if not papers:
+        st.warning("Nu s-au putut încărca lucrări de pe HuggingFace.")
     else:
-        for item in news_items:
-            with st.container(border=True):
-                cols = st.columns([5, 1])
-                with cols[0]:
-                    st.markdown(f"##### [{item.title}]({item.url})")
-                    st.markdown(f"_{item.summary}_")
-                    meta_bits = [f"`{item.source}`", f"⬆ {item.score}"]
-                    if item.author:
-                        meta_bits.append(f"👤 {item.author}")
-                    st.caption(" · ".join(meta_bits))
-                with cols[1]:
-                    if config.PREMIUM_ENABLED:
-                        st.button("🔍 Explică", key=f"news-{item.external_id}", use_container_width=True)
-                    else:
-                        st.button("🔒 Premium", key=f"locked-{item.external_id}", disabled=True, use_container_width=True)
-
-    # ----- Section B: findarepo trending repos -----
-    st.markdown("")
-    st.markdown("#### ⭐ Trending repos (7-day growth)")
-    st.caption("From findarepo.com · measured star velocity, not estimates")
-
-    @st.cache_data(ttl=3600, show_spinner="Se aduc repo-urile...")
-    def load_repos():
-        return fetch_findarepo_daily(limit=10)
-
-    with st.spinner(""):
-        repos = load_repos()
-
-    if not repos:
-        st.warning("Nu s-au putut încărca repo-uri de pe findarepo.")
-    else:
-        for r in repos:
+        for p in papers:
             with st.container(border=True):
                 cols = st.columns([6, 1])
                 with cols[0]:
-                    st.markdown(f"##### [{r.full_name}]({r.url})")
-                    st.markdown(f"_{r.description}_")
-                    st.caption(f"`{r.language}` · ★ {r.stars} total · ↗ **+{r.growth}/7d** stars")
+                    st.markdown(f"##### [{p.title}]({p.url})")
+                    st.markdown(f"_{p.summary}_")
+                    meta_bits = [f"📄 HF Papers", f"⬆ {p.score}"]
+                    if p.author:
+                        meta_bits.append(f"👤 {p.author[:40]}")
+                    st.caption(" · ".join(meta_bits))
                 with cols[1]:
-                    st.button("💾 Save", key=f"save-{r.full_name}", use_container_width=True)
+                    if config.PREMIUM_ENABLED:
+                        st.button("🔍 Explică", key=f"paper-{p.external_id}", use_container_width=True)
+                    else:
+                        st.button("🔒", key=f"paper-lock-{p.external_id}", disabled=True, use_container_width=True)
+
+    # -----------------------------------------------------------------
+    # Section 2 · Community Buzz · HackerNews + Lobsters side-by-side
+    # -----------------------------------------------------------------
+    st.markdown("")
+    st.markdown("#### 💬 Community Buzz")
+    st.caption("What the dev community is talking about")
+
+    col_hn, col_lob = st.columns(2)
+
+    @st.cache_data(ttl=1800, show_spinner="Se încarcă discuțiile...")
+    def load_hn():
+        return summarize_batch(fetch_hackernews_ai(limit=6))
+
+    @st.cache_data(ttl=1800, show_spinner="Se încarcă Lobsters...")
+    def load_lobsters():
+        return summarize_batch(fetch_lobsters(limit=6))
+
+    with col_hn:
+        st.markdown("**🔥 HackerNews**")
+        with st.spinner(""):
+            hn_items = load_hn()
+        if not hn_items:
+            st.caption("Nu s-au putut încărca știri HN.")
+        for item in hn_items:
+            with st.container(border=True):
+                st.markdown(f"[{item.title}]({item.url})")
+                st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'}")
+
+    with col_lob:
+        st.markdown("**🦞 Lobsters**")
+        with st.spinner(""):
+            lob_items = load_lobsters()
+        if not lob_items:
+            st.caption("Nu s-au putut încărca povești Lobsters.")
+        for item in lob_items:
+            with st.container(border=True):
+                st.markdown(f"[{item.title}]({item.url})")
+                st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'}")
+
+    # -----------------------------------------------------------------
+    # Section 3 · Trending Repos · findarepo + GitHub Trending
+    # -----------------------------------------------------------------
+    st.markdown("")
+    st.markdown("#### ⭐ Trending Repos")
+    st.caption("Hottest GitHub repos right now")
+
+    col_fr, col_gh = st.columns(2)
+
+    @st.cache_data(ttl=3600, show_spinner="Se încarcă findarepo...")
+    def load_repos():
+        return fetch_findarepo_daily(limit=6)
+
+    @st.cache_data(ttl=3600, show_spinner="Se încarcă GitHub Trending...")
+    def load_gh_trending():
+        return fetch_github_trending(limit=6)
+
+    with col_fr:
+        st.markdown("**📊 findarepo (7-day growth)**")
+        with st.spinner(""):
+            repos = load_repos()
+        if not repos:
+            st.caption("Nu s-au putut încărca repo-uri findarepo.")
+        for r in repos:
+            with st.container(border=True):
+                st.markdown(f"[{r.full_name}]({r.url})")
+                st.caption(f"★ {r.stars} total · ↗ +{r.growth}/7d · `{r.language}`")
+
+    with col_gh:
+        st.markdown("**🔥 GitHub Trending (today)**")
+        with st.spinner(""):
+            gh_items = load_gh_trending()
+        if not gh_items:
+            st.caption("Nu s-au putut încărca repo-uri GitHub Trending.")
+        for it in gh_items:
+            with st.container(border=True):
+                st.markdown(f"[{it.title}]({it.url})")
+                tags_short = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
+                st.caption(f"⬆ {it.score} stars today · `{tags_short}`")
+
+    # -----------------------------------------------------------------
+    # Section 4 · Weekly Analysis · Import AI
+    # -----------------------------------------------------------------
+    st.markdown("")
+    st.markdown("#### 📰 Deep Analysis")
+    st.caption("Weekly essays from Jack Clark's Import AI")
+
+    @st.cache_data(ttl=86400, show_spinner="Se încarcă Import AI...")
+    def load_importai():
+        return summarize_batch(fetch_importai(limit=3))
+
+    with st.spinner(""):
+        ai_items = load_importai()
+
+    if not ai_items:
+        st.warning("Nu s-au putut încărca articole Import AI.")
+    else:
+        for it in ai_items:
+            with st.container(border=True):
+                cols = st.columns([6, 1])
+                with cols[0]:
+                    st.markdown(f"##### [{it.title}]({it.url})")
+                    st.markdown(f"_{it.summary}_")
+                    st.caption(f"📝 {it.author} · {it.published_at[:10]}")
+                with cols[1]:
+                    st.button("📖 Citește", key=f"ai-{it.external_id}", use_container_width=True)
 
 
 # =====================================================================
@@ -298,4 +385,4 @@ with tab_jobs:
 # ===== Footer =====
 st.markdown("")
 st.markdown("---")
-st.caption("Ziarul Digital · v0.2 · built for engineers who sip coffee · sources: Hacker News, findarepo.com, Hugging Face, Import AI, The Batch")
+st.caption("Ziarul Digital · v0.3 · built for engineers who sip coffee · sources: HuggingFace Papers, HackerNews, Lobsters, findarepo, GitHub Trending, Import AI")

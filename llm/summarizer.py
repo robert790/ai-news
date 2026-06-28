@@ -13,26 +13,38 @@ from scrapers import NewsItem
 
 # ---------- Demo fallback (no API key) ----------
 
+_SOURCE_NAMES_RO = {
+    "hackernews": "Hacker News",
+    "findarepo": "findarepo",
+    "huggingface": "HuggingFace",
+    "lobsters": "Lobsters",
+    "github_trending": "GitHub Trending",
+    "importai": "Import AI",
+    "reddit": "Reddit",
+}
+
+
 def _demo_summary(item: NewsItem, language: str = "ro") -> str:
     """Cheap deterministic summary so the UI is never empty."""
+    source_label = _SOURCE_NAMES_RO.get(item.source, item.source)
     if language == "ro":
+        score_str = f" · {item.score} puncte" if item.score else ""
         return (
-            f"O postare pe Hacker News despre {item.title[:80]}. "
-            f"A primit {item.score} puncte de la comunitate. "
+            f"O postare pe {source_label} despre {item.title[:80]}.{score_str} "
             f"Citește mai mult la sursă."
         )
+    score_str = f" · {item.score} points" if item.score else ""
     return (
-        f"A Hacker News story about {item.title[:80]}. "
-        f"Got {item.score} points from the community. "
+        f"A {source_label} story about {item.title[:80]}.{score_str} "
         f"Read more at the source."
     )
 
 
 # ---------- Real LLM path ----------
 
-SYSTEM_PROMPT_RO = """Ești un redactor AI pentru un buletin de știri tech în limba română, destinat cititorilor interesați de AI dar care nu sunt ingineri. Rezumă fiecare știre în 2-3 propoziții scurte, în română, cu un ton prietenos și fără jargon inutil. Dacă știrea este relevantă pentru România sau Europa, menționează astfel clar. Dacă nu, prezintă-o ca pe o știre globală importantă."""
+SYSTEM_PROMPT_RO = """Ești un redactor AI pentru un buletin de știri tech în limba română, destinat cititorilor interesați de AI dar care nu sunt ingineri. Rezumă fiecare știre în 2-3 propoziții scurte, în română, cu un ton prietenos și fără jargon inutil. Dacă știrea este relevantă pentru România sau Europa, menționează astfel clar. Dacă nu, prezintă-o ca pe o știre globală importantă. Fii specific la conținut, nu general."""
 
-SYSTEM_PROMPT_EN = """You are an AI editor for a friendly tech news bulletin. Summarize each story in 2-3 short sentences, plain language, no jargon. If the story is relevant to Romania or Europe, mention that clearly. Otherwise frame it as an important global story."""
+SYSTEM_PROMPT_EN = """You are an AI editor for a friendly tech news bulletin. Summarize each story in 2-3 short sentences, plain language, no jargon. If the story is relevant to Romania or Europe, mention that clearly. Otherwise frame it as an important global story. Be specific to the content, not generic."""
 
 
 def _build_user_prompt(item: NewsItem) -> str:
