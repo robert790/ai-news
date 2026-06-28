@@ -20,13 +20,13 @@ DATA_DIR.mkdir(exist_ok=True)
 CHROMA_PATH = os.getenv("CHROMA_PATH", str(ROOT / "data" / "chroma"))
 
 # API keys
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
-# LLM endpoints (DeepSeek is OpenAI-compatible)
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-DEEPSEEK_MODEL = "deepseek-chat"            # V3, cheap + good
-DEEPSEEK_REASONER_MODEL = "deepseek-reasoner"  # R1, for hard analysis
+# LLM endpoints (Groq is OpenAI-compatible, free tier is generous)
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GROQ_MODEL = "llama-3.1-8b-instant"        # fast, free, great for summaries
+GROQ_MODEL_LARGE = "llama-3.1-70b-versatile"  # slower, used for premium
 ANTHROPIC_MODEL = "claude-sonnet-4-5"       # for premium tier
 
 # App behavior
@@ -35,8 +35,9 @@ NEWS_CACHE_HOURS = int(os.getenv("NEWS_CACHE_HOURS", "24"))
 PREMIUM_ENABLED = os.getenv("PREMIUM_ENABLED", "false").lower() == "true"
 
 
-def has_deepseek() -> bool:
-    return bool(DEEPSEEK_API_KEY)
+def has_llm() -> bool:
+    """True if any LLM API key is configured."""
+    return bool(GROQ_API_KEY)
 
 
 def has_anthropic() -> bool:

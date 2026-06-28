@@ -1,7 +1,8 @@
 """LLM summarizer · takes a news item and produces a Romanian (or English) summary.
 
-Uses DeepSeek (OpenAI-compatible) by default. Falls back to a deterministic
-template-based summary when no API key is set, so the app still demos.
+Uses Groq (OpenAI-compatible) by default. Groq has a generous free tier and
+runs Llama 3.1 at very high speed. Falls back to a deterministic template
+when no API key is set, so the app still demos.
 
 The summary style target: 2-3 sentences, friendly, no jargon, explains
 why a Romanian reader should care.
@@ -57,17 +58,17 @@ Snippet: {item.summary or '(no snippet)'}
 Scrie rezumatul în 2-3 propoziții."""
 
 
-def _summarize_with_deepseek(item: NewsItem, language: str = "ro") -> str:
-    """Call DeepSeek via OpenAI-compatible API."""
-    if not config.has_deepseek():
+def _summarize_with_groq(item: NewsItem, language: str = "ro") -> str:
+    """Call Groq via the OpenAI-compatible API."""
+    if not config.has_llm():
         return _demo_summary(item, language)
 
-    client = OpenAI(api_key=config.DEEPSEEK_API_KEY, base_url=config.DEEPSEEK_BASE_URL)
+    client = OpenAI(api_key=config.GROQ_API_KEY, base_url=config.GROQ_BASE_URL)
     system = SYSTEM_PROMPT_RO if language == "ro" else SYSTEM_PROMPT_EN
 
     try:
         resp = client.chat.completions.create(
-            model=config.DEEPSEEK_MODEL,
+            model=config.GROQ_MODEL,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": _build_user_prompt(item)},
@@ -77,7 +78,7 @@ def _summarize_with_deepseek(item: NewsItem, language: str = "ro") -> str:
         )
         return resp.choices[0].message.content.strip()
     except Exception as e:
-        print(f"[summarizer] DeepSeek call failed: {e}")
+        print(f"[summarizer] Groq call failed: {e}")
         return _demo_summary(item, language)
 
 
@@ -85,7 +86,7 @@ def summarize(item: NewsItem, language: str = None) -> str:
     """Public entry point. Picks language from config if not specified."""
     if language is None:
         language = config.APP_LANGUAGE if config.APP_LANGUAGE in ("ro", "en") else "ro"
-    return _summarize_with_deepseek(item, language)
+    return _summarize_with_groq(item, language)
 
 
 def summarize_batch(items: list, language: str = None) -> list:

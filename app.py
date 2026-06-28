@@ -118,28 +118,28 @@ with col_title:
     st.markdown("*Daily AI for engineers. Sip your coffee, scan the world.*")
 with col_status:
     st.markdown(f"`{datetime.now().strftime('%a %d %b · %H:%M')}`")
-    if not config.has_deepseek():
-        st.caption("⚠ demo mode · add DEEPSEEK_API_KEY")
+    if not config.has_llm():
+        st.caption("⚠ demo mode · add GROQ_API_KEY")
     else:
-        st.caption("✓ DeepSeek connected")
+        st.caption("✓ Groq connected")
 
 
 # ===== DEBUG BLOCK (temporary — helps diagnose env var pickup) =====
 with st.expander("🔧 Debug · env state", expanded=False):
     import os
-    raw_key = os.getenv("DEEPSEEK_API_KEY", "")
-    all_deep = {k: ("*" * min(len(v), 8) + f" ({len(v)} chars)" if v else "∅")
+    raw_key = os.getenv("GROQ_API_KEY", "")
+    all_groq = {k: ("*" * min(len(v), 8) + f" ({len(v)} chars)" if v else "∅")
                 for k, v in os.environ.items()
-                if "DEEP" in k.upper() or "deepseek" in k.lower()}
-    if all_deep:
-        env_dump = "\n  ".join(f"{k}: {v}" for k, v in all_deep.items())
+                if "GROQ" in k.upper() or "groq" in k.lower()}
+    if all_groq:
+        env_dump = "\n  ".join(f"{k}: {v}" for k, v in all_groq.items())
     else:
         env_dump = "(none)"
     st.code(
-        f"DEEPSEEK_API_KEY length : {len(raw_key)}\n"
-        f"DEEPSEEK_API_KEY prefix : {raw_key[:7]!r}\n"
-        f"has_deepseek()          : {config.has_deepseek()}\n"
-        f"All env vars with DEEP/deepseek:\n  {env_dump}",
+        f"GROQ_API_KEY length : {len(raw_key)}\n"
+        f"GROQ_API_KEY prefix : {raw_key[:7]!r}\n"
+        f"has_llm()          : {config.has_llm()}\n"
+        f"All env vars with GROQ/groq:\n  {env_dump}",
         language="text",
     )
 
