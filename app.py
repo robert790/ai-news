@@ -159,6 +159,16 @@ def column_header(label: str, icon: str, count: int, color: str) -> None:
     )
 
 
+def live_badge(text: str = "LIVE") -> None:
+    """Render a pulsing LIVE indicator badge. Used on data feed sections."""
+    st.markdown(
+        f'<span class="live-badge">'
+        f'<span class="status-dot"></span>{text}'
+        f'</span>',
+        unsafe_allow_html=True,
+    )
+
+
 # ===== Sidebar =====
 now = datetime.now(ZoneInfo("Europe/Bucharest"))
 date_short = now.strftime("%a %d %b").lower()
@@ -173,20 +183,39 @@ if "selected_chapter" not in st.session_state:
     st.session_state.selected_chapter = "ch1"
 
 with st.sidebar:
-    # Brand block — radar icon + name + tagline
-    # SVG is static for now; pulse animation lands in next commit (radar motion pass)
+    # Top status bar — system tray
     st.markdown(
-        f'<div class="sidebar-brand">'
-        f'<div class="brand-row">'
-        f'<svg width="22" height="22" viewBox="0 0 22 22" class="radar-icon">'
-        f'<circle cx="11" cy="11" r="9" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.4"/>'
-        f'<circle cx="11" cy="11" r="5" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.7"/>'
-        f'<circle cx="11" cy="11" r="2" fill="#a8c0ae"/>'
-        f'</svg>'
-        f'<h2>OpenRadar</h2>'
-        f'</div>'
-        f'<p>Open signal for the AI world</p>'
-        f'</div>',
+        '<div class="sb-statusbar">'
+        '<span class="sb-status-name">▣ Open Radar</span>'
+        '<span class="sb-version">v2.1</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # BRAND frame — crosshair + name + tagline
+    st.markdown(
+        '<div class="sb-frame-label">[ BRAND ]</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="sb-frame">'
+        '<div class="sb-brand">'
+        '<svg width="20" height="20" viewBox="0 0 20 20" class="crosshair">'
+        '<circle cx="10" cy="10" r="7" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.55"/>'
+        '<line x1="10" y1="0" x2="10" y2="20" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
+        '<line x1="0" y1="10" x2="20" y2="10" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
+        '<circle cx="10" cy="10" r="1.6" fill="#a8c0ae"/>'
+        '</svg>'
+        '<h2>OpenRadar</h2>'
+        '</div>'
+        '<div class="tagline">OSINT signal feed · since 2026</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # SECTIONS frame label
+    st.markdown(
+        '<div class="sb-frame-label">[ SECTIONS ]</div>',
         unsafe_allow_html=True,
     )
 
@@ -194,22 +223,38 @@ with st.sidebar:
         "Navigate",
         options=["azi", "news", "learning", "jobs", "prompts"],
         format_func={
-            "azi":      "☀️  Azi",
-            "news":     "📡  News",
-            "learning": "📚  Learning",
-            "jobs":     "💼  Jobs",
-            "prompts":  "🛠  Prompts",
+            "azi":      "▸  Azi",
+            "news":     "▸  News",
+            "learning": "▸  Learning",
+            "jobs":     "▸  Jobs",
+            "prompts":  "▸  Prompts",
         }.get,
         index=0,
         label_visibility="hidden",
         key="section",
     )
 
+    # TELEMETRY frame — coordinate readouts
     st.markdown(
-        f'<div class="sidebar-meta">'
-        f'<div>{date_short}</div>'
-        f'<div style="margin-top: 0.3rem;">{status_html}</div>'
+        '<div class="sb-frame-label">[ TELEMETRY ]</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="sb-frame">'
+        f'<div class="sb-telemetry-row"><span class="k">LAT</span><span class="v">44.4268°N</span></div>'
+        f'<div class="sb-telemetry-row"><span class="k">LON</span><span class="v">26.1025°E</span></div>'
+        f'<div class="sb-telemetry-divider"></div>'
+        f'<div class="sb-telemetry-row"><span class="k">DATE</span><span class="v">{date_short}</span></div>'
+        f'<div class="sb-telemetry-row"><span class="k">SESSION</span><span class="v">ops-7a3f</span></div>'
+        f'<div class="sb-telemetry-row"><span class="k">STATUS</span><span class="v">'
+        f'<span class="status-dot"></span>ONLINE</span></div>'
         f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Footer
+    st.markdown(
+        '<div class="sb-footer">━━━ OpenRadar ━━━</div>',
         unsafe_allow_html=True,
     )
 
@@ -223,6 +268,7 @@ if SECTION == "azi":
         "Azi",
         "Top 3 din fiecare. Bea cafeaua, scanează lumea, pleci la treabă.",
     )
+    live_badge("LIVE FEED")
 
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 

@@ -121,9 +121,14 @@ def render_css() -> str:
   html {{ scroll-behavior: smooth; }}
   * {{ box-sizing: border-box; }}
 
-  /* App background */
+  /* App background — subtle tactical grid (graph-paper feel) */
   .stApp {{
     background-color: var(--bg);
+    background-image:
+      linear-gradient(to right, rgba(168, 192, 174, 0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(168, 192, 174, 0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-attachment: fixed;
     color: var(--text);
     font-family: {f['sans']};
     -webkit-font-smoothing: antialiased;
@@ -170,7 +175,7 @@ def render_css() -> str:
     padding-right: 0;
   }}
 
-  /* Sidebar nav items — styled as full-width buttons */
+  /* Sidebar nav items — tactical flat style with left-border accent */
   section[data-testid="stSidebar"] .stRadio {{
     margin-top: 0;
   }}
@@ -181,97 +186,175 @@ def render_css() -> str:
     display: none;
   }}
   section[data-testid="stSidebar"] [role="radiogroup"] {{
-    gap: 2px;
+    gap: 0;
   }}
   section[data-testid="stSidebar"] [role="radio"] {{
     background-color: transparent;
     border: none;
+    border-left: 2px solid transparent;
     color: var(--muted);
-    padding: 0.65rem 1.1rem;
-    font-family: {f['sans']};
-    font-size: 0.92rem;
+    padding: 0.7rem 1rem 0.7rem 1.1rem;
+    font-family: {f['mono']};
+    font-size: 0.78rem;
     font-weight: 400;
-    border-radius: 8px;
-    margin: 0 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 0;
+    margin: 0;
     cursor: pointer;
     transition: background-color var(--dur-fast) var(--ease),
-                color var(--dur-fast) var(--ease);
-    width: calc(100% - 1.2rem);
+                color var(--dur-fast) var(--ease),
+                border-left-color var(--dur-fast) var(--ease);
   }}
   section[data-testid="stSidebar"] [role="radio"]:hover {{
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: rgba(168, 192, 174, 0.05);
     color: var(--text);
+    border-left-color: var(--border-strong);
   }}
   section[data-testid="stSidebar"] [role="radio"][aria-checked="true"] {{
-    background-color: rgba(168, 192, 174, 0.12);
+    background-color: rgba(168, 192, 174, 0.1);
     color: var(--sage);
+    border-left-color: var(--sage);
   }}
 
-  /* Sidebar branding block */
-  .sidebar-brand {{
-    padding: 0.5rem 1.1rem 1.5rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border);
-  }}
-  .brand-row {{
+  /* Sidebar status bar (top tray) */
+  .sb-statusbar {{
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    margin-bottom: 0.3rem;
-  }}
-  .radar-icon {{
-    flex-shrink: 0;
-  }}
-  .sidebar-brand h2 {{
-    font-family: {f['serif']};
-    font-size: 1.3rem;
-    font-weight: 400;
-    color: var(--text);
-    margin: 0;
-    letter-spacing: -0.01em;
-  }}
-  .sidebar-brand p {{
+    justify-content: space-between;
+    padding: 0 1.1rem 0.8rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
     font-family: {f['mono']};
-    font-size: 0.66rem;
+    font-size: 0.65rem;
     color: var(--muted);
-    margin: 0;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }}
+  .sb-statusbar .sb-status-name {{
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-2);
+  }}
+  .sb-statusbar .sb-version {{
+    color: var(--muted-2);
+  }}
 
-  /* Sidebar meta (date, status) */
-  .sidebar-meta {{
-    padding: 1rem 1.1rem 1.5rem;
-    margin-top: 1rem;
-    border-top: 1px solid var(--border);
+  /* Sidebar frame — generic boxed container with label */
+  .sb-frame {{
+    background-color: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
+    padding: 0.7rem 0.9rem;
+    margin: 0 0.8rem 0.9rem;
     font-family: {f['mono']};
     font-size: 0.7rem;
+    color: var(--text-2);
+    letter-spacing: 0.03em;
+    line-height: 1.55;
+  }}
+  .sb-frame-label {{
+    font-family: {f['mono']};
+    font-size: 0.62rem;
     color: var(--muted);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 0.4rem 0.9rem;
+    padding-left: 0;
   }}
 
-  /* Cards */
+  /* Brand block — crosshair + name + tagline */
+  .sb-brand {{
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.2rem 0;
+  }}
+  .sb-brand .crosshair {{
+    flex-shrink: 0;
+  }}
+  .sb-brand h2 {{
+    font-family: {f['mono']};
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0;
+  }}
+  .sb-brand .tagline {{
+    font-family: {f['mono']};
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.45rem;
+    padding-top: 0.45rem;
+    border-top: 1px solid var(--border);
+  }}
+
+  /* Telemetry frame — coordinate readouts */
+  .sb-telemetry-row {{
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }}
+  .sb-telemetry-row .k {{
+    color: var(--muted);
+  }}
+  .sb-telemetry-row .v {{
+    color: var(--text-2);
+  }}
+  .sb-telemetry-divider {{
+    height: 1px;
+    background: var(--border);
+    margin: 0.45rem 0;
+  }}
+  .status-dot {{
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sage);
+    margin-right: 5px;
+    vertical-align: middle;
+    animation: pulse-soft 2.4s var(--ease-soft) infinite;
+    box-shadow: 0 0 6px rgba(168, 192, 174, 0.5);
+  }}
+
+  /* Sidebar footer */
+  .sb-footer {{
+    padding: 0.9rem 1.1rem;
+    border-top: 1px solid var(--border);
+    font-family: {f['mono']};
+    font-size: 0.62rem;
+    color: var(--muted-2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+  }}
+
+  /* Cards — sharp tactical corners */
   [data-testid="stVerticalBlockBorderWrapper"] {{
     background-color: var(--surface);
-    border: 1px solid var(--border) !important;
-    border-radius: 14px !important;
+    border: 1px solid var(--border-strong) !important;
+    border-radius: 2px !important;
     padding: 1.2rem 1.4rem !important;
-    transition: transform var(--dur-base) var(--ease),
-                border-color var(--dur-base) var(--ease),
-                box-shadow var(--dur-base) var(--ease);
+    transition: border-color var(--dur-base) var(--ease),
+                background-color var(--dur-base) var(--ease);
   }}
   [data-testid="stVerticalBlockBorderWrapper"]:hover {{
-    transform: translateY(-2px);
-    border-color: var(--border-strong) !important;
-    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+    border-color: var(--sage) !important;
+    background-color: var(--surface-2);
   }}
 
-  /* Buttons */
+  /* Buttons — sharp tactical corners */
   .stButton > button {{
     background-color: transparent;
     color: var(--text-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
     font-family: {f['mono']};
     font-size: 0.74rem;
     letter-spacing: 0.04em;
@@ -280,7 +363,7 @@ def render_css() -> str:
   }}
   .stButton > button:hover {{
     background-color: var(--surface-2);
-    border-color: var(--border-strong);
+    border-color: var(--sage);
     color: var(--text);
   }}
 
@@ -325,7 +408,7 @@ def render_css() -> str:
     vertical-align: middle;
   }}
 
-  /* Section header */
+  /* Section header — bracket markers via CSS pseudo */
   .section-header {{
     margin-bottom: 2rem;
   }}
@@ -334,6 +417,26 @@ def render_css() -> str:
     margin: 0 0 0.4rem;
     line-height: 1.15;
   }}
+  .section-header h1::before {{
+    content: "[ ";
+    font-family: {f['mono']};
+    color: var(--muted);
+    font-weight: 300;
+    font-size: 0.7em;
+    vertical-align: 0.25em;
+    margin-right: 0.2em;
+    letter-spacing: 0;
+  }}
+  .section-header h1::after {{
+    content: " ]";
+    font-family: {f['mono']};
+    color: var(--muted);
+    font-weight: 300;
+    font-size: 0.7em;
+    vertical-align: 0.25em;
+    margin-left: 0.2em;
+    letter-spacing: 0;
+  }}
   .section-header .caption {{
     font-family: {f['serif']};
     font-style: italic;
@@ -341,6 +444,28 @@ def render_css() -> str:
     font-size: 1.05rem;
     margin: 0;
     max-width: 540px;
+  }}
+
+  /* Live badge — pulsing signal indicator */
+  .live-badge {{
+    display: inline-flex;
+    align-items: center;
+    font-family: {f['mono']};
+    font-size: 0.65rem;
+    color: var(--sage);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--sage);
+    border-radius: 2px;
+    background: rgba(168, 192, 174, 0.06);
+    margin-left: 0.8rem;
+    vertical-align: middle;
+  }}
+  .live-badge .status-dot {{
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
   }}
 
   /* Subsection labels */
