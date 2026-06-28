@@ -1,4 +1,4 @@
-"""Theme · central design tokens for Ziarul Digital.
+"""Theme · central design tokens for OpenRadar.
 
 Headspace-inspired "infusion" palette: soft warm dark base, four gentle
 accent colors (sage / coral / lavender / sky), one per major section.
@@ -213,12 +213,21 @@ def render_css() -> str:
     margin-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);
   }}
+  .brand-row {{
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.3rem;
+  }}
+  .radar-icon {{
+    flex-shrink: 0;
+  }}
   .sidebar-brand h2 {{
     font-family: {f['serif']};
     font-size: 1.3rem;
     font-weight: 400;
     color: var(--text);
-    margin: 0 0 0.2rem;
+    margin: 0;
     letter-spacing: -0.01em;
   }}
   .sidebar-brand p {{

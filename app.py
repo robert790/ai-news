@@ -1,4 +1,4 @@
-"""Streamlit UI for Ziarul Digital · v2.0.
+"""Streamlit UI for OpenRadar · v2.1.
 
 Sidebar-first navigation. Always-visible nav lets users flip between
 the three top-level sides — Learning, Jobs, News — plus Azi (default
@@ -49,7 +49,7 @@ from theme import render_css, COLORS, SECTION_ACCENT
 
 # ===== Page config =====
 st.set_page_config(
-    page_title="Ziarul Digital",
+    page_title="OpenRadar",
     page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -173,10 +173,19 @@ if "selected_chapter" not in st.session_state:
     st.session_state.selected_chapter = "ch1"
 
 with st.sidebar:
+    # Brand block — radar icon + name + tagline
+    # SVG is static for now; pulse animation lands in next commit (radar motion pass)
     st.markdown(
         f'<div class="sidebar-brand">'
-        f'<h2>📡 Ziarul Digital</h2>'
-        f'<p>Daily AI briefing</p>'
+        f'<div class="brand-row">'
+        f'<svg width="22" height="22" viewBox="0 0 22 22" class="radar-icon">'
+        f'<circle cx="11" cy="11" r="9" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.4"/>'
+        f'<circle cx="11" cy="11" r="5" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.7"/>'
+        f'<circle cx="11" cy="11" r="2" fill="#a8c0ae"/>'
+        f'</svg>'
+        f'<h2>OpenRadar</h2>'
+        f'</div>'
+        f'<p>Open signal for the AI world</p>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -705,7 +714,7 @@ st.markdown(
     '<div style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 4rem; '
     'font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
     'color: var(--muted-2); text-align: center; letter-spacing: 0.04em;">'
-    'Ziarul Digital · v2.0 · pentru ingineri care beau cafeaua cu ochii pe lume'
+    'OpenRadar · v2.1 · pentru ingineri care beau cafeaua cu ochii pe lume'
     '</div>',
     unsafe_allow_html=True,
 )
