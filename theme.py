@@ -761,29 +761,60 @@ def render_css() -> str:
   }}
 
   /* ============================================
-     Loading-screen tip strip (Apple-clean, single-line ticker)
+     Top bar — left = LIVE FEED, right = tips corner
      ============================================ */
-  .tips-strip {{
+  .top-bar {{
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin: 0.6rem 0 1rem;
-    padding: 0.55rem 0.85rem;
-    background: transparent;
-    border-radius: 6px;
-    font-family: var(--mono-tac);
-    color: var(--muted);
-    font-size: 0.78rem;
-    line-height: 1.4;
-    overflow: hidden;
-    min-height: 36px;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0.6rem 0 1.4rem;
+    min-height: 38px;
   }}
-  .tips-icon {{ font-size: 0.85rem; flex-shrink: 0; }}
+  .top-bar-left {{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+  }}
+  .top-bar-right {{
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+  }}
+
+  /* ============================================
+     Tips corner pill (compact, top-right cycling)
+     ============================================ */
+  .tips-corner {{
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 400px;
+    max-width: 50vw;
+    padding: 0.45rem 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: {f['mono_tactical']};
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.3;
+    overflow: hidden;
+    min-height: 32px;
+  }}
+  .tips-icon {{
+    font-size: 0.7rem;
+    color: var(--sage);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }}
   .tips-slot {{
     position: relative;
     flex: 1;
     min-width: 0;
-    height: 1.4em;
+    height: 1.3em;
   }}
   .tips-cat {{
     display: inline-block;
@@ -791,7 +822,7 @@ def render_css() -> str:
     margin-right: 6px;
     border-radius: 2px;
     color: var(--sage);
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     letter-spacing: 0.08em;
   }}
   .tips-cat.LINUX,    .tips-cat.SHELL {{ color: #a8d9b3; }}
@@ -820,7 +851,7 @@ def render_css() -> str:
     margin-left: auto;
     padding-left: 1rem;
     color: var(--muted-2);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }}
 
   /* 24s loop = 6s per tip * 4 tips. Visible 4.5s, fade 1.5s. */
@@ -842,6 +873,27 @@ def render_css() -> str:
       opacity: 1 !important;
     }}
     .tip-line:not(:first-child) {{ display: none; }}
+  }}
+
+  /* Tablet — keep tips corner but slightly tighter */
+  @media (max-width: 1024px) {{
+    .top-bar-right {{ max-width: 320px; }}
+    .tips-corner {{ font-size: 0.68rem; }}
+  }}
+
+  /* Mobile — stack: LIVE FEED on top, tips below in its own row */
+  @media (max-width: 640px) {{
+    .top-bar {{
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.6rem;
+    }}
+    .top-bar-right {{
+      max-width: 100%;
+      width: 100%;
+      justify-content: flex-start;
+    }}
+    .tips-corner {{ max-width: 100%; }}
   }}
 
   /* Subsection labels */

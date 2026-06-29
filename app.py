@@ -249,15 +249,10 @@ def or_card(
     )
 
 
-def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
-    """Render a single-line cycling dev-tip ticker.
-
-    Picks `n` random tips once per session (stable), renders them as a
-    horizontal strip below the section header. CSS fades between them.
-
-    Args:
-        n: how many tips to embed in the rotation (4 reads well).
-        seed_key: session_state key — change to reseed the tip selection.
+def _tips_corner_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
+    """Build the HTML for a compact cycling dev-tip pill. Returns a string
+    so it can be embedded inside a parent `.top-bar` without Streamlit
+    injecting a wrapper `<div>` between them.
     """
     if seed_key not in st.session_state:
         rng = random.Random()
@@ -267,34 +262,54 @@ def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
     picked = st.session_state[seed_key]
 
     rows: list[str] = []
-    for cat, body, attrib in picked:
+    for cat, body, _attrib in picked:
         body_esc = (
             body.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
         )
-        attrib_esc = (
-            attrib.replace("&", "&amp;")
-                  .replace("<", "&lt;")
-                  .replace(">", "&gt;")
-        )
         rows.append(
             f'<div class="tip-line">'
             f'<span class="tips-cat {cat}">{cat}</span>'
             f'<span class="body">{body_esc}</span>'
-            f'<span class="attrib">— {attrib_esc}</span>'
             f'</div>'
         )
 
-    html = (
-        '<div class="tips-strip" aria-label="developer tip">'
+    return (
+        '<div class="tips-corner" aria-label="developer tip">'
         '<span class="tips-icon">tip</span>'
         '<div class="tips-slot">'
         + "".join(rows) +
         '</div>'
         '</div>'
     )
+
+
+def top_bar(left_html: str, right_key: str = "tips_corner_v1") -> None:
+    """Render a horizontal bar with content on the left and the cycling
+    dev-tip pill anchored to the right. Used at the top of the Azi section.
+
+    The whole bar is one HTML string so Streamlit doesn't wrap the inner
+    pieces in their own `<div>` (which would break the flex layout).
+    """
+    html = (
+        '<div class="top-bar reveal-1">'
+        f'<div class="top-bar-left">{left_html}</div>'
+        '<div class="top-bar-right">'
+        + _tips_corner_html(seed_key=right_key) +
+        '</div>'
+        '</div>'
+    )
     st.markdown(html, unsafe_allow_html=True)
+
+
+def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
+    """Standalone dev-tip pill (for use OUTSIDE a top-bar, full-width).
+
+    Equivalent to the inline cycling strip used previously. If you want
+    the tip in the top-right corner of a section, use `top_bar()` instead.
+    """
+    st.markdown(_tips_corner_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
 
 
 # ===== Sidebar =====
@@ -464,11 +479,9 @@ if SECTION == "azi":
         "Azi",
         "Top 3 din fiecare. Bea cafeaua, scanează lumea, pleci la treabă.",
     )
-    live_badge("LIVE FEED")
 
-    # Single-line cycling dev-tip ticker. Sits right under the header,
-    # cycles every 6s through 4 random tips from the curated tips library.
-    tips_strip(n=4)
+    # Top bar: LIVE FEED badge on the left, cycling dev-tip pill on the right.
+    top_bar(left_html='<span class="live-badge"><span class="status-dot"></span>LIVE FEED</span>')
 
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 
@@ -488,18 +501,47 @@ if SECTION == "azi":
             )
 
     with col_tools:
+        # Prefer findarepo (curated 7-day growth deltas). Fallback to GitHub
+        # Trending today if findarepo returns empty (network hiccup, scrape
+        # miss, transient failure). Either way, normalize into a common
+        # card-friendly dict so or_card renders cleanly.
         repos = load_repos() or []
-        top3 = repos[:3]
+        if repos:
+            top3 = [
+                {
+                    "title": r.full_name,
+                    "summary": r.description,
+                    "url": r.url,
+                    "stars": r.stars,
+                    "growth": f"+{r.growth}/7d",
+                    "language": r.language,
+                    "source": "findarepo",
+                }
+                for r in repos[:3]
+            ]
+        else:
+            gh = load_github() or []
+            top3 = [
+                {
+                    "title": it.title,
+                    "summary": it.summary or "",
+                    "url": it.url,
+                    "stars": f"{it.score}",
+                    "growth": "today",
+                    "language": (it.tags[0] if it.tags else "—").upper(),
+                    "source": "GitHub Trending",
+                }
+                for it in gh[:3]
+            ]
         column_header("Tools", "⭐", len(top3), "#a5c5d4")
-        for r in top3:
-            desc = (r.description or "")[:120]
+        for t in top3:
             or_card(
-                label="▸ findarepo",
+                label=f"▸ {t['source']}",
                 label_color="sky",
-                title=r.full_name,
-                title_url=r.url,
-                summary=desc,
-                meta=f"findarepo · ★ {r.stars} · ↗ +{r.growth}/7d · {r.language}",
+                title=t["title"][:90],
+                title_url=t["url"],
+                summary=t["summary"],
+                meta=f"★ {t['stars']} · ↗ {t['growth']} · {t['language']}",
             )
 
     with col_jobs:
