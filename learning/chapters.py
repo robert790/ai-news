@@ -136,7 +136,7 @@ CH1 = Chapter(
     ),
     prereqs=[],
     domain="history",
-    era="2012",
+    era="1950–2022",
 )
 
 

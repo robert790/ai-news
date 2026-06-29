@@ -41,27 +41,12 @@ from scrapers import (
 from llm import summarize_batch
 from llm.summarizer import summarize
 from learning import (
-    render_skill_tree,
     get_chapter,
     get_all_chapters,
     DOMAIN_META,
-    COMPLEXITY_META,
+    domain_color,
 )
-from learning.reader import (
-    render_reader,
-    render_tagline_callout,
-    render_lead,
-)
-from learning.insight import (
-    chapter_tldr,
-    azis_take as get_azis_take,
-    ask_azi,
-)
-from learning.cross_refs import (
-    fetch_quick_news_for_chapter as cr_fetch_news,
-    fetch_quick_repos_for_chapter as cr_fetch_repos,
-    find_prompts_for_chapter as cr_find_prompts,
-)
+from learning.insight import ask_azi
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
@@ -743,603 +728,97 @@ elif SECTION == "news":
 
 
 # =====================================================================
-# SECTION: LEARNING — Skill tree (v0.4)
+# SECTION: LEARNING — Drumul Erica (v1.0 redesign)
 # =====================================================================
 elif SECTION == "learning":
 
+    from learning.timeline import render_hero_timeline
+
     section_header(
         "Learning",
-        "AI Road · skill tree. De la fundație la advanced. Click un capitol.",
+        "Drumul Erica · 10 capitole de la Project Erica la aici. Acum.",
     )
 
-    subhead("Cele 15 capitole · ", "muted")
     st.markdown(
-        '<span style="font-family: JetBrains Mono, monospace; font-size: 0.72rem; '
-        'color: #d4a574; letter-spacing: 0.04em;">'
-        '◆ = Pillar (curated sequence · recommended path)</span>',
+        '<p style="font-family: Newsreader, serif; font-style: italic; '
+        'color: #c4b9a7; font-size: 1.05rem; margin: 0.4rem 0 1.2rem 0; line-height: 1.55;">'
+        'Începem cu Project Erica (2022). Apoi guvernele taie accesul '
+        'la cele mai puternice modele. Acum fuzionăm ce e disponibil. '
+        'Tu ești undeva pe curbă. Continuă.'
+        '</p>',
         unsafe_allow_html=True,
     )
 
-    # Skill tree visualization (Cytoscape.js) — visual only.
-    # On Streamlit 1.32 (HF Space) the iframe doesn't expose
-    # window.Streamlit, so the click doesn't update selected_chapter.
-    # Use the chapter chip grid below to navigate.
-    selected_id = render_skill_tree()
+    # The 7-era timeline hero
+    st.markdown(render_hero_timeline(), unsafe_allow_html=True)
 
-    # Initialize / update selection state (best-effort from tree click)
-    if selected_id and selected_id in [ch.id for ch in get_all_chapters()]:
-        st.session_state.selected_chapter = selected_id
+    # =========================================================
+    # CHAPTER CHIP GRID — 10 chapters · linear progression
+    # =========================================================
     selected_id = st.session_state.get("selected_chapter", "ch1")
-
-    # =========================================================
-    # CHAPTER CHIP GRID — 15 tappable buttons (Streamlit 1.32 safe)
-    # Replaces the silent on-tree click. Same pill styling as the
-    # Prompts tab filter rows. Pillars get a gold accent.
-    # =========================================================
-    from learning.chapters import CHAPTERS as _CH
-    from learning.skill_tree import PILLAR_PATH as _PILLARS
+    ch_list = get_all_chapters()
 
     st.markdown(
-        '<div class="lrn-pills-label">Capitole · click pentru a deschide</div>',
+        '<div style="margin: 1.5rem 0 0.7rem 0; font-family: JetBrains Mono, monospace; '
+        'font-size: 0.65rem; color: #8a8478; letter-spacing: 0.1em; '
+        'text-transform: uppercase;">'
+        'Capitole · 10 trepte de la Project Erica la prima aplicație</div>',
         unsafe_allow_html=True,
     )
-    chip_cols_per_row = 5  # 3 rows × 5 = 15 chapters on desktop
-    ch_list = list(get_all_chapters())
+
+    chip_cols_per_row = 5
     for row_start in range(0, len(ch_list), chip_cols_per_row):
         row = ch_list[row_start:row_start + chip_cols_per_row]
         c_cols = st.columns(len(row), gap="small")
         for ci, c in enumerate(row):
             with c_cols[ci]:
                 is_sel = c.id == selected_id
-                is_pillar = c.id in _PILLARS
-                domain = DOMAIN_META[c.domain]
-                label = f"{c.number:02d} · {c.title[:22]}"
+                accent = domain_color(c.domain)
+                pill_bg = (
+                    f"background: {accent}22; border-color: {accent}80; color: {accent};"
+                    if is_sel
+                    else "background: #1f1d1a; border-color: #3a3530; color: #c4b9a7;"
+                )
+                st.markdown(
+                    f'<style>'
+                    f'.chip-{c.id} button {{ '
+                    f'font-family: Newsreader, serif !important; '
+                    f'font-size: 0.82rem !important; '
+                    f'padding: 0.55rem 0.4rem !important; '
+                    f'border-radius: 6px !important; '
+                    f'transition: opacity 200ms ease !important; '
+                    f'min-height: 38px !important; '
+                    f'line-height: 1.15 !important; '
+                    f'}}'
+                    f'.chip-{c.id} button:hover {{ opacity: 0.78 !important; }}'
+                    f'</style>'
+                    f'<div class="chip-{c.id}" style="{pill_bg} '
+                    f'border: 1px solid; border-radius: 6px; '
+                    f'padding: 0.55rem 0.4rem; margin-bottom: 0.5rem; '
+                    f'text-align: center; '
+                    f'transition: opacity 200ms ease;">'
+                    f'<span style="font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.6rem; opacity: 0.75; margin-right: 0.4rem;">'
+                    f'{c.number:02d}</span>'
+                    f'{html.escape(c.title[:28])}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
                 if st.button(
-                    label,
+                    f"Open {c.title[:18]}",
                     key=f"lrn_chip_{c.id}",
-                    use_container_width=True,
-                    type="primary" if is_sel else "secondary",
+                    use_container_width=False,
                 ):
                     st.session_state.selected_chapter = c.id
                     st.rerun()
 
     # =========================================================
-    # CHAPTER DETAIL PANEL
     # =========================================================
-    ch = get_chapter(selected_id)
-    domain_meta = DOMAIN_META[ch.domain]
-    complexity_meta = COMPLEXITY_META[ch.complexity]
-
-    st.markdown(
-        f'<a id="chapter-detail"></a>',
-        unsafe_allow_html=True,
-    )
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-
-    # Header — number + domain + complexity + pillar badge
-    pillar_badge = ""
-    if ch.recommended_pillar:
-        pillar_badge = (
-            f'<span style="font-family: JetBrains Mono, monospace; '
-            f'font-size: 0.58rem; color: #d4a574; '
-            f'background: rgba(212, 165, 116, 0.1); '
-            f'border: 1px solid rgba(212, 165, 116, 0.35); '
-            f'padding: 0.12rem 0.5rem; border-radius: 10px; '
-            f'margin-left: 0.5rem; letter-spacing: 0.08em;">'
-            f'◆ PILLAR</span>'
-        )
-    st.markdown(
-        f'<div style="margin-top: 1rem;">'
-        f'<div style="display: flex; align-items: center; gap: 0.7rem; '
-        f'margin-bottom: 0.5rem; flex-wrap: wrap;">'
-        f'<div style="font-family: Newsreader, serif; font-size: 2.4rem; '
-        f'color: {domain_meta["color"]}; line-height: 1;">{ch.number:02d}</div>'
-        f'<div style="font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
-        f'color: {domain_meta["color"]}; letter-spacing: 0.08em; text-transform: uppercase;">'
-        f'{domain_meta["icon"]} {domain_meta["label"]} · {complexity_meta["label"]}'
-        f'</div>'
-        f'{pillar_badge}'
-        f'</div>'
-        f'<h2 style="margin-top: 0.25rem; margin-bottom: 0.3rem; '
-        f'font-family: Newsreader, serif;">{ch.title}</h2>'
-        f'<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
-        f'font-size: 1.05rem; margin: 0;">{ch.subtitle}</p>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-
-    cols = st.columns([3, 1])
-    with cols[0]:
-        with st.container(border=True):
-            # =====================================================
-            # READER (Phase A · in-app lesson content)
-            # Three tabs: Read · Methods · Practice
-            # Read = full chapter content (callouts, analogies, SVGs)
-            #       rendered from pre-parsed HTML chunks
-            # =====================================================
-            tab_read, tab_methods, tab_practice = st.tabs([
-                "📖  Citește",
-                "🔬  Methods",
-                "✓  Practice",
-            ])
-
-            # ---------- TAB 1: READ ----------
-            with tab_read:
-                # ---- TL;DR box (Groq) ----
-                tldr_text, tldr_src = chapter_tldr(selected_id)
-                if tldr_text:
-                    src_badge = (
-                        '<span style="font-family: JetBrains Mono, monospace; '
-                        'font-size: 0.55rem; padding: 0.1rem 0.4rem; '
-                        'border-radius: 3px; letter-spacing: 0.06em; '
-                        f'background: {("#b5a8c922" if tldr_src == "groq" else "#3a3530")}; '
-                        f'color: {("#b5a8c9" if tldr_src == "groq" else "#8a8478")}; '
-                        'margin-left: 0.5rem; vertical-align: middle;">'
-                        f'{"GROQ · LLAMA 3.1 8B" if tldr_src == "groq" else "DEMO"}'
-                        '</span>'
-                    )
-                    st.markdown(
-                        f'<div style="background: rgba(181, 168, 201, 0.06); '
-                        f'border: 1px solid rgba(181, 168, 201, 0.18); '
-                        f'border-radius: 10px; padding: 0.85rem 1rem; '
-                        f'margin-bottom: 1rem;">'
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.6rem; color: #b5a8c9; '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.4rem;">'
-                        f'Azi rezumă ▸ TL;DR{src_badge}'
-                        f'</div>'
-                        f'<div style="font-family: Newsreader, serif; '
-                        f'font-size: 0.98rem; line-height: 1.55; '
-                        f'color: #f4ede0;">{tldr_text}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                # Tagline (course thesis, italic serif callout)
-                st.markdown(render_tagline_callout(selected_id), unsafe_allow_html=True)
-                # Lead paragraph (orientation)
-                st.markdown(render_lead(selected_id), unsafe_allow_html=True)
-                # Full body — callouts, analogies, SVGs, lists, h3s
-                st.markdown(
-                    render_reader(selected_id),
-                    unsafe_allow_html=True,
-                )
-
-                # =====================================================
-                # Azi's take + cross-refs (Groq + live feeds)
-                # TIES the chapter to what landed in feeds today.
-                # =====================================================
-                # Pull cross-refs (cached at session level to avoid re-fetch on rerun)
-                cr_key = f"cross_refs_{selected_id}"
-                if cr_key not in st.session_state:
-                    news_items = cr_fetch_news(selected_id, limit=3)
-                    repo_items = cr_fetch_repos(selected_id, limit=2)
-                    # Find one matching prompt from bible
-                    matching_prompts = []
-                    try:
-                        from prompts import load_prompts_index
-                        idx = load_prompts_index()
-                        matching_prompts = cr_find_prompts(selected_id, idx, limit=1)
-                    except Exception:
-                        pass
-                    st.session_state[cr_key] = {
-                        "news": [
-                            {"source": x.source, "title": x.title,
-                             "url": x.url, "summary": x.summary, "score": x.score}
-                            for x in news_items
-                        ],
-                        "repos": [
-                            {"source": x.source, "title": x.title,
-                             "url": x.url, "summary": x.summary}
-                            for x in repo_items
-                        ],
-                        "prompts": matching_prompts,
-                        "news_titles": [x.title for x in news_items],
-                    }
-
-                cr = st.session_state[cr_key]
-
-                # Azi's take (Groq with news as context)
-                take_text, take_src = get_azis_take(selected_id, cr["news_titles"])
-                if take_text:
-                    take_badge_color = "#d4a574" if take_src == "groq" else "#8a8478"
-                    take_bg = (
-                        "rgba(212, 165, 116, 0.07)" if take_src == "groq"
-                        else "rgba(58, 53, 48, 0.4)"
-                    )
-                    st.markdown(
-                        f'<div style="margin-top: 2rem; padding: 1.1rem 1.2rem; '
-                        f'background: {take_bg}; border-left: 2px solid {take_badge_color}; '
-                        f'border-radius: 0 10px 10px 0;">'
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.65rem; color: {take_badge_color}; '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.5rem;">'
-                        f'Azi\u2019s take ▸ cum se leagă de azi'
-                        f'  <span style="background: {take_badge_color}22; '
-                        f'color: {take_badge_color}; padding: 0.1rem 0.4rem; '
-                        f'border-radius: 3px; margin-left: 0.5rem; font-size: 0.55rem;">'
-                        f'{"GROQ · LIVE" if take_src == "groq" else "DEMO"}'
-                        f'</span>'
-                        f'</div>'
-                        f'<div style="font-family: Newsreader, serif; '
-                        f'font-size: 1.02rem; line-height: 1.6; color: #f4ede0;">'
-                        f'{take_text}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                # Cross-refs panel (News / Repos / Prompts)
-                if cr["news"] or cr["repos"] or cr["prompts"]:
-                    st.markdown(
-                        f'<div style="margin-top: 1.5rem; padding-top: 1rem; '
-                        f'border-top: 1px solid var(--border);">'
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.7rem; color: #a8c0ae; '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.7rem;">'
-                        f'Azi la muncă ▸ live cross-refs</div>',
-                        unsafe_allow_html=True,
-                    )
-                    if cr["news"]:
-                        for n in cr["news"]:
-                            summary_html = ""
-                            if n.get("summary"):
-                                summary_html = (
-                                    '<div style="font-family: Newsreader, serif; '
-                                    'font-size: 0.82rem; color: #8a8478; '
-                                    'margin-top: 0.3rem; line-height: 1.5; '
-                                    'font-style: italic;">'
-                                    f'{html.escape(n["summary"][:200])}</div>'
-                                )
-                            st.markdown(
-                                f'<div style="margin-bottom: 0.6rem; '
-                                f'padding: 0.55rem 0.8rem; '
-                                f'background: rgba(168, 192, 174, 0.04); '
-                                f'border-radius: 6px; border-left: 2px solid #a8c0ae38;">'
-                                f'<span style="font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.6rem; color: #a8c0ae; '
-                                f'margin-right: 0.5rem;">'
-                                f'▸ {n["source"].upper().replace("_", " ")}'
-                                f'</span>'
-                                f'<a href="{n["url"]}" target="_blank" '
-                                f'style="font-family: Newsreader, serif; '
-                                f'color: #f4ede0; font-size: 0.92rem; '
-                                f'border-bottom: 1px dashed rgba(168, 192, 174, 0.4); '
-                                f'text-decoration: none;">'
-                                f'{html.escape(n["title"][:110])}'
-                                f'</a>'
-                                f'{summary_html}'
-                                f'</div>',
-                                unsafe_allow_html=True,
-                            )
-                    if cr["repos"]:
-                        for r in cr["repos"]:
-                            st.markdown(
-                                f'<div style="margin-bottom: 0.6rem; '
-                                f'padding: 0.55rem 0.8rem; '
-                                f'background: rgba(232, 165, 152, 0.04); '
-                                f'border-radius: 6px; border-left: 2px solid #e8a59838;">'
-                                f'<span style="font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.6rem; color: #e8a598; '
-                                f'margin-right: 0.5rem;">'
-                                f'▸ TRENDING REPO'
-                                f'</span>'
-                                f'<a href="{r["url"]}" target="_blank" '
-                                f'style="font-family: Newsreader, serif; '
-                                f'color: #f4ede0; font-size: 0.92rem; '
-                                f'border-bottom: 1px dashed rgba(232, 165, 152, 0.4); '
-                                f'text-decoration: none;">'
-                                f'{html.escape(r["title"])}'
-                                f'</a>'
-                                f'</div>',
-                                unsafe_allow_html=True,
-                            )
-                    if cr["prompts"]:
-                        for p in cr["prompts"]:
-                            cat = p.get("category", "—")
-                            diff = p.get("difficulty", "—")
-                            st.markdown(
-                                f'<div style="margin-bottom: 0.6rem; '
-                                f'padding: 0.55rem 0.8rem; '
-                                f'background: rgba(212, 165, 116, 0.04); '
-                                f'border-radius: 6px; border-left: 2px solid #d4a57438;">'
-                                f'<span style="font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.6rem; color: #d4a574; '
-                                f'margin-right: 0.5rem;">'
-                                f'▸ PROMPT BIBLE · {html.escape(cat).upper()} · {html.escape(diff).upper()}'
-                                f'</span>'
-                                f'<span style="font-family: Newsreader, serif; '
-                                f'color: #f4ede0; font-size: 0.92rem;">'
-                                f'{html.escape(p.get("title", "?")[:120])}'
-                                f'</span>'
-                                f'<div style="font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.55rem; color: #6a6458; margin-top: 0.3rem;">'
-                                f'Deschide tab-ul Prompts pentru copy'
-                                f'</div>'
-                                f'</div>',
-                                unsafe_allow_html=True,
-                            )
-                    st.markdown("</div>", unsafe_allow_html=True)
-
-                # =====================================================
-                # ASK AZI · interactive Q&A (Groq, real-time, no cache)
-                # =====================================================
-                st.markdown(
-                    f'<div style="margin-top: 2rem; padding: 1rem 1.2rem; '
-                    f'background: rgba(168, 192, 174, 0.03); '
-                    f'border: 1px solid rgba(168, 192, 174, 0.18); '
-                    f'border-radius: 10px;">'
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.65rem; color: #a8c0ae; '
-                    f'letter-spacing: 0.08em; text-transform: uppercase; '
-                    f'margin-bottom: 0.5rem;">'
-                    f'Întreabă-l pe Azi ▸ despre acest capitol'
-                    f'<span style="background: #a8c0ae22; color: #a8c0ae; '
-                    f'padding: 0.1rem 0.4rem; border-radius: 3px; '
-                    f'margin-left: 0.5rem; font-size: 0.55rem;">'
-                    f'GROQ · LIVE Q&amp;A'
-                    f'</span>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                ask_key = f"ask_input_{selected_id}"
-                ask_q = st.text_input(
-                    "Întrebare",
-                    key=ask_key,
-                    placeholder=f"ex: ce înseamnă {ch.title[:30] if len(ch.title) > 30 else ch.title}?",
-                    label_visibility="collapsed",
-                )
-                if ask_q and ask_q != st.session_state.get(f"ask_last_{selected_id}"):
-                    st.session_state[f"ask_last_{selected_id}"] = ask_q
-                    with st.spinner("Azi gândește..."):
-                        answer, ask_src = ask_azi(ask_q, selected_id)
-                    if answer:
-                        st.markdown(
-                            f'<div style="font-family: Newsreader, serif; '
-                            f'font-size: 1rem; line-height: 1.6; color: #f4ede0; '
-                            f'margin-top: 0.6rem; padding: 0.8rem 1rem; '
-                            f'background: rgba(244, 237, 224, 0.03); '
-                            f'border-radius: 6px;">'
-                            f'<span style="color: #a8c0ae; margin-right: 0.5rem;">'
-                            f'Azi ▸</span>'
-                            f'{html.escape(answer)}'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                st.markdown("</div>", unsafe_allow_html=True)
-
-                # End-of-read: small mono footer with chapter meta
-                st.markdown(
-                    f'<div style="margin-top: 1.5rem; padding-top: 0.8rem; '
-                    f'border-top: 1px solid var(--border); '
-                    f'font-family: JetBrains Mono, monospace; font-size: 0.65rem; '
-                    f'color: #6a6458; letter-spacing: 0.06em;">'
-                    f'END OF CHAPTER {ch.number:02d} · ALL CONTENT IN-APP · NO LINKS OUT'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-            # ---------- TAB 2: METHODS (BLUE-inspired v0.5+) ----------
-            with tab_methods:
-                if ch.methods:
-                    st.markdown(
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.7rem; color: var(--muted); '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.6rem;">'
-                        f'Methods · {len(ch.methods)}'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    for m in ch.methods:
-                        if m.recommended:
-                            marker = "◆"
-                            name_color = domain_meta["color"]
-                            badge = (
-                                f'<span style="font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.6rem; color: {domain_meta["color"]}; '
-                                f'background: {domain_meta["color"]}1a; '
-                                f'padding: 0.1rem 0.5rem; border-radius: 10px; '
-                                f'margin-left: 0.5rem; letter-spacing: 0.06em;">'
-                                f'MAIN</span>'
-                            )
-                        else:
-                            marker = "○"
-                            name_color = "#a8a094"
-                            badge = ""
-                        st.markdown(
-                            f'<div style="margin-bottom: 0.9rem;">'
-                            f'<div style="display: flex; align-items: baseline; '
-                            f'gap: 0.5rem; margin-bottom: 0.25rem;">'
-                            f'<span style="color: {name_color}; font-size: 0.9rem;">{marker}</span>'
-                            f'<span style="font-family: Newsreader, serif; '
-                            f'font-size: 1.05rem; color: {name_color}; '
-                            f'font-weight: 500;">{m.name}</span>'
-                            f'{badge}'
-                            f'</div>'
-                            f'<div style="font-family: Newsreader, serif; '
-                            f'font-style: italic; color: #c4b9a7; '
-                            f'font-size: 0.92rem; margin-left: 1.3rem; '
-                            f'margin-bottom: 0.15rem;">{m.summary}</div>'
-                            f'<div style="font-family: JetBrains Mono, monospace; '
-                            f'font-size: 0.68rem; color: #8a8478; '
-                            f'margin-left: 1.3rem; letter-spacing: 0.03em;">'
-                            f'When: {m.when_to_use}'
-                            f'</div>'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-                else:
-                    st.markdown(
-                        '<p style="font-family: Newsreader, serif; font-style: italic; '
-                        'color: var(--muted); font-size: 0.95rem;">'
-                        "Acest capitol nu are methods încă. E ok — focusul e pe conținut."
-                        "</p>",
-                        unsafe_allow_html=True,
-                    )
-
-            # ---------- TAB 3: PRACTICE (verifiers + build this + prereqs) ----------
-            with tab_practice:
-                # Verifiers — interactive checklist
-                if ch.verifiers:
-                    st.markdown(
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.7rem; color: #a8c0ae; '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.55rem;">'
-                        f'✓ Cum știi că ai înțeles · {len(ch.verifiers)}'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    # Interactive checkboxes (each in session_state)
-                    for vi, v in enumerate(ch.verifiers):
-                        key_v = f"verifier_{selected_id}_{vi}"
-                        st.checkbox(v, key=key_v)
-                    # Mark complete button — when all ticked
-                    all_ticked = all(
-                        st.session_state.get(f"verifier_{selected_id}_{vi}", False)
-                        for vi in range(len(ch.verifiers))
-                    )
-                    st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
-                    if all_ticked:
-                        if "completed_chapters" not in st.session_state:
-                            st.session_state.completed_chapters = set()
-                        already = selected_id in st.session_state.completed_chapters
-                        if st.button(
-                            "✓ " + ("Complet" if already else "Marchează capitolul complet"),
-                            key=f"complete_{selected_id}",
-                            disabled=already,
-                            type="primary" if not already else "secondary",
-                            use_container_width=True,
-                        ):
-                            st.session_state.completed_chapters.add(selected_id)
-                            st.rerun()
-                        if already:
-                            st.markdown(
-                                '<div style="font-family: JetBrains Mono, monospace; '
-                                'font-size: 0.7rem; color: #a8c0ae; margin-top: 0.4rem; '
-                                'letter-spacing: 0.04em;">'
-                                '◆ Marchat complet · adaugă la capitolele terminate.</div>',
-                                unsafe_allow_html=True,
-                            )
-                    else:
-                        remaining = sum(
-                            1 for vi in range(len(ch.verifiers))
-                            if not st.session_state.get(
-                                f"verifier_{selected_id}_{vi}", False
-                            )
-                        )
-                        st.markdown(
-                            f'<div style="font-family: JetBrains Mono, monospace; '
-                            f'font-size: 0.68rem; color: #6a6458; margin-top: 0.6rem; '
-                            f'letter-spacing: 0.04em;">'
-                            f'Bifează toate {len(ch.verifiers)} ca să deblochezi butonul.'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-
-                # Build this
-                if ch.build_this:
-                    st.markdown(
-                        "<div style='height: 1rem;'></div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.7rem; color: #d4a574; '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.45rem;">'
-                        f'⚡ Build this'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f'<div style="background: rgba(212, 165, 116, 0.06); '
-                        f'border-left: 2px solid #d4a574; '
-                        f'padding: 0.7rem 0.9rem; '
-                        f'font-family: Newsreader, serif; color: #f4ede0; '
-                        f'font-size: 1rem; line-height: 1.55; '
-                        f'border-radius: 0 6px 6px 0;">{ch.build_this}</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                # Prerequisites
-                if ch.prerequisites:
-                    st.markdown(
-                        "<div style='height: 1rem;'></div>",
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.7rem; color: var(--muted); '
-                        f'letter-spacing: 0.08em; text-transform: uppercase; '
-                        f'margin-bottom: 0.5rem;">'
-                        f'Necesită · înainte de asta citește:'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    prereq_items = "".join(
-                        f'<div style="margin-bottom: 0.45rem; '
-                        f'font-family: Newsreader, serif; color: #d4cebf; '
-                        f'font-size: 0.95rem;">'
-                        f'<span style="color: #6a6458; margin-right: 0.5rem;">→</span>'
-                        f'<span style="font-family: JetBrains Mono, monospace; '
-                        f'color: #d4a574; margin-right: 0.5rem;">Ch {get_chapter(p).number:02d}</span>'
-                        f"{get_chapter(p).title}"
-                        f'</div>'
-                        for p in ch.prerequisites
-                    )
-                    st.markdown(prereq_items, unsafe_allow_html=True)
-
-    with cols[1]:
-        with st.container(border=True):
-            st.caption(
-                f'<span style="color: {domain_meta["color"]}; font-family: JetBrains Mono, '
-                f'monospace; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;">'
-                f'{domain_meta["label"]}</span>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f'<p style="font-family: Newsreader, serif; font-style: italic; '
-                f'color: var(--muted); margin-top: 0.4rem; font-size: 0.92rem; line-height: 1.5;">'
-                f'{domain_meta["blurb"]}</p>',
-                unsafe_allow_html=True,
-            )
-
-            # Complexity + progress indicator
-            st.markdown(
-                f'<div style="margin-top: 1rem; padding-top: 0.8rem; '
-                f'border-top: 1px solid var(--border); '
-                f'font-family: JetBrains Mono, monospace; font-size: 0.72rem; '
-                f'color: {complexity_meta["color"]};">'
-                f'{complexity_meta["label"]}'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
-            # Path navigation — prev/next chapter
-            all_chapters = sorted(get_all_chapters(), key=lambda c: c.number)
-            idx = next((i for i, c in enumerate(all_chapters) if c.id == ch.id), 0)
-            prev_ch = all_chapters[idx - 1] if idx > 0 else None
-            next_ch = all_chapters[idx + 1] if idx < len(all_chapters) - 1 else None
-
-            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-            nav_cols = st.columns(2)
-            with nav_cols[0]:
-                if prev_ch:
-                    if st.button(f"← Ch {prev_ch.number}", key=f"prev-{ch.id}", use_container_width=True):
-                        st.session_state.selected_chapter = prev_ch.id
-                        st.rerun()
-            with nav_cols[1]:
-                if next_ch:
-                    if st.button(f"Ch {next_ch.number} →", key=f"next-{ch.id}", use_container_width=True):
-                        st.session_state.selected_chapter = next_ch.id
-                        st.rerun()
-
+    # CHAPTER DETAIL PANEL — delegated to learning/learning_render.py
+    # =========================================================
+    from learning.learning_render import render_detail_panel
+    completed = st.session_state.get("completed_chapters", set())
+    render_detail_panel(selected_id, ch_list, completed)
 
 # =====================================================================
 # SECTION: JOBS
