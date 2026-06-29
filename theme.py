@@ -511,18 +511,52 @@ def render_css() -> str:
 
   /* Activity log rows in [ ACTIVITY ] frame */
   .sb-activity-row {{
-    display: flex;
-    gap: 0.4rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.5rem;
     align-items: baseline;
     font-family: {f['mono']};
     font-size: 0.6rem;
-    line-height: 1.55;
+    line-height: 1.7;
     color: var(--text-2);
-    letter-spacing: 0;
+    padding: 0.1rem 0.3rem;
+    margin: 0 -0.3rem;
+    border-radius: 2px;
+    transition: background-color var(--dur-fast) var(--ease);
+  }}
+  .sb-activity-row:hover {{
+    background-color: rgba(168, 192, 174, 0.08);
   }}
   .sb-activity-row .time {{ color: var(--muted); flex-shrink: 0; }}
-  .sb-activity-row .op {{ color: var(--text); }}
-  .sb-activity-row .status {{ margin-left: auto; color: var(--sage); flex-shrink: 0; }}
+  .sb-activity-row .op {{
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }}
+  .sb-activity-row .dur {{
+    color: var(--sage);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }}
+  .sb-activity-row .status {{
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    width: 0.7rem;
+    text-align: center;
+  }}
+  .sb-activity-row .status-ok {{ color: var(--sage); }}
+  .sb-activity-row .status-running {{
+    color: var(--warn);
+    animation: pulse-soft 1.5s var(--ease-soft) infinite;
+  }}
+  .sb-activity-row .status-error {{ color: var(--danger); }}
+
+  /* Frame counter (e.g., '12 OPS' in label) */
+  .sb-counter {{
+    color: var(--sage);
+    margin-left: 0.4rem;
+  }}
 
   /* Section header — bracket markers via CSS pseudo */
   .section-header {{

@@ -270,25 +270,32 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    # ACTIVITY frame — recent ops log
-    st.markdown(
-        '<div class="sb-frame-label">[ ACTIVITY ]</div>',
-        unsafe_allow_html=True,
-    )
+    # ACTIVITY frame — recent ops log with timestamps, durations, color-coded status
     activity_rows = [
-        ("02:14", "hn.fetch()",        "ok"),
-        ("02:14", "repos.sync()",      "ok"),
-        ("02:13", "hf.papers.load()",  "ok"),
-        ("02:13", "lobsters.fetch()",  "ok"),
-        ("02:12", "session.start",     "—"),
+        # (HH:MM:SS, op_name, duration, status: ok | running | error)
+        ("02:14:32", "hn.fetch()",       "124ms", "ok"),
+        ("02:14:30", "repos.sync()",     " 89ms", "ok"),
+        ("02:14:18", "hf.papers.load()", "312ms", "ok"),
+        ("02:14:15", "lobsters.fetch()", " 67ms", "ok"),
+        ("02:14:08", "session.start",    "   ──", "running"),
     ]
+    status_icon = {"ok": "✓", "running": "⋯", "error": "✗"}
+    status_class = {"ok": "status-ok", "running": "status-running", "error": "status-error"}
     rows_html = "".join(
         f'<div class="sb-activity-row">'
         f'<span class="time">{t}</span>'
         f'<span class="op">▸ {op}</span>'
-        f'<span class="status">{s}</span>'
+        f'<span class="dur">{dur}</span>'
+        f'<span class="status {status_class[st]}">{status_icon[st]}</span>'
         f'</div>'
-        for t, op, s in activity_rows
+        for t, op, dur, st in activity_rows
+    )
+    ops_count = len(activity_rows)
+    st.markdown(
+        f'<div class="sb-frame-label">'
+        f'[ ACTIVITY ]<span class="sb-counter">· {ops_count} OPS</span>'
+        f'</div>',
+        unsafe_allow_html=True,
     )
     st.markdown(f'<div class="sb-frame">{rows_html}</div>', unsafe_allow_html=True)
 
