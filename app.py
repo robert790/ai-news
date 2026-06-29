@@ -734,20 +734,63 @@ elif SECTION == "learning":
 
     section_header(
         "Learning",
-        "AI Road · skill tree. De la fundație la advanced. Click un nod.",
+        "AI Road · skill tree. De la fundație la advanced. Click un capitol.",
     )
 
-    subhead("Cele 15 capitole", "muted")
+    subhead("Cele 15 capitole · ", "muted")
+    st.markdown(
+        '<span style="font-family: JetBrains Mono, monospace; font-size: 0.72rem; '
+        'color: #d4a574; letter-spacing: 0.04em;">'
+        '◆ = Pillar (curated sequence · recommended path)</span>',
+        unsafe_allow_html=True,
+    )
 
-    # Skill tree visualization (Cytoscape.js)
+    # Skill tree visualization (Cytoscape.js) — visual only.
+    # On Streamlit 1.32 (HF Space) the iframe doesn't expose
+    # window.Streamlit, so the click doesn't update selected_chapter.
+    # Use the chapter chip grid below to navigate.
     selected_id = render_skill_tree()
 
-    # Initialize / update selection state
+    # Initialize / update selection state (best-effort from tree click)
     if selected_id and selected_id in [ch.id for ch in get_all_chapters()]:
         st.session_state.selected_chapter = selected_id
     selected_id = st.session_state.get("selected_chapter", "ch1")
 
-    # --- Chapter detail panel ---
+    # =========================================================
+    # CHAPTER CHIP GRID — 15 tappable buttons (Streamlit 1.32 safe)
+    # Replaces the silent on-tree click. Same pill styling as the
+    # Prompts tab filter rows. Pillars get a gold accent.
+    # =========================================================
+    from learning.chapters import CHAPTERS as _CH
+    from learning.skill_tree import PILLAR_PATH as _PILLARS
+
+    st.markdown(
+        '<div class="lrn-pills-label">Capitole · click pentru a deschide</div>',
+        unsafe_allow_html=True,
+    )
+    chip_cols_per_row = 5  # 3 rows × 5 = 15 chapters on desktop
+    ch_list = list(get_all_chapters())
+    for row_start in range(0, len(ch_list), chip_cols_per_row):
+        row = ch_list[row_start:row_start + chip_cols_per_row]
+        c_cols = st.columns(len(row), gap="small")
+        for ci, c in enumerate(row):
+            with c_cols[ci]:
+                is_sel = c.id == selected_id
+                is_pillar = c.id in _PILLARS
+                domain = DOMAIN_META[c.domain]
+                label = f"{c.number:02d} · {c.title[:22]}"
+                if st.button(
+                    label,
+                    key=f"lrn_chip_{c.id}",
+                    use_container_width=True,
+                    type="primary" if is_sel else "secondary",
+                ):
+                    st.session_state.selected_chapter = c.id
+                    st.rerun()
+
+    # =========================================================
+    # CHAPTER DETAIL PANEL
+    # =========================================================
     ch = get_chapter(selected_id)
     domain_meta = DOMAIN_META[ch.domain]
     complexity_meta = COMPLEXITY_META[ch.complexity]
@@ -756,17 +799,34 @@ elif SECTION == "learning":
         f'<a id="chapter-detail"></a>',
         unsafe_allow_html=True,
     )
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+
+    # Header — number + domain + complexity + pillar badge
+    pillar_badge = ""
+    if ch.recommended_pillar:
+        pillar_badge = (
+            f'<span style="font-family: JetBrains Mono, monospace; '
+            f'font-size: 0.58rem; color: #d4a574; '
+            f'background: rgba(212, 165, 116, 0.1); '
+            f'border: 1px solid rgba(212, 165, 116, 0.35); '
+            f'padding: 0.12rem 0.5rem; border-radius: 10px; '
+            f'margin-left: 0.5rem; letter-spacing: 0.08em;">'
+            f'◆ PILLAR</span>'
+        )
     st.markdown(
-        f'<div style="margin-top: 2.5rem;">'
-        f'<div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">'
-        f'<div style="font-family: Newsreader, serif; font-size: 2rem; '
+        f'<div style="margin-top: 1rem;">'
+        f'<div style="display: flex; align-items: center; gap: 0.7rem; '
+        f'margin-bottom: 0.5rem; flex-wrap: wrap;">'
+        f'<div style="font-family: Newsreader, serif; font-size: 2.4rem; '
         f'color: {domain_meta["color"]}; line-height: 1;">{ch.number:02d}</div>'
         f'<div style="font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
         f'color: {domain_meta["color"]}; letter-spacing: 0.08em; text-transform: uppercase;">'
         f'{domain_meta["icon"]} {domain_meta["label"]} · {complexity_meta["label"]}'
         f'</div>'
+        f'{pillar_badge}'
         f'</div>'
-        f'<h2 style="margin-top: 0.25rem; margin-bottom: 0.3rem;">{ch.title}</h2>'
+        f'<h2 style="margin-top: 0.25rem; margin-bottom: 0.3rem; '
+        f'font-family: Newsreader, serif;">{ch.title}</h2>'
         f'<p style="font-family: Newsreader, serif; font-style: italic; color: var(--muted); '
         f'font-size: 1.05rem; margin: 0;">{ch.subtitle}</p>'
         f'</div>',
@@ -780,10 +840,12 @@ elif SECTION == "learning":
         with st.container(border=True):
             st.markdown(ch.blurb)
 
-            # Methods (BLUE-inspired v0.5)
+            # =====================================================
+            # METHODS (BLUE-inspired v0.5+)
+            # =====================================================
             if ch.methods:
                 st.markdown(
-                    f'<div style="height: 0.6rem;"></div>',
+                    "<div style='height: 0.6rem;'></div>",
                     unsafe_allow_html=True,
                 )
                 st.markdown(
@@ -834,7 +896,68 @@ elif SECTION == "learning":
                         unsafe_allow_html=True,
                     )
 
+            # =====================================================
+            # VERIFIERS (Sebastian Rey BLUE — "how do you know you got it?")
+            # =====================================================
+            if ch.verifiers:
+                st.markdown(
+                    "<div style='height: 0.8rem;'></div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.7rem; color: #a8c0ae; '
+                    f'letter-spacing: 0.08em; text-transform: uppercase; '
+                    f'margin-bottom: 0.55rem;">'
+                    f'✓ Cum știi că ai înțeles · {len(ch.verifiers)}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                items = "".join(
+                    f'<div style="display: flex; gap: 0.55rem; margin-bottom: 0.45rem; '
+                    f'align-items: flex-start;">'
+                    f'<span style="color: #a8c0ae; font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.85rem; line-height: 1.55; flex-shrink: 0;">✓</span>'
+                    f'<span style="font-family: Newsreader, serif; color: #d4cebf; '
+                    f'font-size: 0.95rem; line-height: 1.55;">{v}</span>'
+                    f'</div>'
+                    for v in ch.verifiers
+                )
+                st.markdown(
+                    f'<div style="padding: 0.1rem 0;">{items}</div>',
+                    unsafe_allow_html=True,
+                )
+
+            # =====================================================
+            # BUILD THIS (Sebastian Rey BLUE — action/goal focus)
+            # =====================================================
+            if ch.build_this:
+                st.markdown(
+                    "<div style='height: 0.8rem;'></div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.7rem; color: #d4a574; '
+                    f'letter-spacing: 0.08em; text-transform: uppercase; '
+                    f'margin-bottom: 0.45rem;">'
+                    f'⚡ Build this'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f'<div style="background: rgba(212, 165, 116, 0.06); '
+                    f'border-left: 2px solid #d4a574; '
+                    f'padding: 0.7rem 0.9rem; '
+                    f'font-family: Newsreader, serif; color: #f4ede0; '
+                    f'font-size: 1rem; line-height: 1.55; '
+                    f'border-radius: 0 6px 6px 0;">{ch.build_this}</div>',
+                    unsafe_allow_html=True,
+                )
+
+            # =====================================================
             # Prerequisites
+            # =====================================================
             if ch.prerequisites:
                 prereq_links = " · ".join(
                     f"[{get_chapter(p).title[:40]}](#chapter-detail)"
@@ -878,12 +1001,14 @@ elif SECTION == "learning":
                 unsafe_allow_html=True,
             )
 
+            # Complexity + progress indicator
             st.markdown(
                 f'<div style="margin-top: 1rem; padding-top: 0.8rem; '
                 f'border-top: 1px solid var(--border); '
                 f'font-family: JetBrains Mono, monospace; font-size: 0.72rem; '
                 f'color: {complexity_meta["color"]};">'
-                f'{complexity_meta["label"]}</div>',
+                f'{complexity_meta["label"]}'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
@@ -897,39 +1022,14 @@ elif SECTION == "learning":
             nav_cols = st.columns(2)
             with nav_cols[0]:
                 if prev_ch:
-                    if st.button(f"← {prev_ch.number}", key=f"prev-{ch.id}", use_container_width=True):
+                    if st.button(f"← Ch {prev_ch.number}", key=f"prev-{ch.id}", use_container_width=True):
                         st.session_state.selected_chapter = prev_ch.id
                         st.rerun()
             with nav_cols[1]:
                 if next_ch:
-                    if st.button(f"{next_ch.number} →", key=f"next-{ch.id}", use_container_width=True):
+                    if st.button(f"Ch {next_ch.number} →", key=f"next-{ch.id}", use_container_width=True):
                         st.session_state.selected_chapter = next_ch.id
                         st.rerun()
-
-    # --- All chapters list (for those who want to scroll) ---
-    st.markdown("<div style='height: 3rem;'></div>", unsafe_allow_html=True)
-    st.markdown("#### Toate capitolele")
-    st.caption("Sau click direct pe oricare pentru a-l deschide.")
-
-    for c in get_all_chapters():
-        domain = DOMAIN_META[c.domain]
-        is_selected = (c.id == selected_id)
-        border_color = "var(--border-strong)" if is_selected else "var(--border)"
-        with st.container(border=True):
-            cols = st.columns([1, 5, 1])
-            with cols[0]:
-                st.markdown(
-                    f'<div style="font-family: Newsreader, serif; font-size: 1.6rem; '
-                    f'color: {domain["color"]}; line-height: 1;">{c.number:02d}</div>',
-                    unsafe_allow_html=True,
-                )
-            with cols[1]:
-                st.markdown(f"**{c.title}**")
-                st.caption(c.subtitle)
-            with cols[2]:
-                if st.button("Deschide", key=f"open-{c.id}", use_container_width=True):
-                    st.session_state.selected_chapter = c.id
-                    st.rerun()
 
 
 # =====================================================================
