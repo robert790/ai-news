@@ -20,6 +20,7 @@ Run: streamlit run app.py
 """
 import streamlit as st
 from datetime import datetime
+from typing import Optional
 from zoneinfo import ZoneInfo
 import sys
 from pathlib import Path
@@ -183,27 +184,90 @@ def live_badge(text: str = "LIVE") -> None:
     )
 
 
-def tips_terminal(n: int = 8, seed_key: str = "tips_terminal_v1") -> None:
-    """Render a Fallout-style loading-screen tip box.
+SUMMARY_TRUNCATE_LIMIT = 140  # chars shown in card summary
 
-    Picks `n` random tips once per session (stable for the visit, not random
-    on every rerender) and renders them as a stacked tip cycling block.
-    The CSS layer handles typing + fade transitions; we just emit the HTML.
+
+def or_card(
+    label: str,
+    label_color: str,
+    title: str,
+    title_url: "Optional[str]" = None,
+    summary: str = "",
+    meta: str = "",
+    meta_html: "Optional[str]" = None,
+) -> None:
+    """Render a clean Apple-inspired card.
+
+    Single hairline border, generous padding, no top-accent line,
+    no transform on hover (was breaking scroll). Use this in place of
+    `st.container(border=True)` for cards on landing pages.
 
     Args:
-        n: how many tips to embed in the box (4-8 reads well).
+        label: small uppercased tag (e.g. "▸ HN FEED").
+        label_color: "coral" | "sky" | "sage" | "lavender" | "muted".
+        title: card title — auto-escaped.
+        title_url: optional external link.
+        summary: optional body text — auto-escaped, auto-truncated.
+        meta: plain-text meta line (HackerNews · ⬆ 209 · 2d ago) — auto-escaped.
+        meta_html: optional raw HTML for the meta line (use instead of `meta`
+            if you need markup like the Jobs score). Caller is responsible
+            for escaping user data in the HTML.
+    """
+    def esc(s: str) -> str:
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    if title_url:
+        title_block = (
+            f'<a class="or-card-link" href="{esc(title_url)}" target="_blank">'
+            f'<span class="or-card-title">{esc(title)}</span></a>'
+        )
+    else:
+        title_block = f'<span class="or-card-title">{esc(title)}</span>'
+
+    if summary:
+        s_trim = summary[: SUMMARY_TRUNCATE_LIMIT]
+        suffix = "…" if len(summary) > SUMMARY_TRUNCATE_LIMIT else ""
+        summary_block = f'<p class="or-card-summary">{esc(s_trim)}{suffix}</p>'
+    else:
+        summary_block = ""
+
+    if meta_html is not None:
+        meta_block = f'<div class="or-card-meta">{meta_html}</div>'
+    elif meta:
+        meta_block = f'<div class="or-card-meta">{esc(meta)}</div>'
+    else:
+        meta_block = ""
+
+    st.markdown(
+        f'<div class="or-card">'
+        f'<div class="or-card-label {esc(label_color)}">{esc(label)}</div>'
+        f'{title_block}'
+        f'{summary_block}'
+        f'{meta_block}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
+    """Render a single-line cycling dev-tip ticker.
+
+    Picks `n` random tips once per session (stable), renders them as a
+    horizontal strip below the section header. CSS fades between them.
+
+    Args:
+        n: how many tips to embed in the rotation (4 reads well).
         seed_key: session_state key — change to reseed the tip selection.
     """
     if seed_key not in st.session_state:
         rng = random.Random()
-        rng.seed()  # OS entropy; do NOT use time.time for deterministic test runs
+        rng.seed()  # OS entropy
         st.session_state[seed_key] = rng.sample(ALL_TIPS, min(n, len(ALL_TIPS)))
 
     picked = st.session_state[seed_key]
 
     rows: list[str] = []
     for cat, body, attrib in picked:
-        # Wrap long tips by escaping + adding inner span
         body_esc = (
             body.replace("&", "&amp;")
                 .replace("<", "&lt;")
@@ -216,19 +280,16 @@ def tips_terminal(n: int = 8, seed_key: str = "tips_terminal_v1") -> None:
         )
         rows.append(
             f'<div class="tip-line">'
-            f'<span class="tips-cat {cat}">[{cat}]</span>'
+            f'<span class="tips-cat {cat}">{cat}</span>'
             f'<span class="body">{body_esc}</span>'
             f'<span class="attrib">— {attrib_esc}</span>'
             f'</div>'
         )
 
     html = (
-        '<div class="tips-terminal" aria-label="developer tips">'
-        '<div class="tips-header">'
-        '<span class="prefix">▸ tip_sequence.start()</span>'
-        '<span class="blinker"></span>'
-        '</div>'
-        '<div class="tip-slot">'
+        '<div class="tips-strip" aria-label="developer tip">'
+        '<span class="tips-icon">tip</span>'
+        '<div class="tips-slot">'
         + "".join(rows) +
         '</div>'
         '</div>'
@@ -405,9 +466,9 @@ if SECTION == "azi":
     )
     live_badge("LIVE FEED")
 
-    # Fallout-style loading-screen tip box — cycles through dev tips
-    # (LINUX, RSI, INFRA, BEGINNER, EXPERT, AI, CAREER, WORKFLOW).
-    tips_terminal(n=4)
+    # Single-line cycling dev-tip ticker. Sits right under the header,
+    # cycles every 6s through 4 random tips from the curated tips library.
+    tips_strip(n=4)
 
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 
@@ -416,26 +477,30 @@ if SECTION == "azi":
         top3 = hn[:3]
         column_header("News", "📡", len(top3), "#e8a598")
         for item in top3:
-            with st.container(border=True):
-                st.markdown('<div class="card-label coral">▸ HN FEED</div>', unsafe_allow_html=True)
-                st.markdown(f"**[{item.title[:90]}]({item.url})**")
-                summary = (item.summary or "")[:140]
-                if summary:
-                    st.caption(summary + ("..." if len(item.summary or "") > 140 else ""))
-                st.caption(f"HackerNews · ⬆ {item.score} · {fmt_date(item.published_at)}")
+            summary = (item.summary or "")[:SUMMARY_TRUNCATE_LIMIT]
+            or_card(
+                label="▸ HN FEED",
+                label_color="coral",
+                title=item.title[:90],
+                title_url=item.url,
+                summary=summary,
+                meta=f"HackerNews · ⬆ {item.score} · {fmt_date(item.published_at)}",
+            )
 
     with col_tools:
         repos = load_repos() or []
         top3 = repos[:3]
         column_header("Tools", "⭐", len(top3), "#a5c5d4")
         for r in top3:
-            with st.container(border=True):
-                st.markdown('<div class="card-label sky">▸ findarepo</div>', unsafe_allow_html=True)
-                st.markdown(f"**[{r.full_name}]({r.url})**")
-                desc = (r.description or "")[:120]
-                if desc:
-                    st.caption(desc + ("..." if len(r.description or "") > 120 else ""))
-                st.caption(f"findarepo · ★ {r.stars} · ↗ +{r.growth}/7d · `{r.language}`")
+            desc = (r.description or "")[:120]
+            or_card(
+                label="▸ findarepo",
+                label_color="sky",
+                title=r.full_name,
+                title_url=r.url,
+                summary=desc,
+                meta=f"findarepo · ★ {r.stars} · ↗ +{r.growth}/7d · {r.language}",
+            )
 
     with col_jobs:
         mock_jobs = [
@@ -445,16 +510,13 @@ if SECTION == "azi":
         ]
         column_header("Jobs", "💼", len(mock_jobs), "#a8c0ae")
         for j in mock_jobs:
-            with st.container(border=True):
-                st.markdown('<div class="card-label">▸ MATCH</div>', unsafe_allow_html=True)
-                st.markdown(f"**{j['title']}**")
-                st.caption(f"{j['company']} · 📍 {j['location']}")
-                st.markdown(
-                    f'<div style="font-family: Newsreader, serif; font-size: 1.7rem; '
-                    f'color: var(--sage); margin-top: 0.3rem;">{j["match"]}</div>',
-                    unsafe_allow_html=True,
-                )
-                st.caption("match score")
+            or_card(
+                label="▸ MATCH",
+                label_color="sage",
+                title=j["title"],
+                summary=f"{j['company']} · 📍 {j['location']}",
+                meta_html=f'<span class="or-card-score">{j["match"]}</span> match score',
+            )
         st.caption("🚧 Live job feed vine în v0.6")
 
     st.markdown("<div style='height: 2.5rem;'></div>", unsafe_allow_html=True)

@@ -417,47 +417,80 @@ def render_css() -> str:
     letter-spacing: 0.2em;
   }}
 
-  /* Cards — sharp tactical corners with top accent line + hover lift */
-  [data-testid="stVerticalBlockBorderWrapper"] {{
+  /* Cards — Apple-inspired.
+     No transform (was breaking scroll), one hairline border, clean
+     bg shift on hover. Replaces `st.container(border=True)` via the
+     `.or-card` class which we render explicitly in app.py. */
+  .or-card {{
     background-color: var(--surface);
-    border: 1px solid var(--border-strong) !important;
-    border-top: 2px solid var(--sage) !important;
-    border-radius: 2px !important;
-    padding: 1.1rem 1.4rem !important;
-    transition: border-color var(--dur-base) var(--ease),
-                border-top-color var(--dur-base) var(--ease),
-                background-color var(--dur-base) var(--ease),
-                transform var(--dur-base) var(--ease);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    margin: 0 0 0.65rem;
+    transition: background-color 240ms var(--ease),
+                border-color 240ms var(--ease);
   }}
-  [data-testid="stVerticalBlockBorderWrapper"]:hover {{
-    border-color: var(--sage) !important;
-    border-top-color: var(--sage) !important;
-    background-color: rgba(168, 192, 174, 0.05);
-    transform: scale(1.008);
+  .or-card:hover {{
+    background-color: rgba(168, 192, 174, 0.04);
+    border-color: var(--sage);
+  }}
+  .or-card-label {{
+    font-family: {f['mono']};
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }}
+  .or-card-label.coral    {{ color: var(--coral); }}
+  .or-card-label.sky      {{ color: var(--sky); }}
+  .or-card-label.sage     {{ color: var(--sage); }}
+  .or-card-label.lavender {{ color: var(--lavender); }}
+  .or-card-title {{
+    font-family: {f['serif']};
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text);
+    display: block;
+    margin-bottom: 0.35rem;
+  }}
+  .or-card-link {{
+    text-decoration: none;
+    color: inherit;
+  }}
+  .or-card-link:hover .or-card-title {{
+    color: var(--sage);
+  }}
+  .or-card-summary {{
+    font-family: {f['serif']};
+    font-size: 0.85rem;
+    color: var(--text-2);
+    line-height: 1.5;
+    margin: 0 0 0.45rem;
+  }}
+  .or-card-meta {{
+    font-family: {f['mono']};
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }}
+  .or-card-score {{
+    font-family: {f['serif']};
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--sage);
+    margin-right: 0.4rem;
   }}
 
-  /* Card accent color variants — top border tint */
-  .card-accent-coral [data-testid="stVerticalBlockBorderWrapper"],
-  [data-testid="stVerticalBlockBorderWrapper"].accent-coral {{
-    border-top-color: var(--coral) !important;
-  }}
-  .card-accent-sky [data-testid="stVerticalBlockBorderWrapper"],
-  [data-testid="stVerticalBlockBorderWrapper"].accent-sky {{
-    border-top-color: var(--sky) !important;
-  }}
-  .card-accent-sage [data-testid="stVerticalBlockBorderWrapper"],
-  [data-testid="stVerticalBlockBorderWrapper"].accent-sage {{
-    border-top-color: var(--sage) !important;
-  }}
-
-  /* Card mono label — tactical header inside card */
+  /* Card mono label — small, calm, tactical header inside card */
   .card-label {{
     font-family: var(--mono-tac);
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin: -0.4rem 0 0.65rem;
-    color: var(--sage);
+    margin: 0 0 0.45rem;
+    color: var(--muted);
   }}
   .card-label.coral {{ color: var(--coral); }}
   .card-label.sky {{ color: var(--sky); }}
@@ -728,176 +761,87 @@ def render_css() -> str:
   }}
 
   /* ============================================
-     Loading-screen tip terminal (Fallout vibe)
+     Loading-screen tip strip (Apple-clean, single-line ticker)
      ============================================ */
-  .tips-terminal {{
-    position: relative;
-    margin: 0 0 1.5rem;
-    padding: 0.9rem 1.1rem 0.95rem;
-    background: rgba(124, 255, 155, 0.025);
-    border: 1px solid rgba(124, 255, 155, 0.18);
-    border-left: 2px solid var(--sage);
-    font-family: {f['mono']};
-    color: #7CFF9B;
-    min-height: 100px;
-    overflow: hidden;
-  }}
-  /* Corner brackets around the [ TIPS ] label */
-  .tips-terminal::before {{
-    content: "┌──[ TIPS · LOADING SCREEN ]──┐";
-    position: absolute;
-    top: -0.05rem;
-    left: 0.9rem;
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-    color: rgba(124, 255, 155, 0.55);
-    background: var(--bg);
-    padding: 0 0.4rem;
-  }}
-  .tips-terminal::after {{
-    content: "└────────────┘";
-    position: absolute;
-    bottom: 0.05rem;
-    left: 0.9rem;
-    right: 0.9rem;
-    font-size: 0.58rem;
-    letter-spacing: 0.05em;
-    color: rgba(124, 255, 155, 0.25);
-  }}
-
-  /* Header row inside the tips box */
-  .tips-header {{
+  .tips-strip {{
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.7rem;
-    font-size: 0.62rem;
-    color: rgba(124, 255, 155, 0.55);
-    letter-spacing: 0.1em;
+    gap: 0.6rem;
+    margin: 0.6rem 0 1rem;
+    padding: 0.55rem 0.85rem;
+    background: transparent;
+    border-radius: 6px;
+    font-family: var(--mono-tac);
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow: hidden;
+    min-height: 36px;
   }}
-  .tips-header .prefix {{ color: var(--sage); }}
-  .tips-header .blinker {{
-    display: inline-block;
-    width: 7px;
-    height: 11px;
-    background: var(--sage);
-    margin-left: 4px;
-    vertical-align: -2px;
-    animation: tips-blink 1.1s steps(1) infinite;
+  .tips-icon {{ font-size: 0.85rem; flex-shrink: 0; }}
+  .tips-slot {{
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 1.4em;
   }}
-
-  /* Category badge */
   .tips-cat {{
     display: inline-block;
-    padding: 1px 6px;
+    padding: 1px 5px;
     margin-right: 6px;
-    background: rgba(124, 255, 155, 0.12);
-    border: 1px solid rgba(124, 255, 155, 0.35);
-    border-radius: 1px;
+    border-radius: 2px;
     color: var(--sage);
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
   }}
-  .tips-cat.LINUX,    .tips-cat.SHELL {{ color: #a8d9b3; border-color: rgba(168, 217, 179, 0.5); background: rgba(168, 217, 179, 0.08); }}
-  .tips-cat.RSI,      .tips-cat.HEALTH {{ color: #d4b8c8; border-color: rgba(212, 184, 200, 0.5); background: rgba(212, 184, 200, 0.08); }}
-  .tips-cat.INFRA,    .tips-cat.DEVOPS {{ color: #9bb8d4; border-color: rgba(155, 184, 212, 0.5); background: rgba(155, 184, 212, 0.08); }}
-  .tips-cat.BEGINNER, .tips-cat.JUNIOR {{ color: #e8c994; border-color: rgba(232, 201, 148, 0.5); background: rgba(232, 201, 148, 0.08); }}
-  .tips-cat.EXPERT,   .tips-cat.PRO    {{ color: #d49898; border-color: rgba(212, 152, 152, 0.5); background: rgba(212, 152, 152, 0.08); }}
-  .tips-cat.AI,       .tips-cat.PROMPT {{ color: #b8a4d9; border-color: rgba(184, 164, 217, 0.5); background: rgba(184, 164, 217, 0.08); }}
-  .tips-cat.CAREER,   .tips-cat.JOBS   {{ color: #c5d97c; border-color: rgba(197, 217, 124, 0.5); background: rgba(197, 217, 124, 0.08); }}
-  .tips-cat.WORKFLOW              {{ color: #98c5b8; border-color: rgba(152, 197, 184, 0.5); background: rgba(152, 197, 184, 0.08); }}
+  .tips-cat.LINUX,    .tips-cat.SHELL {{ color: #a8d9b3; }}
+  .tips-cat.RSI,      .tips-cat.HEALTH {{ color: #d4b8c8; }}
+  .tips-cat.INFRA,    .tips-cat.DEVOPS {{ color: #9bb8d4; }}
+  .tips-cat.BEGINNER, .tips-cat.JUNIOR {{ color: #e8c994; }}
+  .tips-cat.EXPERT,   .tips-cat.PRO    {{ color: #d49898; }}
+  .tips-cat.AI,       .tips-cat.PROMPT {{ color: #b8a4d9; }}
+  .tips-cat.CAREER,   .tips-cat.JOBS   {{ color: #c5d97c; }}
+  .tips-cat.WORKFLOW                  {{ color: #98c5b8; }}
+  .tips-cat + .body {{ color: var(--text-2); }}
 
-  /* Cycling tip body lines */
-  .tip-slot {{
-    position: relative;
-    min-height: 56px;
-  }}
+  /* Cycling tip lines — fade in, hold, fade out, next */
   .tip-line {{
     position: absolute;
     inset: 0;
     opacity: 0;
-    transform: translateY(6px);
-    font-size: 0.78rem;
-    line-height: 1.5;
-    color: #9be3ad;
-    letter-spacing: 0.02em;
-    animation: tip-cycle 20s linear infinite;
-  }}
-  .tip-line .body {{
-    overflow: hidden;
     white-space: nowrap;
-    border-right: 0;
-    animation: tip-type 5s steps(60, end) infinite;
-  }}
-  .tip-line .body.wrapped {{
-    white-space: normal;
-    animation: tip-fade 5s ease infinite;
-    clip-path: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    animation: tip-cycle 24s linear infinite;
   }}
   .tip-line .attrib {{
-    display: block;
-    margin-top: 0.4rem;
-    font-size: 0.6rem;
-    color: rgba(124, 255, 155, 0.4);
-    letter-spacing: 0.08em;
+    margin-left: auto;
+    padding-left: 1rem;
+    color: var(--muted-2);
+    font-size: 0.65rem;
   }}
 
-  /* Cycle per tip = 25% of 20s = 5s. Visible window ~4.4s with 0.3s fade in/out. */
+  /* 24s loop = 6s per tip * 4 tips. Visible 4.5s, fade 1.5s. */
   @keyframes tip-cycle {{
-    0%     {{ opacity: 0; transform: translateY(6px); }}
-    1.5%   {{ opacity: 1; transform: translateY(0); }}
-    23.5%  {{ opacity: 1; transform: translateY(0); }}
-    25%    {{ opacity: 0; transform: translateY(-6px); }}
+    0%     {{ opacity: 0; }}
+    4%     {{ opacity: 1; }}
+    21%    {{ opacity: 1; }}
+    25%    {{ opacity: 0; }}
     100%   {{ opacity: 0; }}
   }}
-  /* Typewriter reveal (clip-path on first line) — runs each 5s slot */
-  @keyframes tip-type {{
-    0%   {{ clip-path: inset(0 100% 0 0); }}
-    8%   {{ clip-path: inset(0 0% 0 0); }}
-    90%  {{ clip-path: inset(0 0% 0 0); }}
-    100% {{ clip-path: inset(0 100% 0 0); }}
-  }}
-  /* Fade for wrapped/2-line tips */
-  @keyframes tip-fade {{
-    0%   {{ opacity: 0; }}
-    8%   {{ opacity: 1; }}
-    90%  {{ opacity: 1; }}
-    100% {{ opacity: 0; }}
-  }}
-  /* Cursor blink */
-  @keyframes tips-blink {{
-    0%, 49%  {{ opacity: 1; }}
-    50%, 100%{{ opacity: 0; }}
-  }}
+  .tip-line:nth-child(1) {{ animation-delay:  0s; }}
+  .tip-line:nth-child(2) {{ animation-delay: -18s; }}
+  .tip-line:nth-child(3) {{ animation-delay: -12s; }}
+  .tip-line:nth-child(4) {{ animation-delay: -6s; }}
 
-  /* Stagger delays — 4 tips, each owns a 5s slot of the 20s loop.
-     Negative delay = animation already partway through at t=0.
-     Math: tip N is at delay -20 + (N * 5) so its visible window is t=(N-1)*5..N*5. */
-  .tip-line:nth-child(1)  {{ animation-delay: 0s; }}
-  .tip-line:nth-child(2)  {{ animation-delay: -15s; }}
-  .tip-line:nth-child(3)  {{ animation-delay: -10s; }}
-  .tip-line:nth-child(4)  {{ animation-delay: -5s; }}
-
-  /* Responsive — collapse tip box on mobile */
-  @media (max-width: 640px) {{
-    .tips-terminal {{
-      font-size: 0.7rem;
-      min-height: 80px;
-      padding: 0.7rem 0.8rem 0.75rem;
-    }}
-    .tip-line {{
-      font-size: 0.7rem;
-    }}
-  }}
-
-  /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {{
-    .tip-line, .tip-line .body, .tip-line .body.wrapped, .tips-header .blinker {{
+    .tip-line {{
       animation: none !important;
       opacity: 1 !important;
-      transform: none !important;
-      clip-path: none !important;
     }}
+    .tip-line:not(:first-child) {{ display: none; }}
   }}
 
   /* Subsection labels */
@@ -1002,13 +946,13 @@ def render_css() -> str:
       letter-spacing: 0.05em;
     }}
     [data-testid="stVerticalBlockBorderWrapper"] {{
-      padding: 0.9rem 1.1rem !important;
+      padding: 0.7rem 0.8rem !important;
     }}
     .card-label {{
-      font-size: 0.58rem;
+      font-size: 0.55rem;
     }}
     .column-header {{
-      font-size: 1.2rem !important;
+      font-size: 1.05rem !important;
     }}
   }}
 </style>"""
