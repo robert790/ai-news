@@ -626,8 +626,20 @@ def render_css() -> str:
   button[data-testid="baseButton-primary"]:hover {{
     background: rgba(168, 192, 174, 0.22) !important;
   }}
-  /* The reset button is the only other button in the section; the
-     selectors above catch it too — visually consistent. */
+  /* Mobile — shrink pill labels (drop the count suffix style by
+     reducing padding) so 4-up columns don't overflow. */
+  @media (max-width: 640px) {{
+    button[data-testid="stBaseButton-secondary"],
+    button[data-testid="stBaseButton-primary"],
+    button[data-testid="baseButton-secondary"],
+    button[data-testid="baseButton-primary"] {{
+      padding: 0.28rem 0.45rem !important;
+      font-size: 0.6rem !important;
+      letter-spacing: 0.02em !important;
+      min-height: 28px !important;
+      height: 28px !important;
+    }}
+  }}
 
   .prompts-count {{
     display: flex;
