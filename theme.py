@@ -52,9 +52,10 @@ SECTION_ACCENT = {
 
 # ===== Typography =====
 FONTS = {
-    "serif":  "'Newsreader', 'Spectral', Georgia, serif",
-    "sans":   "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    "mono":   "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace",
+    "serif":      "'Newsreader', 'Spectral', Georgia, serif",
+    "sans":       "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "mono":       "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace",  # data, code
+    "mono_tactical": "'Space Mono', 'JetBrains Mono', 'SF Mono', monospace",  # tactical UI
 }
 
 
@@ -90,7 +91,7 @@ def render_css() -> str:
     m = MOTION
 
     return f"""<style>
-  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Mono:wght@400;700&display=swap');
 
   :root {{
     --bg: {c['bg']};
@@ -109,6 +110,8 @@ def render_css() -> str:
     --coral: {c['coral']};
     --lavender: {c['lavender']};
     --sky: {c['sky']};
+
+    --mono-tac: {f['mono_tactical']};
 
     --ease: {m['ease']};
     --ease-soft: {m['ease_soft']};
@@ -194,7 +197,7 @@ def render_css() -> str:
     border-left: 2px solid transparent;
     color: var(--muted);
     padding: 0.7rem 1rem 0.7rem 1.1rem;
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.78rem;
     font-weight: 400;
     letter-spacing: 0.06em;
@@ -225,7 +228,7 @@ def render_css() -> str:
     padding: 0 1rem 0.75rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px solid var(--border);
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.65rem;
     color: var(--muted);
     letter-spacing: 0.08em;
@@ -248,7 +251,7 @@ def render_css() -> str:
     border-radius: 2px;
     padding: 0.75rem 0.875rem;
     margin: 0 0.75rem 0.75rem;
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.7rem;
     color: var(--text-2);
     letter-spacing: 0.03em;
@@ -261,7 +264,7 @@ def render_css() -> str:
     background-color: rgba(168, 192, 174, 0.04);
   }}
   .sb-frame-label {{
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.62rem;
     color: var(--muted);
     letter-spacing: 0.1em;
@@ -284,7 +287,7 @@ def render_css() -> str:
     flex-shrink: 0;
   }}
   .sb-brand h2 {{
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -293,7 +296,7 @@ def render_css() -> str:
     margin: 0;
   }}
   .sb-brand .tagline {{
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.6rem;
     color: var(--muted);
     letter-spacing: 0.08em;
@@ -336,7 +339,7 @@ def render_css() -> str:
   .sb-footer {{
     padding: 0.875rem 1rem;
     border-top: 1px solid var(--border);
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.62rem;
     color: var(--muted-2);
     letter-spacing: 0.1em;
@@ -386,7 +389,7 @@ def render_css() -> str:
 
   /* Card mono label — tactical header inside card */
   .card-label {{
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.62rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -527,7 +530,7 @@ def render_css() -> str:
     align-items: center;
     margin: 0 auto 0.55rem;
     width: 70%;
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     color: var(--sage);
     font-size: 0.7rem;
     line-height: 1;
@@ -550,7 +553,7 @@ def render_css() -> str:
 
   /* ASCII cache bar in TELEMETRY */
   .sb-cache-bar {{
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.7rem;
     letter-spacing: 0;
     display: flex;
@@ -571,7 +574,7 @@ def render_css() -> str:
     grid-template-columns: auto 1fr auto auto;
     gap: 0.5rem;
     align-items: baseline;
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.6rem;
     line-height: 1.7;
     color: var(--text-2);
@@ -625,7 +628,7 @@ def render_css() -> str:
   }}
   .section-header h1::before {{
     content: "[ ";
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     color: var(--muted);
     font-weight: 300;
     font-size: 0.7em;
@@ -635,7 +638,7 @@ def render_css() -> str:
   }}
   .section-header h1::after {{
     content: " ]";
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     color: var(--muted);
     font-weight: 300;
     font-size: 0.7em;
@@ -656,7 +659,7 @@ def render_css() -> str:
   .live-badge {{
     display: inline-flex;
     align-items: center;
-    font-family: {f['mono']};
+    font-family: var(--mono-tac);
     font-size: 0.65rem;
     color: var(--sage);
     letter-spacing: 0.12em;
