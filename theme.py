@@ -222,8 +222,8 @@ def render_css() -> str:
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.1rem 0.8rem;
-    margin-bottom: 0.8rem;
+    padding: 0 1rem 0.75rem;
+    margin-bottom: 0.75rem;
     border-bottom: 1px solid var(--border);
     font-family: {f['mono']};
     font-size: 0.65rem;
@@ -246,13 +246,19 @@ def render_css() -> str:
     background-color: var(--surface);
     border: 1px solid var(--border-strong);
     border-radius: 2px;
-    padding: 0.7rem 0.9rem;
-    margin: 0 0.8rem 0.9rem;
+    padding: 0.75rem 0.875rem;
+    margin: 0 0.75rem 0.75rem;
     font-family: {f['mono']};
     font-size: 0.7rem;
     color: var(--text-2);
     letter-spacing: 0.03em;
     line-height: 1.55;
+    transition: border-color var(--dur-fast) var(--ease),
+                background-color var(--dur-fast) var(--ease);
+  }}
+  .sb-frame:hover {{
+    border-color: var(--sage);
+    background-color: rgba(168, 192, 174, 0.04);
   }}
   .sb-frame-label {{
     font-family: {f['mono']};
@@ -260,9 +266,12 @@ def render_css() -> str:
     color: var(--muted);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin: 0 0 0.4rem 0.9rem;
+    margin: 0 0 0.4rem 0.875rem;
     padding-left: 0;
+    transition: color var(--dur-fast) var(--ease);
   }}
+  .sb-frame-label:hover {{ color: var(--sage); }}
+  .sb-frame-label .bracket {{ color: var(--muted-2); }}
 
   /* Brand block — crosshair + name + tagline */
   .sb-brand {{
@@ -325,7 +334,7 @@ def render_css() -> str:
 
   /* Sidebar footer */
   .sb-footer {{
-    padding: 0.9rem 1.1rem;
+    padding: 0.875rem 1rem;
     border-top: 1px solid var(--border);
     font-family: {f['mono']};
     font-size: 0.62rem;
@@ -333,6 +342,13 @@ def render_css() -> str:
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-align: center;
+    transition: color var(--dur-base) var(--ease),
+                letter-spacing var(--dur-base) var(--ease);
+    cursor: default;
+  }}
+  .sb-footer:hover {{
+    color: var(--sage);
+    letter-spacing: 0.2em;
   }}
 
   /* Cards — sharp tactical corners */
@@ -484,13 +500,21 @@ def render_css() -> str:
     font-size: 0.7rem;
     line-height: 1;
   }}
-  .sb-cluster .c {{ opacity: 0.45; }}
+  .sb-cluster .c {{
+    opacity: 0.45;
+    transition: opacity var(--dur-fast) var(--ease),
+                transform var(--dur-slow) var(--ease);
+  }}
+  .sb-cluster:hover .c {{ opacity: 0.85; }}
   .sb-cluster .c.center {{
     opacity: 1;
     font-size: 0.95rem;
     grid-column: 2;
     grid-row: 2;
+    transition: opacity var(--dur-fast) var(--ease),
+                transform var(--dur-slow) var(--ease);
   }}
+  .sb-cluster:hover .c.center {{ transform: rotate(45deg); }}
 
   /* ASCII cache bar in TELEMETRY */
   .sb-cache-bar {{
