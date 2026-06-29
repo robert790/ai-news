@@ -178,7 +178,7 @@ def render_css() -> str:
     padding-right: 0;
   }}
 
-  /* Sidebar nav items — tactical flat style with slide-on-hover + left-border accent */
+  /* Sidebar nav items — REAL button boxes with full borders + fill on active */
   section[data-testid="stSidebar"] .stRadio {{
     margin-top: 0;
   }}
@@ -188,51 +188,70 @@ def render_css() -> str:
   section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
     display: none;
   }}
-  /* Hide Streamlit's default radio circle/dot */
-  section[data-testid="stSidebar"] [role="radio"] input[type="radio"] {{
+
+  /* Aggressively hide ALL Streamlit radio visual remnants (input, dot, svg) */
+  section[data-testid="stSidebar"] [role="radio"] input[type="radio"],
+  section[data-testid="stSidebar"] [role="radio"] > div:not(label),
+  section[data-testid="stSidebar"] [role="radio"] label > div,
+  section[data-testid="stSidebar"] [role="radio"] label > svg,
+  section[data-testid="stSidebar"] [role="radio"] svg,
+  section[data-testid="stSidebar"] [role="radio"] *::before,
+  section[data-testid="stSidebar"] [role="radio"] *::after {{
     display: none !important;
-    appearance: none !important;
-    -webkit-appearance: none !important;
+    content: none !important;
   }}
+
   section[data-testid="stSidebar"] [role="radiogroup"] {{
-    gap: 2px;
+    gap: 6px;
+    padding: 0.25rem 0;
   }}
+
   section[data-testid="stSidebar"] [role="radio"] {{
     position: relative;
-    background-color: transparent;
-    border: 1px solid transparent;
-    border-left: 2px solid transparent;
-    color: var(--muted);
-    padding: 0.7rem 1rem 0.7rem 1.1rem;
-    font-family: var(--mono-tac);
-    font-size: 0.78rem;
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    display: flex !important;
+    align-items: center;
+    gap: 0.7rem;
+    width: calc(100% - 1rem);
+    min-height: 44px;
+    padding: 0.85rem 1rem 0.85rem 1rem;
+    background-color: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-left: 3px solid transparent;
     border-radius: 2px;
+    color: var(--muted);
+    font-family: var(--mono-tac);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     margin: 0 0.5rem;
     cursor: pointer;
     transition: background-color var(--dur-fast) var(--ease),
                 color var(--dur-fast) var(--ease),
                 border-color var(--dur-fast) var(--ease),
                 border-left-color var(--dur-fast) var(--ease),
-                padding-left var(--dur-fast) var(--ease);
+                transform var(--dur-fast) var(--ease),
+                box-shadow var(--dur-fast) var(--ease);
   }}
   section[data-testid="stSidebar"] [role="radio"]:hover {{
-    background-color: rgba(168, 192, 174, 0.07);
+    background-color: var(--surface-2);
     color: var(--text);
-    border-left-color: var(--border-strong);
-    border-color: var(--border);
-    padding-left: 1.3rem;
+    border-color: var(--sage);
+    border-left-color: var(--sage);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px -2px rgba(168, 192, 174, 0.3);
   }}
   section[data-testid="stSidebar"] [role="radio"][aria-checked="true"] {{
-    background-color: rgba(168, 192, 174, 0.12);
-    color: var(--sage);
+    background-color: var(--sage);
+    color: var(--bg);
+    border-color: var(--sage);
     border-left-color: var(--sage);
-    border-color: var(--border-strong);
+    font-weight: 700;
+    box-shadow: 0 0 16px -2px rgba(168, 192, 174, 0.4);
   }}
   section[data-testid="stSidebar"] [role="radio"][aria-checked="true"]:hover {{
-    padding-left: 1.3rem;
+    transform: none;
+    box-shadow: 0 0 20px -2px rgba(168, 192, 174, 0.5);
   }}
 
   /* Action buttons inside [ ACTIONS ] frame — full-width tactical */
