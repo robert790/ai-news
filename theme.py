@@ -572,6 +572,57 @@ def render_css() -> str:
   /* ============================================
      Prompt Bible — Prompts tab cards + filters
      ============================================ */
+  .prompts-pills-label {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 1.2rem 0 0.4rem;
+  }}
+  /* Hide the (default) label that st.pills emits before the buttons */
+  [data-testid="stPills"] > label,
+  [data-testid="stPills"] [data-testid="stWidgetLabel"] {{
+    display: none !important;
+  }}
+  /* The pill row itself — wrap + gap */
+  [data-testid="stPills"] [role="radiogroup"],
+  [data-testid="stPills"] [data-testid="stPills"] {{
+    gap: 0.45rem !important;
+    row-gap: 0.45rem !important;
+    flex-wrap: wrap !important;
+  }}
+  /* Each pill button — base */
+  [data-testid="stPills"] button {{
+    border-radius: 999px !important;
+    padding: 0.35rem 0.85rem !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.2 !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    color: var(--muted) !important;
+    border: 1px solid var(--border) !important;
+    transition: all 180ms ease !important;
+    min-height: 0 !important;
+    height: auto !important;
+    white-space: nowrap !important;
+  }}
+  [data-testid="stPills"] button:hover {{
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-2) !important;
+    border-color: var(--border-strong) !important;
+  }}
+  [data-testid="stPills"] button[aria-checked="true"] {{
+    background: rgba(168, 192, 174, 0.12) !important;
+    color: var(--sage) !important;
+    border-color: var(--sage) !important;
+    font-weight: 600 !important;
+  }}
+  [data-testid="stPills"] button[aria-checked="true"]:hover {{
+    background: rgba(168, 192, 174, 0.18) !important;
+  }}
+
   .prompts-count {{
     display: flex;
     align-items: baseline;
