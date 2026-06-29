@@ -52,6 +52,16 @@ from learning.reader import (
     render_tagline_callout,
     render_lead,
 )
+from learning.insight import (
+    chapter_tldr,
+    azis_take as get_azis_take,
+    ask_azi,
+)
+from learning.cross_refs import (
+    fetch_quick_news_for_chapter as cr_fetch_news,
+    fetch_quick_repos_for_chapter as cr_fetch_repos,
+    find_prompts_for_chapter as cr_find_prompts,
+)
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
@@ -857,6 +867,37 @@ elif SECTION == "learning":
 
             # ---------- TAB 1: READ ----------
             with tab_read:
+                # ---- TL;DR box (Groq) ----
+                tldr_text, tldr_src = chapter_tldr(selected_id)
+                if tldr_text:
+                    src_badge = (
+                        '<span style="font-family: JetBrains Mono, monospace; '
+                        'font-size: 0.55rem; padding: 0.1rem 0.4rem; '
+                        'border-radius: 3px; letter-spacing: 0.06em; '
+                        f'background: {("#b5a8c922" if tldr_src == "groq" else "#3a3530")}; '
+                        f'color: {("#b5a8c9" if tldr_src == "groq" else "#8a8478")}; '
+                        'margin-left: 0.5rem; vertical-align: middle;">'
+                        f'{"GROQ · LLAMA 3.1 8B" if tldr_src == "groq" else "DEMO"}'
+                        '</span>'
+                    )
+                    st.markdown(
+                        f'<div style="background: rgba(181, 168, 201, 0.06); '
+                        f'border: 1px solid rgba(181, 168, 201, 0.18); '
+                        f'border-radius: 10px; padding: 0.85rem 1rem; '
+                        f'margin-bottom: 1rem;">'
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.6rem; color: #b5a8c9; '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.4rem;">'
+                        f'Azi rezumă ▸ TL;DR{src_badge}'
+                        f'</div>'
+                        f'<div style="font-family: Newsreader, serif; '
+                        f'font-size: 0.98rem; line-height: 1.55; '
+                        f'color: #f4ede0;">{tldr_text}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
                 # Tagline (course thesis, italic serif callout)
                 st.markdown(render_tagline_callout(selected_id), unsafe_allow_html=True)
                 # Lead paragraph (orientation)
@@ -866,6 +907,211 @@ elif SECTION == "learning":
                     render_reader(selected_id),
                     unsafe_allow_html=True,
                 )
+
+                # =====================================================
+                # Azi's take + cross-refs (Groq + live feeds)
+                # TIES the chapter to what landed in feeds today.
+                # =====================================================
+                # Pull cross-refs (cached at session level to avoid re-fetch on rerun)
+                cr_key = f"cross_refs_{selected_id}"
+                if cr_key not in st.session_state:
+                    news_items = cr_fetch_news(selected_id, limit=3)
+                    repo_items = cr_fetch_repos(selected_id, limit=2)
+                    # Find one matching prompt from bible
+                    matching_prompts = []
+                    try:
+                        from prompts import load_prompts_index
+                        idx = load_prompts_index()
+                        matching_prompts = cr_find_prompts(selected_id, idx, limit=1)
+                    except Exception:
+                        pass
+                    st.session_state[cr_key] = {
+                        "news": [
+                            {"source": x.source, "title": x.title,
+                             "url": x.url, "summary": x.summary, "score": x.score}
+                            for x in news_items
+                        ],
+                        "repos": [
+                            {"source": x.source, "title": x.title,
+                             "url": x.url, "summary": x.summary}
+                            for x in repo_items
+                        ],
+                        "prompts": matching_prompts,
+                        "news_titles": [x.title for x in news_items],
+                    }
+
+                cr = st.session_state[cr_key]
+
+                # Azi's take (Groq with news as context)
+                take_text, take_src = get_azis_take(selected_id, cr["news_titles"])
+                if take_text:
+                    take_badge_color = "#d4a574" if take_src == "groq" else "#8a8478"
+                    take_bg = (
+                        "rgba(212, 165, 116, 0.07)" if take_src == "groq"
+                        else "rgba(58, 53, 48, 0.4)"
+                    )
+                    st.markdown(
+                        f'<div style="margin-top: 2rem; padding: 1.1rem 1.2rem; '
+                        f'background: {take_bg}; border-left: 2px solid {take_badge_color}; '
+                        f'border-radius: 0 10px 10px 0;">'
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.65rem; color: {take_badge_color}; '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.5rem;">'
+                        f'Azi\u2019s take ▸ cum se leagă de azi'
+                        f'  <span style="background: {take_badge_color}22; '
+                        f'color: {take_badge_color}; padding: 0.1rem 0.4rem; '
+                        f'border-radius: 3px; margin-left: 0.5rem; font-size: 0.55rem;">'
+                        f'{"GROQ · LIVE" if take_src == "groq" else "DEMO"}'
+                        f'</span>'
+                        f'</div>'
+                        f'<div style="font-family: Newsreader, serif; '
+                        f'font-size: 1.02rem; line-height: 1.6; color: #f4ede0;">'
+                        f'{take_text}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+                # Cross-refs panel (News / Repos / Prompts)
+                if cr["news"] or cr["repos"] or cr["prompts"]:
+                    st.markdown(
+                        f'<div style="margin-top: 1.5rem; padding-top: 1rem; '
+                        f'border-top: 1px solid var(--border);">'
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.7rem; color: #a8c0ae; '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.7rem;">'
+                        f'Azi la muncă ▸ live cross-refs</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if cr["news"]:
+                        for n in cr["news"]:
+                            summary_html = ""
+                            if n.get("summary"):
+                                summary_html = (
+                                    '<div style="font-family: Newsreader, serif; '
+                                    'font-size: 0.82rem; color: #8a8478; '
+                                    'margin-top: 0.3rem; line-height: 1.5; '
+                                    'font-style: italic;">'
+                                    f'{html.escape(n["summary"][:200])}</div>'
+                                )
+                            st.markdown(
+                                f'<div style="margin-bottom: 0.6rem; '
+                                f'padding: 0.55rem 0.8rem; '
+                                f'background: rgba(168, 192, 174, 0.04); '
+                                f'border-radius: 6px; border-left: 2px solid #a8c0ae38;">'
+                                f'<span style="font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.6rem; color: #a8c0ae; '
+                                f'margin-right: 0.5rem;">'
+                                f'▸ {n["source"].upper().replace("_", " ")}'
+                                f'</span>'
+                                f'<a href="{n["url"]}" target="_blank" '
+                                f'style="font-family: Newsreader, serif; '
+                                f'color: #f4ede0; font-size: 0.92rem; '
+                                f'border-bottom: 1px dashed rgba(168, 192, 174, 0.4); '
+                                f'text-decoration: none;">'
+                                f'{html.escape(n["title"][:110])}'
+                                f'</a>'
+                                f'{summary_html}'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                    if cr["repos"]:
+                        for r in cr["repos"]:
+                            st.markdown(
+                                f'<div style="margin-bottom: 0.6rem; '
+                                f'padding: 0.55rem 0.8rem; '
+                                f'background: rgba(232, 165, 152, 0.04); '
+                                f'border-radius: 6px; border-left: 2px solid #e8a59838;">'
+                                f'<span style="font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.6rem; color: #e8a598; '
+                                f'margin-right: 0.5rem;">'
+                                f'▸ TRENDING REPO'
+                                f'</span>'
+                                f'<a href="{r["url"]}" target="_blank" '
+                                f'style="font-family: Newsreader, serif; '
+                                f'color: #f4ede0; font-size: 0.92rem; '
+                                f'border-bottom: 1px dashed rgba(232, 165, 152, 0.4); '
+                                f'text-decoration: none;">'
+                                f'{html.escape(r["title"])}'
+                                f'</a>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                    if cr["prompts"]:
+                        for p in cr["prompts"]:
+                            cat = p.get("category", "—")
+                            diff = p.get("difficulty", "—")
+                            st.markdown(
+                                f'<div style="margin-bottom: 0.6rem; '
+                                f'padding: 0.55rem 0.8rem; '
+                                f'background: rgba(212, 165, 116, 0.04); '
+                                f'border-radius: 6px; border-left: 2px solid #d4a57438;">'
+                                f'<span style="font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.6rem; color: #d4a574; '
+                                f'margin-right: 0.5rem;">'
+                                f'▸ PROMPT BIBLE · {html.escape(cat).upper()} · {html.escape(diff).upper()}'
+                                f'</span>'
+                                f'<span style="font-family: Newsreader, serif; '
+                                f'color: #f4ede0; font-size: 0.92rem;">'
+                                f'{html.escape(p.get("title", "?")[:120])}'
+                                f'</span>'
+                                f'<div style="font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.55rem; color: #6a6458; margin-top: 0.3rem;">'
+                                f'Deschide tab-ul Prompts pentru copy'
+                                f'</div>'
+                                f'</div>',
+                                unsafe_allow_html=True,
+                            )
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+                # =====================================================
+                # ASK AZI · interactive Q&A (Groq, real-time, no cache)
+                # =====================================================
+                st.markdown(
+                    f'<div style="margin-top: 2rem; padding: 1rem 1.2rem; '
+                    f'background: rgba(168, 192, 174, 0.03); '
+                    f'border: 1px solid rgba(168, 192, 174, 0.18); '
+                    f'border-radius: 10px;">'
+                    f'<div style="font-family: JetBrains Mono, monospace; '
+                    f'font-size: 0.65rem; color: #a8c0ae; '
+                    f'letter-spacing: 0.08em; text-transform: uppercase; '
+                    f'margin-bottom: 0.5rem;">'
+                    f'Întreabă-l pe Azi ▸ despre acest capitol'
+                    f'<span style="background: #a8c0ae22; color: #a8c0ae; '
+                    f'padding: 0.1rem 0.4rem; border-radius: 3px; '
+                    f'margin-left: 0.5rem; font-size: 0.55rem;">'
+                    f'GROQ · LIVE Q&amp;A'
+                    f'</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                ask_key = f"ask_input_{selected_id}"
+                ask_q = st.text_input(
+                    "Întrebare",
+                    key=ask_key,
+                    placeholder=f"ex: ce înseamnă {ch.title[:30] if len(ch.title) > 30 else ch.title}?",
+                    label_visibility="collapsed",
+                )
+                if ask_q and ask_q != st.session_state.get(f"ask_last_{selected_id}"):
+                    st.session_state[f"ask_last_{selected_id}"] = ask_q
+                    with st.spinner("Azi gândește..."):
+                        answer, ask_src = ask_azi(ask_q, selected_id)
+                    if answer:
+                        st.markdown(
+                            f'<div style="font-family: Newsreader, serif; '
+                            f'font-size: 1rem; line-height: 1.6; color: #f4ede0; '
+                            f'margin-top: 0.6rem; padding: 0.8rem 1rem; '
+                            f'background: rgba(244, 237, 224, 0.03); '
+                            f'border-radius: 6px;">'
+                            f'<span style="color: #a8c0ae; margin-right: 0.5rem;">'
+                            f'Azi ▸</span>'
+                            f'{html.escape(answer)}'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                st.markdown("</div>", unsafe_allow_html=True)
+
                 # End-of-read: small mono footer with chapter meta
                 st.markdown(
                     f'<div style="margin-top: 1.5rem; padding-top: 0.8rem; '
