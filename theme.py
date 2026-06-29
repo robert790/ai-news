@@ -727,6 +727,179 @@ def render_css() -> str:
     margin-right: 6px;
   }}
 
+  /* ============================================
+     Loading-screen tip terminal (Fallout vibe)
+     ============================================ */
+  .tips-terminal {{
+    position: relative;
+    margin: 0 0 1.5rem;
+    padding: 0.9rem 1.1rem 0.95rem;
+    background: rgba(124, 255, 155, 0.025);
+    border: 1px solid rgba(124, 255, 155, 0.18);
+    border-left: 2px solid var(--sage);
+    font-family: {f['mono']};
+    color: #7CFF9B;
+    min-height: 100px;
+    overflow: hidden;
+  }}
+  /* Corner brackets around the [ TIPS ] label */
+  .tips-terminal::before {{
+    content: "┌──[ TIPS · LOADING SCREEN ]──┐";
+    position: absolute;
+    top: -0.05rem;
+    left: 0.9rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    color: rgba(124, 255, 155, 0.55);
+    background: var(--bg);
+    padding: 0 0.4rem;
+  }}
+  .tips-terminal::after {{
+    content: "└────────────┘";
+    position: absolute;
+    bottom: 0.05rem;
+    left: 0.9rem;
+    right: 0.9rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    color: rgba(124, 255, 155, 0.25);
+  }}
+
+  /* Header row inside the tips box */
+  .tips-header {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.7rem;
+    font-size: 0.62rem;
+    color: rgba(124, 255, 155, 0.55);
+    letter-spacing: 0.1em;
+  }}
+  .tips-header .prefix {{ color: var(--sage); }}
+  .tips-header .blinker {{
+    display: inline-block;
+    width: 7px;
+    height: 11px;
+    background: var(--sage);
+    margin-left: 4px;
+    vertical-align: -2px;
+    animation: tips-blink 1.1s steps(1) infinite;
+  }}
+
+  /* Category badge */
+  .tips-cat {{
+    display: inline-block;
+    padding: 1px 6px;
+    margin-right: 6px;
+    background: rgba(124, 255, 155, 0.12);
+    border: 1px solid rgba(124, 255, 155, 0.35);
+    border-radius: 1px;
+    color: var(--sage);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+  }}
+  .tips-cat.LINUX,    .tips-cat.SHELL {{ color: #a8d9b3; border-color: rgba(168, 217, 179, 0.5); background: rgba(168, 217, 179, 0.08); }}
+  .tips-cat.RSI,      .tips-cat.HEALTH {{ color: #d4b8c8; border-color: rgba(212, 184, 200, 0.5); background: rgba(212, 184, 200, 0.08); }}
+  .tips-cat.INFRA,    .tips-cat.DEVOPS {{ color: #9bb8d4; border-color: rgba(155, 184, 212, 0.5); background: rgba(155, 184, 212, 0.08); }}
+  .tips-cat.BEGINNER, .tips-cat.JUNIOR {{ color: #e8c994; border-color: rgba(232, 201, 148, 0.5); background: rgba(232, 201, 148, 0.08); }}
+  .tips-cat.EXPERT,   .tips-cat.PRO    {{ color: #d49898; border-color: rgba(212, 152, 152, 0.5); background: rgba(212, 152, 152, 0.08); }}
+  .tips-cat.AI,       .tips-cat.PROMPT {{ color: #b8a4d9; border-color: rgba(184, 164, 217, 0.5); background: rgba(184, 164, 217, 0.08); }}
+  .tips-cat.CAREER,   .tips-cat.JOBS   {{ color: #c5d97c; border-color: rgba(197, 217, 124, 0.5); background: rgba(197, 217, 124, 0.08); }}
+  .tips-cat.WORKFLOW              {{ color: #98c5b8; border-color: rgba(152, 197, 184, 0.5); background: rgba(152, 197, 184, 0.08); }}
+
+  /* Cycling tip body lines */
+  .tip-slot {{
+    position: relative;
+    min-height: 56px;
+  }}
+  .tip-line {{
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: translateY(6px);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #9be3ad;
+    letter-spacing: 0.02em;
+    animation: tip-cycle 20s linear infinite;
+  }}
+  .tip-line .body {{
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 0;
+    animation: tip-type 5s steps(60, end) infinite;
+  }}
+  .tip-line .body.wrapped {{
+    white-space: normal;
+    animation: tip-fade 5s ease infinite;
+    clip-path: none;
+  }}
+  .tip-line .attrib {{
+    display: block;
+    margin-top: 0.4rem;
+    font-size: 0.6rem;
+    color: rgba(124, 255, 155, 0.4);
+    letter-spacing: 0.08em;
+  }}
+
+  /* Cycle per tip = 25% of 20s = 5s. Visible window ~4.4s with 0.3s fade in/out. */
+  @keyframes tip-cycle {{
+    0%     {{ opacity: 0; transform: translateY(6px); }}
+    1.5%   {{ opacity: 1; transform: translateY(0); }}
+    23.5%  {{ opacity: 1; transform: translateY(0); }}
+    25%    {{ opacity: 0; transform: translateY(-6px); }}
+    100%   {{ opacity: 0; }}
+  }}
+  /* Typewriter reveal (clip-path on first line) — runs each 5s slot */
+  @keyframes tip-type {{
+    0%   {{ clip-path: inset(0 100% 0 0); }}
+    8%   {{ clip-path: inset(0 0% 0 0); }}
+    90%  {{ clip-path: inset(0 0% 0 0); }}
+    100% {{ clip-path: inset(0 100% 0 0); }}
+  }}
+  /* Fade for wrapped/2-line tips */
+  @keyframes tip-fade {{
+    0%   {{ opacity: 0; }}
+    8%   {{ opacity: 1; }}
+    90%  {{ opacity: 1; }}
+    100% {{ opacity: 0; }}
+  }}
+  /* Cursor blink */
+  @keyframes tips-blink {{
+    0%, 49%  {{ opacity: 1; }}
+    50%, 100%{{ opacity: 0; }}
+  }}
+
+  /* Stagger delays — 4 tips, each owns a 5s slot of the 20s loop.
+     Negative delay = animation already partway through at t=0.
+     Math: tip N is at delay -20 + (N * 5) so its visible window is t=(N-1)*5..N*5. */
+  .tip-line:nth-child(1)  {{ animation-delay: 0s; }}
+  .tip-line:nth-child(2)  {{ animation-delay: -15s; }}
+  .tip-line:nth-child(3)  {{ animation-delay: -10s; }}
+  .tip-line:nth-child(4)  {{ animation-delay: -5s; }}
+
+  /* Responsive — collapse tip box on mobile */
+  @media (max-width: 640px) {{
+    .tips-terminal {{
+      font-size: 0.7rem;
+      min-height: 80px;
+      padding: 0.7rem 0.8rem 0.75rem;
+    }}
+    .tip-line {{
+      font-size: 0.7rem;
+    }}
+  }}
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {{
+    .tip-line, .tip-line .body, .tip-line .body.wrapped, .tips-header .blinker {{
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      clip-path: none !important;
+    }}
+  }}
+
   /* Subsection labels */
   .subsection-label {{
     font-family: {f['mono']};

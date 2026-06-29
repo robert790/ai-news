@@ -23,6 +23,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import sys
 from pathlib import Path
+import random
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -45,6 +46,7 @@ from learning import (
 )
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
+from tips import TIPS as ALL_TIPS
 
 
 # ===== Page config =====
@@ -179,6 +181,59 @@ def live_badge(text: str = "LIVE") -> None:
         f'</span>',
         unsafe_allow_html=True,
     )
+
+
+def tips_terminal(n: int = 8, seed_key: str = "tips_terminal_v1") -> None:
+    """Render a Fallout-style loading-screen tip box.
+
+    Picks `n` random tips once per session (stable for the visit, not random
+    on every rerender) and renders them as a stacked tip cycling block.
+    The CSS layer handles typing + fade transitions; we just emit the HTML.
+
+    Args:
+        n: how many tips to embed in the box (4-8 reads well).
+        seed_key: session_state key — change to reseed the tip selection.
+    """
+    if seed_key not in st.session_state:
+        rng = random.Random()
+        rng.seed()  # OS entropy; do NOT use time.time for deterministic test runs
+        st.session_state[seed_key] = rng.sample(ALL_TIPS, min(n, len(ALL_TIPS)))
+
+    picked = st.session_state[seed_key]
+
+    rows: list[str] = []
+    for cat, body, attrib in picked:
+        # Wrap long tips by escaping + adding inner span
+        body_esc = (
+            body.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+        )
+        attrib_esc = (
+            attrib.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+        )
+        rows.append(
+            f'<div class="tip-line">'
+            f'<span class="tips-cat {cat}">[{cat}]</span>'
+            f'<span class="body">{body_esc}</span>'
+            f'<span class="attrib">— {attrib_esc}</span>'
+            f'</div>'
+        )
+
+    html = (
+        '<div class="tips-terminal" aria-label="developer tips">'
+        '<div class="tips-header">'
+        '<span class="prefix">▸ tip_sequence.start()</span>'
+        '<span class="blinker"></span>'
+        '</div>'
+        '<div class="tip-slot">'
+        + "".join(rows) +
+        '</div>'
+        '</div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # ===== Sidebar =====
@@ -349,6 +404,10 @@ if SECTION == "azi":
         "Top 3 din fiecare. Bea cafeaua, scanează lumea, pleci la treabă.",
     )
     live_badge("LIVE FEED")
+
+    # Fallout-style loading-screen tip box — cycles through dev tips
+    # (LINUX, RSI, INFRA, BEGINNER, EXPERT, AI, CAREER, WORKFLOW).
+    tips_terminal(n=4)
 
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 
