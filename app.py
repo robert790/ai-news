@@ -19,7 +19,9 @@ Design follows frontend-design-expert principles:
 Run: streamlit run app.py
 """
 import streamlit as st
+import streamlit.components.v1 as components
 from datetime import datetime
+from typing import Optional
 from zoneinfo import ZoneInfo
 import sys
 from pathlib import Path
@@ -181,6 +183,113 @@ def live_badge(text: str = "LIVE") -> None:
     )
 
 
+def sidebar_nav_component(current: str) -> "Optional[str]":
+    """Render the sidebar section nav as a custom HTML component.
+
+    Replaces st.radio entirely so we have full control over the visual
+    appearance — Streamlit's default radio DOM was too tangled to style
+    cleanly via CSS. This component renders real <button> elements with
+    full styling, and JS sends the clicked value back via
+    Streamlit.setComponentValue so Python receives it.
+
+    Args:
+        current: the currently active section id ("azi", "news", etc.)
+
+    Returns:
+        The clicked section id if user clicked, else None.
+    """
+    sections = [
+        ("azi",      "☀",  "AZI"),
+        ("news",     "📡", "NEWS"),
+        ("learning", "📚", "LEARNING"),
+        ("jobs",     "💼", "JOBS"),
+        ("prompts",  "🛠", "PROMPTS"),
+    ]
+    buttons_html = "".join(
+        f'<button class="sb-nav-btn {"active" if sid == current else ""}" '
+        f'data-section="{sid}">'
+        f'<span class="icon">{icon}</span>'
+        f'<span class="label">{label}</span>'
+        f'</button>'
+        for sid, icon, label in sections
+    )
+
+    html = f"""
+<style>
+  .sb-nav-grid {{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0.25rem 0.4rem;
+    font-family: var(--mono-tac);
+  }}
+  .sb-nav-btn {{
+    display: flex !important;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    min-height: 46px;
+    padding: 0.85rem 1rem !important;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-left: 3px solid transparent;
+    border-radius: 2px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease,
+                border-color 200ms ease, border-left-color 200ms ease,
+                transform 200ms ease, box-shadow 200ms ease;
+    outline: none;
+  }}
+  .sb-nav-btn:hover {{
+    background: var(--surface-2);
+    color: var(--text);
+    border-color: var(--sage);
+    border-left-color: var(--sage);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px -2px rgba(168, 192, 174, 0.3);
+  }}
+  .sb-nav-btn.active {{
+    background: var(--sage) !important;
+    color: var(--bg) !important;
+    border-color: var(--sage) !important;
+    border-left-color: var(--sage) !important;
+    font-weight: 700;
+    box-shadow: 0 0 16px -2px rgba(168, 192, 174, 0.4) !important;
+  }}
+  .sb-nav-btn.active:hover {{
+    transform: none;
+    box-shadow: 0 0 20px -2px rgba(168, 192, 174, 0.5) !important;
+  }}
+  .sb-nav-btn .icon {{
+    font-size: 1.05rem;
+    line-height: 1;
+    width: 1.4rem;
+    text-align: center;
+  }}
+</style>
+<div class="sb-nav-grid">
+  {buttons_html}
+</div>
+<script>
+  document.querySelectorAll('.sb-nav-btn').forEach(function(btn) {{
+    btn.addEventListener('click', function() {{
+      var section = this.getAttribute('data-section');
+      if (window.Streamlit !== undefined) {{
+        Streamlit.setComponentValue(section);
+      }}
+    }});
+  }});
+</script>
+"""
+    return components.html(html, height=320)
+
+
 # ===== Sidebar =====
 now = datetime.now(ZoneInfo("Europe/Bucharest"))
 date_short = now.strftime("%a %d %b").lower()
@@ -191,6 +300,8 @@ status_html = (
 )
 
 # Session state defaults
+if "section" not in st.session_state:
+    st.session_state.section = "azi"
 if "selected_chapter" not in st.session_state:
     st.session_state.selected_chapter = "ch1"
 
@@ -240,20 +351,12 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    SECTION = st.radio(
-        "Navigate",
-        options=["azi", "news", "learning", "jobs", "prompts"],
-        format_func={
-            "azi":      "☀  AZI",
-            "news":     "📡  NEWS",
-            "learning": "📚  LEARNING",
-            "jobs":     "💼  JOBS",
-            "prompts":  "🛠  PROMPTS",
-        }.get,
-        index=0,
-        label_visibility="hidden",
-        key="section",
-    )
+    # Custom HTML nav buttons — full visual control, replaces st.radio
+    clicked = sidebar_nav_component(st.session_state.section)
+    if clicked and clicked != st.session_state.section:
+        st.session_state.section = clicked
+        st.rerun()
+    SECTION = st.session_state.section
 
     # TELEMETRY frame — coordinate readouts + cache bar
     st.markdown(
