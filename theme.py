@@ -572,7 +572,8 @@ def render_css() -> str:
   /* ============================================
      Prompt Bible — Prompts tab cards + filters
      ============================================ */
-  .prompts-pills-label {{
+  .prompts-pills-label,
+  .lrn-pills-label {{
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.65rem;
     color: var(--muted);
@@ -580,6 +581,12 @@ def render_css() -> str:
     text-transform: uppercase;
     margin: 1.2rem 0 0.4rem;
   }}
+
+  /* Learning chip grid pill buttons — matches the broader
+     `baseButton-secondary` / `-primary` rules below (Prompts
+     tab). The Learning chapter chip grid and the Prompts
+     filter rows share the same pill aesthetic, so we don't
+     redefine it here. */
 
   /* Pill-shaped buttons for the prompts filter rows.
      Targets both Streamlit 1.50 (`stBaseButton-…`) and 1.32
