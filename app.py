@@ -21,6 +21,8 @@ Run: streamlit run app.py
 import streamlit as st
 from datetime import datetime
 from typing import Optional
+import html
+import json
 from zoneinfo import ZoneInfo
 import sys
 from pathlib import Path
@@ -985,17 +987,12 @@ elif SECTION == "prompts":
     diffs = all_difficulties()
     models = all_model_ids(bible)
 
-    # Pre-compute category counts so pills show "85" next to "Code"
+    # Pre-compute counts so pills show "85" next to "Code"
     cat_counts = {c["id"]: 0 for c in bible.categories}
     for p in bible.prompts:
         c = p.get("category", "")
         if c in cat_counts:
             cat_counts[c] += 1
-    diff_counts = {d: 0 for d in diffs}
-    for p in bible.prompts:
-        d = p.get("difficulty", "")
-        if d in diff_counts:
-            diff_counts[d] += 1
 
     section_header(
         "Prompts",
@@ -1010,71 +1007,86 @@ elif SECTION == "prompts":
         key="prompts_search",
     )
 
-    # --- Category pills ---
+    # --- Pill rows: native st.button per option, styled as pills via CSS ---
+    # We use st.button (not st.pills) because HF Space pins Streamlit to
+    # 1.32.0 and st.pills needs >= 1.40.0. Buttons work everywhere; we
+    # just style them as pills.
+
+    # Category pills — laid out in 4-column grid (3 rows for 12 cats)
     st.markdown(
         '<div class="prompts-pills-label">Categorie</div>',
         unsafe_allow_html=True,
     )
-    cat_labels = ["All"] + [
-        f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
-        for c in cats
-    ]
-    # Pills return the selected labels; we need to map back to ids.
-    cat_pills = st.pills(
-        "categorii",
-        options=cat_labels,
-        selection_mode="multi",
-        default=[],
-        label_visibility="collapsed",
-        key="prompts_cat_pills",
-    )
-    cat_pills = cat_pills or []
-    selected_cats = []
-    for label in cat_pills:
-        if label == "All":
-            continue
-        # Match "<icon> <Label> · <count>" against our options
-        for c in cats:
-            expected = f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
-            if label == expected:
-                selected_cats.append(c)
-                break
+    selected_cats = list(st.session_state.get("prompts_cats", []))
+    cat_cols_per_row = 4
+    for row_start in range(0, len(cats), cat_cols_per_row):
+        row_cats = cats[row_start:row_start + cat_cols_per_row]
+        c_cols = st.columns(len(row_cats), gap="small")
+        for ci, c in enumerate(row_cats):
+            with c_cols[ci]:
+                is_sel = c in selected_cats
+                label = f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
+                if st.button(
+                    label,
+                    key=f"pill_cat_{c}",
+                    use_container_width=True,
+                    type="primary" if is_sel else "secondary",
+                ):
+                    if is_sel:
+                        selected_cats.remove(c)
+                    else:
+                        selected_cats.append(c)
+                    st.session_state["prompts_cats"] = selected_cats
+                    st.rerun()
 
-    # --- Difficulty pills ---
+    # Difficulty pills — 4 in one row
     st.markdown(
         '<div class="prompts-pills-label">Difficulty</div>',
         unsafe_allow_html=True,
     )
-    diff_pills = st.pills(
-        "dificultate",
-        options=[difficulty_label(d) for d in diffs],
-        selection_mode="multi",
-        default=[],
-        label_visibility="collapsed",
-        key="prompts_diff_pills",
-    )
-    selected_diffs = diff_pills or []
+    selected_diffs = list(st.session_state.get("prompts_diffs", []))
+    d_cols = st.columns(len(diffs), gap="small")
+    for di, d in enumerate(diffs):
+        with d_cols[di]:
+            is_sel = d in selected_diffs
+            if st.button(
+                difficulty_label(d),
+                key=f"pill_diff_{d}",
+                use_container_width=True,
+                type="primary" if is_sel else "secondary",
+            ):
+                if is_sel:
+                    selected_diffs.remove(d)
+                else:
+                    selected_diffs.append(d)
+                st.session_state["prompts_diffs"] = selected_diffs
+                st.rerun()
 
-    # --- Model pills (16 — wrap in st.pills, will scroll horizontally) ---
+    # Model pills — 8 per row, wraps across 2 rows for 16 models
     st.markdown(
         '<div class="prompts-pills-label">Modele</div>',
         unsafe_allow_html=True,
     )
-    model_pills = st.pills(
-        "modele",
-        options=[bible.models.get(m, {}).get("label", m) for m in models],
-        selection_mode="multi",
-        default=[],
-        label_visibility="collapsed",
-        key="prompts_model_pills",
-    )
-    selected_models = []
-    if model_pills:
-        for label in model_pills:
-            for m in models:
-                if bible.models.get(m, {}).get("label", m) == label:
-                    selected_models.append(m)
-                    break
+    selected_models = list(st.session_state.get("prompts_models", []))
+    models_per_row = 8
+    for row_start in range(0, len(models), models_per_row):
+        row_models = models[row_start:row_start + models_per_row]
+        m_cols = st.columns(len(row_models), gap="small")
+        for mi, m in enumerate(row_models):
+            with m_cols[mi]:
+                is_sel = m in selected_models
+                if st.button(
+                    bible.models.get(m, {}).get("label", m),
+                    key=f"pill_model_{m}",
+                    use_container_width=True,
+                    type="primary" if is_sel else "secondary",
+                ):
+                    if is_sel:
+                        selected_models.remove(m)
+                    else:
+                        selected_models.append(m)
+                    st.session_state["prompts_models"] = selected_models
+                    st.rerun()
 
     # --- Sort + clear ---
     sort_cols = st.columns([3, 1], gap="small", vertical_alignment="center")
@@ -1087,13 +1099,13 @@ elif SECTION == "prompts":
             key="prompts_sort",
         )
     with sort_cols[1]:
-        any_active = bool(text_q or cat_pills or selected_diffs or selected_models)
+        any_active = bool(text_q or selected_cats or selected_diffs or selected_models)
         if any_active:
             if st.button("✕  Resetează filtre", key="prompts_reset", use_container_width=True):
-                # Clear everything by setting session state
-                for k in ["prompts_search", "prompts_cat_pills", "prompts_diff_pills",
-                          "prompts_model_pills", "prompts_sort"]:
-                    st.session_state[k] = [] if "pills" in k or k == "prompts_sort" else ""
+                st.session_state["prompts_search"] = ""
+                st.session_state["prompts_cats"] = []
+                st.session_state["prompts_diffs"] = []
+                st.session_state["prompts_models"] = []
                 st.session_state["prompts_sort"] = "Default"
                 st.rerun()
 

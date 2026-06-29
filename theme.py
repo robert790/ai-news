@@ -580,47 +580,53 @@ def render_css() -> str:
     text-transform: uppercase;
     margin: 1.2rem 0 0.4rem;
   }}
-  /* Hide the (default) label that st.pills emits before the buttons */
-  [data-testid="stPills"] > label,
-  [data-testid="stPills"] [data-testid="stWidgetLabel"] {{
-    display: none !important;
-  }}
-  /* The pill row itself — wrap + gap */
-  [data-testid="stPills"] [role="radiogroup"],
-  [data-testid="stPills"] [data-testid="stPills"] {{
-    gap: 0.45rem !important;
-    row-gap: 0.45rem !important;
-    flex-wrap: wrap !important;
-  }}
-  /* Each pill button — base */
-  [data-testid="stPills"] button {{
+
+  /* Pill-shaped buttons for the prompts filter rows.
+     Streamlit exposes the widget key as `st-key-KEY` on the parent
+     stElementContainer, so we target descendants whose ancestor has
+     one of our pill keys (pill_cat_*, pill_diff_*, pill_model_*). */
+  [class*="st-key-pill_cat_"] button[data-testid^="stBaseButton"],
+  [class*="st-key-pill_diff_"] button[data-testid^="stBaseButton"],
+  [class*="st-key-pill_model_"] button[data-testid^="stBaseButton"] {{
     border-radius: 999px !important;
-    padding: 0.35rem 0.85rem !important;
+    padding: 0.32rem 0.7rem !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.72rem !important;
-    letter-spacing: 0.04em !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.03em !important;
     line-height: 1.2 !important;
+    white-space: nowrap !important;
+    transition: all 180ms ease !important;
+    min-height: 32px !important;
+    height: 32px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }}
+  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-secondary"],
+  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-secondary"],
+  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-secondary"] {{
     background: rgba(255, 255, 255, 0.02) !important;
     color: var(--muted) !important;
     border: 1px solid var(--border) !important;
-    transition: all 180ms ease !important;
-    min-height: 0 !important;
-    height: auto !important;
-    white-space: nowrap !important;
   }}
-  [data-testid="stPills"] button:hover {{
-    background: rgba(255, 255, 255, 0.05) !important;
+  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-secondary"]:hover,
+  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-secondary"]:hover,
+  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-secondary"]:hover {{
+    background: rgba(255, 255, 255, 0.06) !important;
     color: var(--text-2) !important;
     border-color: var(--border-strong) !important;
   }}
-  [data-testid="stPills"] button[aria-checked="true"] {{
-    background: rgba(168, 192, 174, 0.12) !important;
+  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-primary"],
+  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-primary"],
+  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-primary"] {{
+    background: rgba(168, 192, 174, 0.16) !important;
     color: var(--sage) !important;
-    border-color: var(--sage) !important;
+    border: 1px solid var(--sage) !important;
     font-weight: 600 !important;
   }}
-  [data-testid="stPills"] button[aria-checked="true"]:hover {{
-    background: rgba(168, 192, 174, 0.18) !important;
+  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-primary"]:hover,
+  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-primary"]:hover,
+  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-primary"]:hover {{
+    background: rgba(168, 192, 174, 0.22) !important;
   }}
 
   .prompts-count {{
