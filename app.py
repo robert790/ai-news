@@ -121,10 +121,14 @@ def fmt_date(iso_str: str) -> str:
 
 
 def section_header(title: str, caption: str):
-    """Render the consistent section header. Used in every section."""
+    """Render the consistent section header. Used in every section.
+
+    Brackets are rendered inline so they always sit adjacent to the title
+    (CSS pseudo-elements get stretched by block-level h1 layout).
+    """
     st.markdown(
         f'<div class="section-header reveal-1">'
-        f'<h1>{title}</h1>'
+        f'<h1><span class="bracket">[</span> {title} <span class="bracket">]</span></h1>'
         f'<p class="caption">{caption}</p>'
         f'</div>',
         unsafe_allow_html=True,

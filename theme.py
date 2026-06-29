@@ -178,7 +178,7 @@ def render_css() -> str:
     padding-right: 0;
   }}
 
-  /* Sidebar nav items — tactical flat style with left-border accent */
+  /* Sidebar nav items — tactical flat style with slide-on-hover + left-border accent */
   section[data-testid="stSidebar"] .stRadio {{
     margin-top: 0;
   }}
@@ -189,11 +189,12 @@ def render_css() -> str:
     display: none;
   }}
   section[data-testid="stSidebar"] [role="radiogroup"] {{
-    gap: 0;
+    gap: 2px;
   }}
   section[data-testid="stSidebar"] [role="radio"] {{
+    position: relative;
     background-color: transparent;
-    border: none;
+    border: 1px solid transparent;
     border-left: 2px solid transparent;
     color: var(--muted);
     padding: 0.7rem 1rem 0.7rem 1.1rem;
@@ -202,22 +203,30 @@ def render_css() -> str:
     font-weight: 400;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border-radius: 0;
-    margin: 0;
+    border-radius: 2px;
+    margin: 0 0.5rem;
     cursor: pointer;
     transition: background-color var(--dur-fast) var(--ease),
                 color var(--dur-fast) var(--ease),
-                border-left-color var(--dur-fast) var(--ease);
+                border-color var(--dur-fast) var(--ease),
+                border-left-color var(--dur-fast) var(--ease),
+                padding-left var(--dur-fast) var(--ease);
   }}
   section[data-testid="stSidebar"] [role="radio"]:hover {{
-    background-color: rgba(168, 192, 174, 0.05);
+    background-color: rgba(168, 192, 174, 0.07);
     color: var(--text);
     border-left-color: var(--border-strong);
+    border-color: var(--border);
+    padding-left: 1.3rem;
   }}
   section[data-testid="stSidebar"] [role="radio"][aria-checked="true"] {{
-    background-color: rgba(168, 192, 174, 0.1);
+    background-color: rgba(168, 192, 174, 0.12);
     color: var(--sage);
     border-left-color: var(--sage);
+    border-color: var(--border-strong);
+  }}
+  section[data-testid="stSidebar"] [role="radio"][aria-checked="true"]:hover {{
+    padding-left: 1.3rem;
   }}
 
   /* Sidebar status bar (top tray) */
@@ -617,7 +626,7 @@ def render_css() -> str:
     margin-left: 0.4rem;
   }}
 
-  /* Section header — bracket markers via CSS pseudo */
+  /* Section header — bracket markers as inline spans (adjacent to title) */
   .section-header {{
     margin-bottom: 2rem;
   }}
@@ -626,24 +635,11 @@ def render_css() -> str:
     margin: 0 0 0.4rem;
     line-height: 1.15;
   }}
-  .section-header h1::before {{
-    content: "[ ";
+  .section-header h1 .bracket {{
     font-family: var(--mono-tac);
     color: var(--muted);
     font-weight: 300;
     font-size: 0.7em;
-    vertical-align: 0.25em;
-    margin-right: 0.2em;
-    letter-spacing: 0;
-  }}
-  .section-header h1::after {{
-    content: " ]";
-    font-family: var(--mono-tac);
-    color: var(--muted);
-    font-weight: 300;
-    font-size: 0.7em;
-    vertical-align: 0.25em;
-    margin-left: 0.2em;
     letter-spacing: 0;
   }}
   .section-header .caption {{
