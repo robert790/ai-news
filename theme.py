@@ -408,6 +408,122 @@ def render_css() -> str:
     vertical-align: middle;
   }}
 
+  /* ============================================
+     Background animations — radar pulse + scan line
+     ============================================ */
+  @keyframes radar-pulse {{
+    0%   {{ transform: scale(0.15); opacity: 0.55; }}
+    100% {{ transform: scale(2.2);  opacity: 0; }}
+  }}
+  @keyframes scan-down {{
+    0%   {{ transform: translateY(-3vh); opacity: 0; }}
+    10%  {{ opacity: 0.55; }}
+    90%  {{ opacity: 0.55; }}
+    100% {{ transform: translateY(103vh); opacity: 0; }}
+  }}
+
+  /* Radar pulse rings — fixed overlay from bottom-right corner */
+  .bg-radar {{
+    position: fixed;
+    bottom: -30vh;
+    right: -30vw;
+    width: 80vh;
+    height: 80vh;
+    pointer-events: none;
+    z-index: 0;
+  }}
+  .bg-radar::before,
+  .bg-radar::after {{
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(168, 192, 174, 0.35);
+    animation: radar-pulse 6s linear infinite;
+  }}
+  .bg-radar::after {{ animation-delay: 3s; }}
+
+  /* Vertical scan line — sweeps top to bottom */
+  .bg-scan {{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right,
+      transparent 0%,
+      rgba(168, 192, 174, 0.45) 50%,
+      transparent 100%);
+    animation: scan-down 12s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }}
+
+  /* Respect reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {{
+    .bg-radar::before,
+    .bg-radar::after,
+    .bg-scan {{
+      animation: none !important;
+    }}
+  }}
+
+  /* ============================================
+     Sidebar hacker upgrades
+     ============================================ */
+
+  /* Crosshair cluster (3x3 targeting feel) */
+  .sb-cluster {{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    justify-items: center;
+    align-items: center;
+    margin: 0 auto 0.55rem;
+    width: 70%;
+    font-family: {f['mono']};
+    color: var(--sage);
+    font-size: 0.7rem;
+    line-height: 1;
+  }}
+  .sb-cluster .c {{ opacity: 0.45; }}
+  .sb-cluster .c.center {{
+    opacity: 1;
+    font-size: 0.95rem;
+    grid-column: 2;
+    grid-row: 2;
+  }}
+
+  /* ASCII cache bar in TELEMETRY */
+  .sb-cache-bar {{
+    font-family: {f['mono']};
+    font-size: 0.7rem;
+    letter-spacing: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }}
+  .sb-cache-bar .bar {{
+    flex: 1;
+    color: var(--sage);
+    letter-spacing: 0.1em;
+  }}
+  .sb-cache-bar .bar .empty {{ color: var(--muted-2); }}
+  .sb-cache-bar .pct {{ color: var(--muted); min-width: 2.5rem; text-align: right; }}
+
+  /* Activity log rows in [ ACTIVITY ] frame */
+  .sb-activity-row {{
+    display: flex;
+    gap: 0.4rem;
+    align-items: baseline;
+    font-family: {f['mono']};
+    font-size: 0.6rem;
+    line-height: 1.55;
+    color: var(--text-2);
+    letter-spacing: 0;
+  }}
+  .sb-activity-row .time {{ color: var(--muted); flex-shrink: 0; }}
+  .sb-activity-row .op {{ color: var(--text); }}
+  .sb-activity-row .status {{ margin-left: auto; color: var(--sage); flex-shrink: 0; }}
+
   /* Section header — bracket markers via CSS pseudo */
   .section-header {{
     margin-bottom: 2rem;

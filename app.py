@@ -57,6 +57,14 @@ st.set_page_config(
 
 st.markdown(render_css(), unsafe_allow_html=True)
 
+# Background overlays — radar pulse rings + scan line
+# Both are fixed-position with pointer-events: none, sit behind content (z-index 0)
+st.markdown(
+    '<div class="bg-radar"></div>'
+    '<div class="bg-scan"></div>',
+    unsafe_allow_html=True,
+)
+
 
 # ===== Data loaders (cached) =====
 @st.cache_data(ttl=1800, show_spinner=False)
@@ -192,15 +200,20 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    # BRAND frame — crosshair + name + tagline
+    # BRAND frame — crosshair cluster + name + tagline
     st.markdown(
         '<div class="sb-frame-label">[ BRAND ]</div>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="sb-frame">'
+        '<div class="sb-cluster">'
+        '<span class="c">⊕</span><span class="c">⊕</span><span class="c">⊕</span>'
+        '<span class="c">⊕</span><span class="c center">⊕</span><span class="c">⊕</span>'
+        '<span class="c">⊕</span><span class="c">⊕</span><span class="c">⊕</span>'
+        '</div>'
         '<div class="sb-brand">'
-        '<svg width="20" height="20" viewBox="0 0 20 20" class="crosshair">'
+        '<svg width="18" height="18" viewBox="0 0 20 20" class="crosshair">'
         '<circle cx="10" cy="10" r="7" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.55"/>'
         '<line x1="10" y1="0" x2="10" y2="20" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
         '<line x1="0" y1="10" x2="20" y2="10" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
@@ -234,11 +247,13 @@ with st.sidebar:
         key="section",
     )
 
-    # TELEMETRY frame — coordinate readouts
+    # TELEMETRY frame — coordinate readouts + cache bar
     st.markdown(
         '<div class="sb-frame-label">[ TELEMETRY ]</div>',
         unsafe_allow_html=True,
     )
+    cache_filled = "█" * 7
+    cache_empty = "░" * 3
     st.markdown(
         f'<div class="sb-frame">'
         f'<div class="sb-telemetry-row"><span class="k">LAT</span><span class="v">44.4268°N</span></div>'
@@ -246,11 +261,36 @@ with st.sidebar:
         f'<div class="sb-telemetry-divider"></div>'
         f'<div class="sb-telemetry-row"><span class="k">DATE</span><span class="v">{date_short}</span></div>'
         f'<div class="sb-telemetry-row"><span class="k">SESSION</span><span class="v">ops-7a3f</span></div>'
+        f'<div class="sb-telemetry-row"><span class="k">CACHE</span>'
+        f'<span class="sb-cache-bar"><span class="bar">{cache_filled}<span class="empty">{cache_empty}</span></span>'
+        f'<span class="pct">67%</span></span></div>'
         f'<div class="sb-telemetry-row"><span class="k">STATUS</span><span class="v">'
         f'<span class="status-dot"></span>ONLINE</span></div>'
         f'</div>',
         unsafe_allow_html=True,
     )
+
+    # ACTIVITY frame — recent ops log
+    st.markdown(
+        '<div class="sb-frame-label">[ ACTIVITY ]</div>',
+        unsafe_allow_html=True,
+    )
+    activity_rows = [
+        ("02:14", "hn.fetch()",        "ok"),
+        ("02:14", "repos.sync()",      "ok"),
+        ("02:13", "hf.papers.load()",  "ok"),
+        ("02:13", "lobsters.fetch()",  "ok"),
+        ("02:12", "session.start",     "—"),
+    ]
+    rows_html = "".join(
+        f'<div class="sb-activity-row">'
+        f'<span class="time">{t}</span>'
+        f'<span class="op">▸ {op}</span>'
+        f'<span class="status">{s}</span>'
+        f'</div>'
+        for t, op, s in activity_rows
+    )
+    st.markdown(f'<div class="sb-frame">{rows_html}</div>', unsafe_allow_html=True)
 
     # Footer
     st.markdown(
