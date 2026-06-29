@@ -188,6 +188,12 @@ def render_css() -> str:
   section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
     display: none;
   }}
+  /* Hide Streamlit's default radio circle/dot */
+  section[data-testid="stSidebar"] [role="radio"] input[type="radio"] {{
+    display: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+  }}
   section[data-testid="stSidebar"] [role="radiogroup"] {{
     gap: 2px;
   }}
@@ -227,6 +233,35 @@ def render_css() -> str:
   }}
   section[data-testid="stSidebar"] [role="radio"][aria-checked="true"]:hover {{
     padding-left: 1.3rem;
+  }}
+
+  /* Action buttons inside [ ACTIONS ] frame — full-width tactical */
+  .sb-action {{
+    width: 100%;
+    margin-bottom: 0.4rem;
+  }}
+  .sb-action:last-child {{ margin-bottom: 0; }}
+  .sb-action .stButton > button {{
+    width: 100%;
+    text-align: left;
+    padding: 0.55rem 0.8rem;
+    font-family: var(--mono-tac);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background-color: var(--surface-2);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: all var(--dur-fast) var(--ease);
+  }}
+  .sb-action .stButton > button:hover {{
+    background-color: var(--sage);
+    border-color: var(--sage);
+    color: var(--bg);
+  }}
+  .sb-action .stButton > button:active {{
+    transform: scale(0.98);
   }}
 
   /* Sidebar status bar (top tray) */

@@ -310,6 +310,28 @@ with st.sidebar:
     )
     st.markdown(f'<div class="sb-frame">{rows_html}</div>', unsafe_allow_html=True)
 
+    # ACTIONS frame — quick action buttons
+    st.markdown(
+        '<div class="sb-frame-label" data-frame="actions">'
+        '<span class="bracket">┌──</span>[ ACTIONS ]<span class="bracket">──┐</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('<div class="sb-frame"><div class="sb-action">', unsafe_allow_html=True)
+    if st.button("↻  Refresh feeds", key="refresh_feeds", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
+    st.markdown('</div><div class="sb-action">', unsafe_allow_html=True)
+    if st.button("⌘  Copy URL", key="copy_url", use_container_width=True):
+        st.toast("URL: https://huggingface.co/spaces/vrobert94/ai-news")
+    st.markdown('</div><div class="sb-action">', unsafe_allow_html=True)
+    if st.button("⤴  Open in new tab", key="open_new_tab", use_container_width=True):
+        st.markdown(
+            '<script>window.open("https://huggingface.co/spaces/vrobert94/ai-news", "_blank");</script>',
+            unsafe_allow_html=True,
+        )
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
     # Footer
     st.markdown(
         '<div class="sb-footer">━━━ OpenRadar ━━━</div>',
