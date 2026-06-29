@@ -52,6 +52,25 @@ def load_prompt_bible() -> PromptBible:
     )
 
 
+def load_prompts_index() -> list[dict]:
+    """Lightweight: just the fields a chapter cross-ref needs.
+
+    Avoids passing the full Bible around and serializing huge prompt
+    bodies when we only care about title/category/difficulty/tags.
+    """
+    bible = load_prompt_bible()
+    out = []
+    for p in bible.prompts:
+        out.append({
+            "id": p.get("id"),
+            "title": p.get("title", ""),
+            "category": p.get("category", ""),
+            "difficulty": p.get("difficulty", ""),
+            "tags": p.get("tags", []) or [],
+        })
+    return out
+
+
 def category_label(bible: PromptBible, cat_id: str) -> str:
     """Resolve a category id to its display label (falls back to id)."""
     for c in bible.categories:
