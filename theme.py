@@ -351,19 +351,51 @@ def render_css() -> str:
     letter-spacing: 0.2em;
   }}
 
-  /* Cards — sharp tactical corners */
+  /* Cards — sharp tactical corners with top accent line + hover lift */
   [data-testid="stVerticalBlockBorderWrapper"] {{
     background-color: var(--surface);
     border: 1px solid var(--border-strong) !important;
+    border-top: 2px solid var(--sage) !important;
     border-radius: 2px !important;
-    padding: 1.2rem 1.4rem !important;
+    padding: 1.1rem 1.4rem !important;
     transition: border-color var(--dur-base) var(--ease),
-                background-color var(--dur-base) var(--ease);
+                border-top-color var(--dur-base) var(--ease),
+                background-color var(--dur-base) var(--ease),
+                transform var(--dur-base) var(--ease);
   }}
   [data-testid="stVerticalBlockBorderWrapper"]:hover {{
     border-color: var(--sage) !important;
-    background-color: var(--surface-2);
+    border-top-color: var(--sage) !important;
+    background-color: rgba(168, 192, 174, 0.05);
+    transform: scale(1.008);
   }}
+
+  /* Card accent color variants — top border tint */
+  .card-accent-coral [data-testid="stVerticalBlockBorderWrapper"],
+  [data-testid="stVerticalBlockBorderWrapper"].accent-coral {{
+    border-top-color: var(--coral) !important;
+  }}
+  .card-accent-sky [data-testid="stVerticalBlockBorderWrapper"],
+  [data-testid="stVerticalBlockBorderWrapper"].accent-sky {{
+    border-top-color: var(--sky) !important;
+  }}
+  .card-accent-sage [data-testid="stVerticalBlockBorderWrapper"],
+  [data-testid="stVerticalBlockBorderWrapper"].accent-sage {{
+    border-top-color: var(--sage) !important;
+  }}
+
+  /* Card mono label — tactical header inside card */
+  .card-label {{
+    font-family: {f['mono']};
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: -0.4rem 0 0.65rem;
+    color: var(--sage);
+  }}
+  .card-label.coral {{ color: var(--coral); }}
+  .card-label.sky {{ color: var(--sky); }}
+  .card-label.lavender {{ color: var(--lavender); }}
 
   /* Buttons — sharp tactical corners */
   .stButton > button {{

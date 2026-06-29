@@ -332,6 +332,7 @@ if SECTION == "azi":
         column_header("News", "📡", len(top3), "#e8a598")
         for item in top3:
             with st.container(border=True):
+                st.markdown('<div class="card-label coral">▸ HN FEED</div>', unsafe_allow_html=True)
                 st.markdown(f"**[{item.title[:90]}]({item.url})**")
                 summary = (item.summary or "")[:140]
                 if summary:
@@ -344,6 +345,7 @@ if SECTION == "azi":
         column_header("Tools", "⭐", len(top3), "#a5c5d4")
         for r in top3:
             with st.container(border=True):
+                st.markdown('<div class="card-label sky">▸ findarepo</div>', unsafe_allow_html=True)
                 st.markdown(f"**[{r.full_name}]({r.url})**")
                 desc = (r.description or "")[:120]
                 if desc:
@@ -359,6 +361,7 @@ if SECTION == "azi":
         column_header("Jobs", "💼", len(mock_jobs), "#a8c0ae")
         for j in mock_jobs:
             with st.container(border=True):
+                st.markdown('<div class="card-label">▸ MATCH</div>', unsafe_allow_html=True)
                 st.markdown(f"**{j['title']}**")
                 st.caption(f"{j['company']} · 📍 {j['location']}")
                 st.markdown(
