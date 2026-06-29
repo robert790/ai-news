@@ -1,0 +1,252 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch6-reader"><section id="ch6">
+<div class="callout">
+<strong>The big idea:</strong> read like a journalist, not a referee. You're trying to extract "what did they do and why should I care?" — not verify every equation. 80% of the paper is for people who actually need to reproduce it. You don't.
+    </div>
+<h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 32px 0 8px;">Anatomy of an AI paper.</h3>
+<div>
+<div>
+<div>1</div>
+<div>
+<h4>Abstract</h4>
+<p>One paragraph. What they did, what they found, why it matters. <strong>Read this first.</strong></p>
+<span>read · 2 min</span>
+</div>
+</div>
+<div>
+<div>2</div>
+<div>
+<h4>Introduction</h4>
+<p>The "why this matters" setup. Usually has a great diagram showing the new method. <strong>Skim the diagrams.</strong></p>
+<span>skim · 5 min</span>
+</div>
+</div>
+<div>
+<div>3</div>
+<div>
+<h4>Related Work</h4>
+<p>"Here's what other people did before us." Boring for outsiders. <strong>Skip unless you need context.</strong></p>
+<span>skip</span>
+</div>
+</div>
+<div>
+<div>4</div>
+<div>
+<h4>Method / Approach</h4>
+<p>The actual how-it-works. Full of math. <strong>Read the first paragraph and any diagrams, skip the equations.</strong></p>
+<span>skim only</span>
+</div>
+</div>
+<div>
+<div>5</div>
+<div>
+<h4>Experiments</h4>
+<p>"Here's how it performed." Look at the tables and the bold numbers. <strong>Read the conclusions from the tables.</strong></p>
+<span>tables · 5 min</span>
+</div>
+</div>
+<div>
+<div>6</div>
+<div>
+<h4>Conclusion / Discussion</h4>
+<p>What the authors think is important. Often mentions limitations honestly. <strong>Read this.</strong></p>
+<span>read · 3 min</span>
+</div>
+</div>
+</div>
+<p>Total time for a real paper: <strong>15–20 minutes</strong>. You don't need to understand everything. You need to understand the <em>point</em>.</p>
+<h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 32px 0 8px;">Try it: DeepSeek-V3, page 1.</h3>
+<p>The DeepSeek-V3 paper (the one that broke the internet) opens like this — translated from "academic English" into "actually-English":</p>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M21 11.5a8.38 8.38 0 01-9 8.5 8.5 8.5 0 01-8.5-8.5A8.5 8.5 0 0112 3a8.38 8.38 0 019 8.5z"></path></svg>
+        Translation · DeepSeek-V3, plain English
+      </div>
+<h3>"We trained a 671B-parameter model for $5.5M and it works really well."</h3>
+<p><strong>What they actually did:</strong> built a model with 671 billion parameters (the dials). Used a clever architecture (MoE) so only 37 billion are active per question. Trained it on 14.8 trillion tokens (LEGO pieces) of text. The whole final training run cost about $5.5 million in compute. It scores as well as the best closed models on math, code, and reasoning benchmarks.</p>
+<p><strong>Why it matters:</strong> it proves that the frontier isn't gated by trillion-dollar budgets. Smart design can substitute for raw scale.</p>
+<p><strong>What to ignore:</strong> the 53-page Methods section. You don't need to reproduce it.</p>
+</div>
+<div>
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"></path></svg>
+        Your turn · 30 minutes
+      </div>
+<h4>Read one paper using the recipe.</h4>
+<p>Pick one of these (whichever sounds most interesting):</p>
+<p>• <strong>DeepSeek-V3</strong> — arxiv.org/abs/2412.19437 (the one we just translated)<br/>
+      • <strong>DeepSeek-R1</strong> — arxiv.org/abs/2501.12948 (how they trained reasoning)<br/>
+      • <strong>Attention Is All You Need</strong> — arxiv.org/abs/1706.03762 (the original transformer, a classic)<br/>
+      • <strong>Llama 3 paper</strong> — arxiv.org/abs/2407.21783 (Meta's open model story)</p>
+<p>Read just the abstract, intro, and conclusion. Take 5 minutes to write in your own words: "What did they do, and why should I care?" If you can answer that clearly, you understood the paper better than 95% of people who will share it on Twitter.</p>
+<span>⏱ ~30 min</span>
+</div>
+</section></div>

@@ -1,0 +1,226 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch8-reader"><section id="ch8">
+<div>
+<div><div>€4B</div><div>NVIDIA planned in Romania</div></div>
+<div><div>80MW</div><div>DriverAI data center, Cluj</div></div>
+<div><div>91</div><div>AI companies tracked in RO</div></div>
+<div><div>€1B</div><div>McKinsey: AI public-sector gains</div></div>
+</div>
+<div class="callout">
+<strong>The big idea:</strong> Romania is small in absolute AI terms compared to the US or China, but it's now an <em>official</em> EU AI Factory host (October 2025). That puts you inside an EU-funded compute and skills ecosystem most countries don't have access to. Use it.
+    </div>
+<h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 32px 0 8px;">The big players, ranked by what matters to you.</h3>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="16" rx="2" width="18" x="3" y="4"></rect><path d="M9 9h6M9 13h6"></path></svg>
+        Provider 1 · ClusterPower (Iași + nationwide)
+      </div>
+<h3>The biggest domestic GPU-as-a-service.</h3>
+<p><strong>What they offer:</strong> on-demand and reserved access to NVIDIA H100 GPU clusters, with InfiniBand-class networking. Built specifically for AI training and inference at scale. They sell to anyone — startups, research labs, enterprises.</p>
+<p><strong>Why it matters to you:</strong> if you ever want to fine-tune a real model (not just use APIs), you can rent serious compute from a Romanian provider, in RON, with Romanian contracts. No need to wire money to AWS or have a US billing address.</p>
+<p><strong>Website:</strong> <a href="https://ai.clusterpower.com/" target="_blank">ai.clusterpower.com</a></p>
+<p>Sources: <a href="https://ai.clusterpower.com/" target="_blank">clusterpower.com</a> · <a href="https://www.facebook.com/nvidiaeurope/posts/cluster-power-one-of-central-europes-most-ambitious-technology-projects-is-offer/1426018398141632/" target="_blank">NVIDIA Europe announcement</a></p>
+</div>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"></path></svg>
+        Provider 2 · DriverAI (Cluj-Napoca)
+      </div>
+<h3>The 80-MW quantum-AI hybrid coming online.</h3>
+<p><strong>What they offer:</strong> an 80-megawatt data center in Cluj integrating GPU clusters with quantum computing — the first of its kind globally if delivered as announced. Still in build-out, but positions Romania at the edge of next-gen compute.</p>
+<p><strong>Why it matters to you:</strong> Cluj is becoming a second AI hub alongside Bucharest. If you're flexible on geography, Cluj's startup ecosystem (UiPath co-founders are from here) is arguably tighter and more builder-focused than Bucharest's enterprise tilt.</p>
+<p>Source: <a href="https://datacenters.economictimes.indiatimes.com/news/construction-site-development/driverai-to-establish-80-mw-quantum-ai-data-center-in-cluj-romania/131698160" target="_blank">ETDatacenters coverage</a></p>
+</div>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+        Policy · EU AI Factory + Romania's national strategy
+      </div>
+<h3>Romania was picked. That matters more than you think.</h3>
+<p><strong>EU AI Factory:</strong> in October 2025, Romania was selected as one of six European countries to host a new AI and supercomputing center under the EU AI Factory initiative. This means subsidized compute access for Romanian startups and researchers, training programs, and a direct pipeline to EU-funded AI talent.</p>
+<p><strong>National AI Strategy 2024–2027:</strong> the government's plan. Budget is modest (~105M RON ≈ €21M — small vs Portugal's €400M), so don't expect state money to fund your startup. But the strategy does signal which sectors get prioritized: healthcare, public administration, education, manufacturing.</p>
+<p><strong>Why it matters to you:</strong> AI Factory status means grants, mentors, and free/subsidized training are coming online over the next 12 months. Watch eu.ai or Romania's Ministry of Research announcements. These are not huge — but they're free, and free is free.</p>
+<p>Sources: <a href="https://stip.oecd.org/stip/interactive-dashboards/policy-initiatives/2025%2Fdata%2FpolicyInitiatives%2F200002174" target="_blank">OECD AI Policy Observatory</a> · <a href="https://www.linkedin.com/pulse/romania-europes-unexpected-fast-growing-tech-hub-clas-neumann-bvhpe" target="_blank">Romania tech ecosystem coverage</a></p>
+</div>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+        Provider 3 · NVIDIA's €4B commitment
+      </div>
+<h3>The biggest signal of all.</h3>
+<p>NVIDIA announced plans to invest up to €4 billion in Romania, citing the country's energy capacity, EU membership, and engineering talent pool. The investment is reportedly tied to building data-center capacity, training programs, and partnerships with local universities.</p>
+<p>Translation: NVIDIA thinks Romania has the bones to be a regional AI hub. When the GPU maker picks a country, that country becomes more credible to foreign investors overnight. Expect more Series A activity, more foreign VCs opening Bucharest offices, more international hires.</p>
+<p>Sources: <a href="https://www.reddit.com/r/programare/comments/1ty8jof/nvidia_vrea_s%C4%83_fac%C4%83_investi%C8%9Bii_de_4_miliarde_de/" target="_blank">Romanian tech press</a> · <a href="https://www.nvidia.com/en-us/data-center/" target="_blank">NVIDIA data center</a></p>
+</div>
+<div class="callout">
+<strong>What this means in one line:</strong> if you build an AI product for the Romanian market (or Romania + EU), you now have local compute, policy support, EU funding access, and global credibility on your side. That's a rare combination in Eastern Europe.
+    </div>
+</section></div>

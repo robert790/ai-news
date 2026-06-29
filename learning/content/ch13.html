@@ -1,0 +1,241 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch13-reader"><section id="ch13">
+<div>
+<div data-tier="S">
+<div>1</div>
+<div>
+<h4>Build a real portfolio (not a cert).</h4>
+<p>Five projects from Chapter 12 beat any certificate on earth. Cost: €0. Time: 2-3 months. ROI: infinite.</p>
+</div>
+<span>S · ESSENTIAL</span>
+</div>
+<div data-tier="A">
+<div>2</div>
+<div>
+<h4>Google Professional Machine Learning Engineer.</h4>
+<p>The gold-standard ML cert. Hard exam, real depth. Worth doing if you're aiming at enterprise / Big Tech roles. Costs ~$200 + prep time.</p>
+</div>
+<span>A · HIGH ROI</span>
+</div>
+<div data-tier="A">
+<div>3</div>
+<div>
+<h4>AWS Certified Machine Learning — Specialty.</h4>
+<p>Best cert for cloud-AI roles. Most recognized by enterprise employers. Strong if you plan to work with AWS-heavy companies.</p>
+</div>
+<span>A · HIGH ROI</span>
+</div>
+<div data-tier="A">
+<div>4</div>
+<div>
+<h4>Microsoft Azure AI Engineer Associate (AI-102).</h4>
+<p>The right cert if you target Microsoft-shops (very common in EU enterprise). Slightly easier than the Google one.</p>
+</div>
+<span>A · HIGH ROI</span>
+</div>
+<div data-tier="B">
+<div>5</div>
+<div>
+<h4>DeepLearning.AI specializations (Andrew Ng).</h4>
+<p>Free courses. The certificates are cheap ($49 each) but the <em>knowledge</em> is excellent. Take them even without the cert — they're the best intro to modern AI.</p>
+</div>
+<span>B · WORTH IT</span>
+</div>
+<div data-tier="B">
+<div>6</div>
+<div>
+<h4>Hugging Face Agents Course (free).</h4>
+<p>Brand-new, hands-on, free. Covers LangChain, LlamaIndex, and Hugging Face's own smolagents. Great portfolio-builder.</p>
+</div>
+<span>B · WORTH IT</span>
+</div>
+<div data-tier="C">
+<div>7</div>
+<div>
+<h4>"AI智能体应用开发工程师", "AIGC智能办公应用师" etc.</h4>
+<p>The Chinese-cert market. Marketing-heavy, hard to verify internationally, and most employers don't recognize them. Skip unless your target employer explicitly asks.</p>
+</div>
+<span>C · SKIP</span>
+</div>
+<div data-tier="C">
+<div>8</div>
+<div>
+<h4>Anything behind a €500 paywall you found on LinkedIn.</h4>
+<p>If the course is the main thing being sold and the certificate is a bonus, run. The good stuff is free or under $200.</p>
+</div>
+<span>C · SKIP</span>
+</div>
+</div>
+<div class="callout">
+<strong>The real ranking:</strong> #1 (your portfolio) is the only S-tier. The cloud certs (Google/AWS/Azure) are worth doing only when you're actively job-hunting. The free DeepLearning.AI and Hugging Face courses are pure upside — do them regardless of the cert. Everything else is mostly noise.
+    </div>
+<p>Sources: <a href="https://www.nucamp.co/blog/top-10-ai-certifications-worth-getting-in-2026-roi-career-impact" target="_blank">Nucamp ROI analysis</a> · <a href="https://georgiaweston.substack.com/p/top-ai-certifications-us-tech-companies" target="_blank">Substack ranking</a> · <a href="https://careery.pro/blog/ai-careers/best-ai-certifications" target="_blank">Careery 2026 review</a></p>
+</section></div>

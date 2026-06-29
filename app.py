@@ -47,6 +47,11 @@ from learning import (
     DOMAIN_META,
     COMPLEXITY_META,
 )
+from learning.reader import (
+    render_reader,
+    render_tagline_callout,
+    render_lead,
+)
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
@@ -838,153 +843,211 @@ elif SECTION == "learning":
     cols = st.columns([3, 1])
     with cols[0]:
         with st.container(border=True):
-            st.markdown(ch.blurb)
+            # =====================================================
+            # READER (Phase A · in-app lesson content)
+            # Three tabs: Read · Methods · Practice
+            # Read = full chapter content (callouts, analogies, SVGs)
+            #       rendered from pre-parsed HTML chunks
+            # =====================================================
+            tab_read, tab_methods, tab_practice = st.tabs([
+                "📖  Citește",
+                "🔬  Methods",
+                "✓  Practice",
+            ])
 
-            # =====================================================
-            # METHODS (BLUE-inspired v0.5+)
-            # =====================================================
-            if ch.methods:
+            # ---------- TAB 1: READ ----------
+            with tab_read:
+                # Tagline (course thesis, italic serif callout)
+                st.markdown(render_tagline_callout(selected_id), unsafe_allow_html=True)
+                # Lead paragraph (orientation)
+                st.markdown(render_lead(selected_id), unsafe_allow_html=True)
+                # Full body — callouts, analogies, SVGs, lists, h3s
                 st.markdown(
-                    "<div style='height: 0.6rem;'></div>",
+                    render_reader(selected_id),
                     unsafe_allow_html=True,
                 )
+                # End-of-read: small mono footer with chapter meta
                 st.markdown(
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.7rem; color: var(--muted); '
-                    f'letter-spacing: 0.08em; text-transform: uppercase; '
-                    f'margin-bottom: 0.6rem;">'
-                    f'Methods · {len(ch.methods)}'
+                    f'<div style="margin-top: 1.5rem; padding-top: 0.8rem; '
+                    f'border-top: 1px solid var(--border); '
+                    f'font-family: JetBrains Mono, monospace; font-size: 0.65rem; '
+                    f'color: #6a6458; letter-spacing: 0.06em;">'
+                    f'END OF CHAPTER {ch.number:02d} · ALL CONTENT IN-APP · NO LINKS OUT'
                     f'</div>',
                     unsafe_allow_html=True,
                 )
-                for m in ch.methods:
-                    if m.recommended:
-                        marker = "◆"
-                        name_color = domain_meta["color"]
-                        badge = (
-                            f'<span style="font-family: JetBrains Mono, monospace; '
-                            f'font-size: 0.6rem; color: {domain_meta["color"]}; '
-                            f'background: {domain_meta["color"]}1a; '
-                            f'padding: 0.1rem 0.5rem; border-radius: 10px; '
-                            f'margin-left: 0.5rem; letter-spacing: 0.06em;">'
-                            f'MAIN</span>'
-                        )
-                    else:
-                        marker = "○"
-                        name_color = "#a8a094"
-                        badge = ""
+
+            # ---------- TAB 2: METHODS (BLUE-inspired v0.5+) ----------
+            with tab_methods:
+                if ch.methods:
                     st.markdown(
-                        f'<div style="margin-bottom: 0.9rem;">'
-                        f'<div style="display: flex; align-items: baseline; '
-                        f'gap: 0.5rem; margin-bottom: 0.25rem;">'
-                        f'<span style="color: {name_color}; font-size: 0.9rem;">{marker}</span>'
-                        f'<span style="font-family: Newsreader, serif; '
-                        f'font-size: 1.05rem; color: {name_color}; '
-                        f'font-weight: 500;">{m.name}</span>'
-                        f'{badge}'
-                        f'</div>'
-                        f'<div style="font-family: Newsreader, serif; '
-                        f'font-style: italic; color: #c4b9a7; '
-                        f'font-size: 0.92rem; margin-left: 1.3rem; '
-                        f'margin-bottom: 0.15rem;">{m.summary}</div>'
                         f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.68rem; color: #8a8478; '
-                        f'margin-left: 1.3rem; letter-spacing: 0.03em;">'
-                        f'When: {m.when_to_use}'
-                        f'</div>'
+                        f'font-size: 0.7rem; color: var(--muted); '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.6rem;">'
+                        f'Methods · {len(ch.methods)}'
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+                    for m in ch.methods:
+                        if m.recommended:
+                            marker = "◆"
+                            name_color = domain_meta["color"]
+                            badge = (
+                                f'<span style="font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.6rem; color: {domain_meta["color"]}; '
+                                f'background: {domain_meta["color"]}1a; '
+                                f'padding: 0.1rem 0.5rem; border-radius: 10px; '
+                                f'margin-left: 0.5rem; letter-spacing: 0.06em;">'
+                                f'MAIN</span>'
+                            )
+                        else:
+                            marker = "○"
+                            name_color = "#a8a094"
+                            badge = ""
+                        st.markdown(
+                            f'<div style="margin-bottom: 0.9rem;">'
+                            f'<div style="display: flex; align-items: baseline; '
+                            f'gap: 0.5rem; margin-bottom: 0.25rem;">'
+                            f'<span style="color: {name_color}; font-size: 0.9rem;">{marker}</span>'
+                            f'<span style="font-family: Newsreader, serif; '
+                            f'font-size: 1.05rem; color: {name_color}; '
+                            f'font-weight: 500;">{m.name}</span>'
+                            f'{badge}'
+                            f'</div>'
+                            f'<div style="font-family: Newsreader, serif; '
+                            f'font-style: italic; color: #c4b9a7; '
+                            f'font-size: 0.92rem; margin-left: 1.3rem; '
+                            f'margin-bottom: 0.15rem;">{m.summary}</div>'
+                            f'<div style="font-family: JetBrains Mono, monospace; '
+                            f'font-size: 0.68rem; color: #8a8478; '
+                            f'margin-left: 1.3rem; letter-spacing: 0.03em;">'
+                            f'When: {m.when_to_use}'
+                            f'</div>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                else:
+                    st.markdown(
+                        '<p style="font-family: Newsreader, serif; font-style: italic; '
+                        'color: var(--muted); font-size: 0.95rem;">'
+                        "Acest capitol nu are methods încă. E ok — focusul e pe conținut."
+                        "</p>",
+                        unsafe_allow_html=True,
+                    )
 
-            # =====================================================
-            # VERIFIERS (Sebastian Rey BLUE — "how do you know you got it?")
-            # =====================================================
-            if ch.verifiers:
-                st.markdown(
-                    "<div style='height: 0.8rem;'></div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.7rem; color: #a8c0ae; '
-                    f'letter-spacing: 0.08em; text-transform: uppercase; '
-                    f'margin-bottom: 0.55rem;">'
-                    f'✓ Cum știi că ai înțeles · {len(ch.verifiers)}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                items = "".join(
-                    f'<div style="display: flex; gap: 0.55rem; margin-bottom: 0.45rem; '
-                    f'align-items: flex-start;">'
-                    f'<span style="color: #a8c0ae; font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.85rem; line-height: 1.55; flex-shrink: 0;">✓</span>'
-                    f'<span style="font-family: Newsreader, serif; color: #d4cebf; '
-                    f'font-size: 0.95rem; line-height: 1.55;">{v}</span>'
-                    f'</div>'
-                    for v in ch.verifiers
-                )
-                st.markdown(
-                    f'<div style="padding: 0.1rem 0;">{items}</div>',
-                    unsafe_allow_html=True,
-                )
+            # ---------- TAB 3: PRACTICE (verifiers + build this + prereqs) ----------
+            with tab_practice:
+                # Verifiers — interactive checklist
+                if ch.verifiers:
+                    st.markdown(
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.7rem; color: #a8c0ae; '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.55rem;">'
+                        f'✓ Cum știi că ai înțeles · {len(ch.verifiers)}'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    # Interactive checkboxes (each in session_state)
+                    for vi, v in enumerate(ch.verifiers):
+                        key_v = f"verifier_{selected_id}_{vi}"
+                        st.checkbox(v, key=key_v)
+                    # Mark complete button — when all ticked
+                    all_ticked = all(
+                        st.session_state.get(f"verifier_{selected_id}_{vi}", False)
+                        for vi in range(len(ch.verifiers))
+                    )
+                    st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
+                    if all_ticked:
+                        if "completed_chapters" not in st.session_state:
+                            st.session_state.completed_chapters = set()
+                        already = selected_id in st.session_state.completed_chapters
+                        if st.button(
+                            "✓ " + ("Complet" if already else "Marchează capitolul complet"),
+                            key=f"complete_{selected_id}",
+                            disabled=already,
+                            type="primary" if not already else "secondary",
+                            use_container_width=True,
+                        ):
+                            st.session_state.completed_chapters.add(selected_id)
+                            st.rerun()
+                        if already:
+                            st.markdown(
+                                '<div style="font-family: JetBrains Mono, monospace; '
+                                'font-size: 0.7rem; color: #a8c0ae; margin-top: 0.4rem; '
+                                'letter-spacing: 0.04em;">'
+                                '◆ Marchat complet · adaugă la capitolele terminate.</div>',
+                                unsafe_allow_html=True,
+                            )
+                    else:
+                        remaining = sum(
+                            1 for vi in range(len(ch.verifiers))
+                            if not st.session_state.get(
+                                f"verifier_{selected_id}_{vi}", False
+                            )
+                        )
+                        st.markdown(
+                            f'<div style="font-family: JetBrains Mono, monospace; '
+                            f'font-size: 0.68rem; color: #6a6458; margin-top: 0.6rem; '
+                            f'letter-spacing: 0.04em;">'
+                            f'Bifează toate {len(ch.verifiers)} ca să deblochezi butonul.'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
 
-            # =====================================================
-            # BUILD THIS (Sebastian Rey BLUE — action/goal focus)
-            # =====================================================
-            if ch.build_this:
-                st.markdown(
-                    "<div style='height: 0.8rem;'></div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.7rem; color: #d4a574; '
-                    f'letter-spacing: 0.08em; text-transform: uppercase; '
-                    f'margin-bottom: 0.45rem;">'
-                    f'⚡ Build this'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f'<div style="background: rgba(212, 165, 116, 0.06); '
-                    f'border-left: 2px solid #d4a574; '
-                    f'padding: 0.7rem 0.9rem; '
-                    f'font-family: Newsreader, serif; color: #f4ede0; '
-                    f'font-size: 1rem; line-height: 1.55; '
-                    f'border-radius: 0 6px 6px 0;">{ch.build_this}</div>',
-                    unsafe_allow_html=True,
-                )
+                # Build this
+                if ch.build_this:
+                    st.markdown(
+                        "<div style='height: 1rem;'></div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.7rem; color: #d4a574; '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.45rem;">'
+                        f'⚡ Build this'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div style="background: rgba(212, 165, 116, 0.06); '
+                        f'border-left: 2px solid #d4a574; '
+                        f'padding: 0.7rem 0.9rem; '
+                        f'font-family: Newsreader, serif; color: #f4ede0; '
+                        f'font-size: 1rem; line-height: 1.55; '
+                        f'border-radius: 0 6px 6px 0;">{ch.build_this}</div>',
+                        unsafe_allow_html=True,
+                    )
 
-            # =====================================================
-            # Prerequisites
-            # =====================================================
-            if ch.prerequisites:
-                prereq_links = " · ".join(
-                    f"[{get_chapter(p).title[:40]}](#chapter-detail)"
-                    for p in ch.prerequisites
-                )
-                st.markdown(
-                    f'<div style="margin-top: 1rem; font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em;">'
-                    f'Necesită: {prereq_links}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-
-            st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
-
-            st.markdown(
-                '<div style="display: flex; gap: 0.6rem; align-items: center; '
-                'margin-top: 1rem;">'
-                '<span style="font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
-                'color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase;">'
-                'Citește complet:</span>'
-                f'<a href="../ai-beginners-guide/index.html#{ch.anchor}" target="_blank" '
-                f'style="font-family: Inter, sans-serif; font-size: 0.85rem;">'
-                f'→ Deschide capitolul {ch.number} în AI Road</a>'
-                '</div>',
-                unsafe_allow_html=True,
-            )
+                # Prerequisites
+                if ch.prerequisites:
+                    st.markdown(
+                        "<div style='height: 1rem;'></div>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.7rem; color: var(--muted); '
+                        f'letter-spacing: 0.08em; text-transform: uppercase; '
+                        f'margin-bottom: 0.5rem;">'
+                        f'Necesită · înainte de asta citește:'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    prereq_items = "".join(
+                        f'<div style="margin-bottom: 0.45rem; '
+                        f'font-family: Newsreader, serif; color: #d4cebf; '
+                        f'font-size: 0.95rem;">'
+                        f'<span style="color: #6a6458; margin-right: 0.5rem;">→</span>'
+                        f'<span style="font-family: JetBrains Mono, monospace; '
+                        f'color: #d4a574; margin-right: 0.5rem;">Ch {get_chapter(p).number:02d}</span>'
+                        f"{get_chapter(p).title}"
+                        f'</div>'
+                        for p in ch.prerequisites
+                    )
+                    st.markdown(prereq_items, unsafe_allow_html=True)
 
     with cols[1]:
         with st.container(border=True):

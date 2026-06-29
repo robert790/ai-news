@@ -1,0 +1,226 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch2-reader"><section id="ch2">
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M3 21l3-3 9-9 3 3-9 9zM14 6l4 4"></path><path d="M14 6l4-4 4 4-4 4z"></path></svg>
+        Story · The shovel that grew
+      </div>
+<h3>A 19-year-old with a treasure map.</h3>
+<p>Picture a teenager who draws a map and says: "There's gold buried over there." Everyone in the village laughs. They keep laughing for years. The teenager keeps digging — quietly, with a small shovel. One day, after many years, the gold starts showing. Suddenly the same people who laughed pull out their checkbooks.</p>
+<p>That teenager's name is Sam Altman. The treasure is <strong>Artificial General Intelligence</strong> — a computer as smart as a human.</p>
+</div>
+<ul>
+<li>
+<div>1985</div>
+<h4>Born in Chicago, grew up in St. Louis.</h4>
+<p>Smart kid, but not a prodigy. Computer-obsessed from age 8.</p>
+</li>
+<li>
+<div>2005</div>
+<h4>Drops out of Stanford. Builds his first app, Loopt.</h4>
+<p>Sells it for $43M a few years later. He's 26.</p>
+</li>
+<li>
+<div>2014</div>
+<h4>Becomes president of Y Combinator.</h4>
+<p>The world's most famous startup accelerator. He sees thousands of founders a year. He learns to spot winners.</p>
+</li>
+<li>
+<div>2015</div>
+<h4>Co-founds OpenAI with Elon Musk and others.</h4>
+<p>Promise: build AI safely, for everyone. Initial budget: a billion dollars from donors.</p>
+</li>
+<li>
+<div>2019</div>
+<h4>Convinces Microsoft to invest $1 billion.</h4>
+<p>Most people thought this was crazy. Microsoft trusted him.</p>
+</li>
+<li>
+<div>2022</div>
+<h4>ChatGPT launches. 100 million users in 2 months.</h4>
+<p>The fastest-growing app in human history. The whole world wakes up.</p>
+</li>
+<li>
+<div>2023</div>
+<h4>Microsoft invests $10 billion more. He's fired by his own board. Five days later, he's rehired.</h4>
+<p>Almost every employee threatened to quit. Investors threatened to pull money. The board blinked.</p>
+</li>
+<li>
+<div>2025</div>
+<h4>OpenAI valued at ~$300 billion. Net worth: ~$2 billion.</h4>
+<p>Not from salary. From owning a small slice of the company. Same playbook as every tech founder who wins big.</p>
+</li>
+</ul>
+<div class="callout">
+<strong>What Sam teaches us:</strong> he's not a researcher. He can't write the math that builds a neural network. His superpower is something else entirely — <strong>he refuses to give up on a vision that looks impossible to everyone else</strong>, and he gets other powerful people to believe it too.
+    </div>
+<p>You probably can't be Sam. You probably don't have his network, his dealmaking, or his nerve. But the <em>lesson</em> is portable: <strong>pick a direction that looks crazy to other people, then refuse to flinch.</strong></p>
+</section></div>
