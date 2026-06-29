@@ -123,16 +123,19 @@ def fmt_date(iso_str: str) -> str:
         return iso_str[:10] or ""
 
 
-def section_header(title: str, caption: str):
+def section_header(title: str, caption: str = ""):
     """Render the consistent section header. Used in every section.
 
     Brackets are rendered inline so they always sit adjacent to the title
-    (CSS pseudo-elements get stretched by block-level h1 layout).
+    (CSS pseudo-elements get stretched by block-level h1 layout). Pass
+    `caption=""` to skip the caption line entirely (use when caption
+    lives somewhere else on the page, e.g. inside `.top-bar-right`).
     """
+    cap_html = f'<p class="caption">{caption}</p>' if caption else ""
     st.markdown(
         f'<div class="section-header reveal-1">'
         f'<h1><span class="bracket">[</span> {title} <span class="bracket">]</span></h1>'
-        f'<p class="caption">{caption}</p>'
+        f'{cap_html}'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -249,10 +252,11 @@ def or_card(
     )
 
 
-def _tips_corner_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
-    """Build the HTML for a compact cycling dev-tip pill. Returns a string
-    so it can be embedded inside a parent `.top-bar` without Streamlit
-    injecting a wrapper `<div>` between them.
+def _build_tip_lines(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
+    """Pick `n` random tips once per session (stable) and emit the
+    cycling `.tip-line` HTML. Returns a string so callers can wrap it
+    in any container (corner pill, top-of-page bar, etc.) without
+    Streamlit injecting a wrapper `<div>`.
     """
     if seed_key not in st.session_state:
         rng = random.Random()
@@ -274,42 +278,66 @@ def _tips_corner_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
             f'<span class="body">{body_esc}</span>'
             f'</div>'
         )
+    return "".join(rows)
 
+
+def _tips_corner_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
+    """Compact cycling dev-tip pill (used inside `.top-bar-right`)."""
     return (
         '<div class="tips-corner" aria-label="developer tip">'
         '<span class="tips-icon">tip</span>'
         '<div class="tips-slot">'
-        + "".join(rows) +
+        + _build_tip_lines(n=n, seed_key=seed_key) +
         '</div>'
         '</div>'
     )
 
 
-def top_bar(left_html: str, right_key: str = "tips_corner_v1") -> None:
-    """Render a horizontal bar with content on the left and the cycling
-    dev-tip pill anchored to the right. Used at the top of the Azi section.
-
-    The whole bar is one HTML string so Streamlit doesn't wrap the inner
-    pieces in their own `<div>` (which would break the flex layout).
+def _tips_top_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
+    """Wider cycling dev-tip bar for the top of a section. Same cycling
+    animation as the corner pill, but stretches full-width and a touch
+    larger so it reads as a primary surface instead of a chip.
     """
+    return (
+        '<div class="tips-top" aria-label="developer tip">'
+        '<span class="tips-icon">tip</span>'
+        '<div class="tips-slot-top">'
+        + _build_tip_lines(n=n, seed_key=seed_key) +
+        '</div>'
+        '</div>'
+    )
+
+
+def tips_top(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
+    """Render the dev-tip bar at the TOP of the section, full-width."""
+    st.markdown(_tips_top_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
+
+
+def top_bar(
+    left_html: str,
+    right_html: str = "",
+    seed_key: str = "tips_corner_v1",
+) -> None:
+    """Render a horizontal bar. By default the right side hosts the cycling
+    dev-tip pill, but pass `right_html` to override (e.g., put the section
+    caption there instead). Whole bar is one HTML string so Streamlit
+    doesn't wrap the inner pieces in their own `<div>`.
+    """
+    right_content = right_html or _tips_corner_html(seed_key=seed_key)
     html = (
         '<div class="top-bar reveal-1">'
         f'<div class="top-bar-left">{left_html}</div>'
-        '<div class="top-bar-right">'
-        + _tips_corner_html(seed_key=right_key) +
-        '</div>'
+        f'<div class="top-bar-right">{right_content}</div>'
         '</div>'
     )
     st.markdown(html, unsafe_allow_html=True)
 
 
 def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
-    """Standalone dev-tip pill (for use OUTSIDE a top-bar, full-width).
-
-    Equivalent to the inline cycling strip used previously. If you want
-    the tip in the top-right corner of a section, use `top_bar()` instead.
+    """Standalone dev-tip pill (full-width variant). Prefer `tips_top()`
+    for the page-top placement, or `top_bar()` for the corner placement.
     """
-    st.markdown(_tips_corner_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
+    st.markdown(_tips_top_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
 
 
 # ===== Sidebar =====
@@ -475,13 +503,22 @@ with st.sidebar:
 # =====================================================================
 if SECTION == "azi":
 
-    section_header(
-        "Azi",
-        "Top 3 din fiecare. Bea cafeaua, scanează lumea, pleci la treabă.",
-    )
+    # 1. Top of section: wider cycling dev-tip bar (prominent, full-width).
+    tips_top(n=4)
 
-    # Top bar: LIVE FEED badge on the left, cycling dev-tip pill on the right.
-    top_bar(left_html='<span class="live-badge"><span class="status-dot"></span>LIVE FEED</span>')
+    # 2. Section header. Caption lives inside `.top-bar-right` instead of
+    #    under the h1, so we pass an empty string here.
+    section_header("Azi", "")
+
+    # 3. Top bar: LIVE FEED badge on the left, renamed caption on the right.
+    #    "Bei cafeaua, scanezi lumea, pleci la treaba" replaces the older
+    #    "Bea cafeaua, scanează lumea, pleci la treabă."
+    top_bar(
+        left_html='<span class="live-badge"><span class="status-dot"></span>LIVE FEED</span>',
+        right_html='<span class="top-bar-caption">'
+                   'Top 3 din fiecare. Bei cafeaua, scanezi lumea, pleci la treaba.'
+                   '</span>',
+    )
 
     col_news, col_tools, col_jobs = st.columns(3, gap="medium")
 

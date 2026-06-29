@@ -761,7 +761,7 @@ def render_css() -> str:
   }}
 
   /* ============================================
-     Top bar — left = LIVE FEED, right = tips corner
+     Top bar — left = LIVE FEED, right = caption (or tip pill)
      ============================================ */
   .top-bar {{
     display: flex;
@@ -777,11 +777,19 @@ def render_css() -> str:
     align-items: center;
   }}
   .top-bar-right {{
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     min-width: 0;
+  }}
+  .top-bar-caption {{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.4;
+    text-align: right;
   }}
 
   /* ============================================
@@ -804,17 +812,35 @@ def render_css() -> str:
     overflow: hidden;
     min-height: 32px;
   }}
+  .tips-top {{
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: {f['mono_tactical']};
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow: hidden;
+    min-height: 42px;
+    margin: 0 0 1rem;
+  }}
   .tips-icon {{
     font-size: 0.7rem;
     color: var(--sage);
     letter-spacing: 0.08em;
     flex-shrink: 0;
   }}
-  .tips-slot {{
+  .tips-slot,
+  .tips-slot-top {{
     position: relative;
     flex: 1;
     min-width: 0;
-    height: 1.3em;
+    height: 1.4em;
   }}
   .tips-cat {{
     display: inline-block;
@@ -879,9 +905,11 @@ def render_css() -> str:
   @media (max-width: 1024px) {{
     .top-bar-right {{ max-width: 320px; }}
     .tips-corner {{ font-size: 0.68rem; }}
+    .top-bar-caption {{ font-size: 0.85rem; }}
+    .tips-top {{ font-size: 0.72rem; padding: 0.55rem 0.85rem; }}
   }}
 
-  /* Mobile — stack: LIVE FEED on top, tips below in its own row */
+  /* Mobile — stack: LIVE FEED on top, caption below */
   @media (max-width: 640px) {{
     .top-bar {{
       flex-direction: column;
@@ -894,6 +922,11 @@ def render_css() -> str:
       justify-content: flex-start;
     }}
     .tips-corner {{ max-width: 100%; }}
+    .top-bar-caption {{
+      text-align: left;
+      font-size: 0.82rem;
+    }}
+    .tips-top {{ font-size: 0.7rem; padding: 0.5rem 0.75rem; }}
   }}
 
   /* Subsection labels */
