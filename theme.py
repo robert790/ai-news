@@ -569,6 +569,105 @@ def render_css() -> str:
     100% {{ transform: translateY(103vh); opacity: 0; }}
   }}
 
+  /* ============================================
+     Prompt Bible — Prompts tab cards + filters
+     ============================================ */
+  .prompts-count {{
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 1rem 0 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }}
+  .prompts-count .num {{
+    font-family: 'Newsreader', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1;
+  }}
+  .prompts-count .lbl {{
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }}
+  .prompts-empty {{
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    margin: 1rem 0;
+  }}
+
+  .pb-card {{
+    padding: 0.4rem 0 0.6rem;
+  }}
+  .pb-card-head {{
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }}
+  .pb-icon {{
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }}
+  .pb-title {{
+    font-family: 'Newsreader', serif;
+    font-size: 1.25rem;
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.2;
+    flex: 1 1 auto;
+  }}
+  .pb-cat, .pb-diff {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }}
+  .pb-when {{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }}
+  .pb-tags {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.4rem;
+  }}
+  .pb-tag {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.15rem 0.45rem;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }}
+  .pb-models {{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted-2);
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }}
+
   /* Radar pulse rings — fixed overlay from bottom-right corner */
   .bg-radar {{
     position: fixed;
