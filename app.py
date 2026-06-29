@@ -985,75 +985,165 @@ elif SECTION == "prompts":
     diffs = all_difficulties()
     models = all_model_ids(bible)
 
+    # Pre-compute category counts so pills show "85" next to "Code"
+    cat_counts = {c["id"]: 0 for c in bible.categories}
+    for p in bible.prompts:
+        c = p.get("category", "")
+        if c in cat_counts:
+            cat_counts[c] += 1
+    diff_counts = {d: 0 for d in diffs}
+    for p in bible.prompts:
+        d = p.get("difficulty", "")
+        if d in diff_counts:
+            diff_counts[d] += 1
+
     section_header(
         "Prompts",
-        f"{n_total} prompturi production-grade, 12 categorii, 16 modele. "
-        "Search, filtre, copy-paste.",
+        f"{n_total} prompturi production-grade. Click pe categorie sau difficulty ca să filtrezi.",
     )
 
-    # --- Filter row: search + 3 dropdowns in one line on desktop ---
-    f_cols = st.columns([3, 1.4, 1.2, 1.4], gap="small")
-    with f_cols[0]:
-        text_q = st.text_input(
-            "search",
-            placeholder="Caută în titlu, tag-uri, conținut...",
-            label_visibility="collapsed",
-            key="prompts_search",
-        )
-    with f_cols[1]:
-        cat_q = st.selectbox(
-            "category",
-            options=[""] + cats,
-            format_func=lambda x: "Toate categoriile" if x == "" else f"{category_icon(bible, x)} {category_label(bible, x)}",
-            label_visibility="collapsed",
-            key="prompts_cat",
-        )
-    with f_cols[2]:
-        diff_q = st.selectbox(
-            "difficulty",
-            options=[""] + diffs,
-            format_func=lambda x: "Orice nivel" if x == "" else difficulty_label(x),
-            label_visibility="collapsed",
-            key="prompts_diff",
-        )
-    with f_cols[3]:
-        model_q = st.selectbox(
-            "model",
-            options=[""] + models,
-            format_func=lambda x: "Orice model" if x == "" else bible.models.get(x, {}).get("label", x),
-            label_visibility="collapsed",
-            key="prompts_model",
-        )
-
-    results = filter_prompts(
-        bible,
-        text=text_q,
-        category=cat_q,
-        difficulty=diff_q,
-        model=model_q,
-    )
-
-    # Result count + sort
-    n = len(results)
-    sort_label = st.radio(
-        "sort",
-        options=["Default", "Difficulty asc", "Difficulty desc", "Title A→Z"],
-        horizontal=True,
+    # Search bar — full width, always visible
+    text_q = st.text_input(
+        "search",
+        placeholder="Caută în titlu, tag-uri, conținut...",
         label_visibility="collapsed",
-        key="prompts_sort",
+        key="prompts_search",
     )
-    if sort_label == "Difficulty asc":
-        results = sorted(results, key=lambda p: diffs.index(p.get("difficulty", "intermediate")))
-    elif sort_label == "Difficulty desc":
-        results = sorted(results, key=lambda p: -diffs.index(p.get("difficulty", "intermediate")))
-    elif sort_label == "Title A→Z":
-        results = sorted(results, key=lambda p: p.get("title", "").lower())
 
+    # --- Category pills ---
+    st.markdown(
+        '<div class="prompts-pills-label">Categorie</div>',
+        unsafe_allow_html=True,
+    )
+    cat_labels = ["All"] + [
+        f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
+        for c in cats
+    ]
+    # Pills return the selected labels; we need to map back to ids.
+    cat_pills = st.pills(
+        "categorii",
+        options=cat_labels,
+        selection_mode="multi",
+        default=[],
+        label_visibility="collapsed",
+        key="prompts_cat_pills",
+    )
+    cat_pills = cat_pills or []
+    selected_cats = []
+    for label in cat_pills:
+        if label == "All":
+            continue
+        # Match "<icon> <Label> · <count>" against our options
+        for c in cats:
+            expected = f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
+            if label == expected:
+                selected_cats.append(c)
+                break
+
+    # --- Difficulty pills ---
+    st.markdown(
+        '<div class="prompts-pills-label">Difficulty</div>',
+        unsafe_allow_html=True,
+    )
+    diff_pills = st.pills(
+        "dificultate",
+        options=[difficulty_label(d) for d in diffs],
+        selection_mode="multi",
+        default=[],
+        label_visibility="collapsed",
+        key="prompts_diff_pills",
+    )
+    selected_diffs = diff_pills or []
+
+    # --- Model pills (16 — wrap in st.pills, will scroll horizontally) ---
+    st.markdown(
+        '<div class="prompts-pills-label">Modele</div>',
+        unsafe_allow_html=True,
+    )
+    model_pills = st.pills(
+        "modele",
+        options=[bible.models.get(m, {}).get("label", m) for m in models],
+        selection_mode="multi",
+        default=[],
+        label_visibility="collapsed",
+        key="prompts_model_pills",
+    )
+    selected_models = []
+    if model_pills:
+        for label in model_pills:
+            for m in models:
+                if bible.models.get(m, {}).get("label", m) == label:
+                    selected_models.append(m)
+                    break
+
+    # --- Sort + clear ---
+    sort_cols = st.columns([3, 1], gap="small", vertical_alignment="center")
+    with sort_cols[0]:
+        sort_label = st.radio(
+            "sort",
+            options=["Default", "A→Z", "Beginner first", "Expert first"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="prompts_sort",
+        )
+    with sort_cols[1]:
+        any_active = bool(text_q or cat_pills or selected_diffs or selected_models)
+        if any_active:
+            if st.button("✕  Resetează filtre", key="prompts_reset", use_container_width=True):
+                # Clear everything by setting session state
+                for k in ["prompts_search", "prompts_cat_pills", "prompts_diff_pills",
+                          "prompts_model_pills", "prompts_sort"]:
+                    st.session_state[k] = [] if "pills" in k or k == "prompts_sort" else ""
+                st.session_state["prompts_sort"] = "Default"
+                st.rerun()
+
+    # --- Compute results ---
+    # For text + categories + diffs + models: use filter_prompts for text
+    # and category. For multi-category, multi-difficulty, multi-model we
+    # need a custom filter.
+    results = []
+    needle = text_q.strip().lower()
+    for p in bible.prompts:
+        if selected_cats and p.get("category") not in selected_cats:
+            continue
+        if selected_diffs and p.get("difficulty") not in selected_diffs:
+            continue
+        if selected_models and not any(m in p.get("models", []) for m in selected_models):
+            continue
+        if needle:
+            haystack_parts = [
+                p.get("title", ""),
+                " ".join(p.get("tags", []) or []),
+                p.get("when", ""),
+                p.get("prompt", ""),
+                " ".join(p.get("notes", []) or []),
+            ]
+            haystack = " ".join(haystack_parts).lower()
+            if needle not in haystack:
+                continue
+        results.append(p)
+
+    # Sort
+    if sort_label == "A→Z":
+        results = sorted(results, key=lambda p: p.get("title", "").lower())
+    elif sort_label == "Beginner first":
+        results = sorted(
+            results,
+            key=lambda p: diffs.index(p.get("difficulty", "intermediate")),
+        )
+    elif sort_label == "Expert first":
+        results = sorted(
+            results,
+            key=lambda p: -diffs.index(p.get("difficulty", "intermediate")),
+        )
+
+    n = len(results)
+    any_filter = bool(text_q or selected_cats or selected_diffs or selected_models)
     st.markdown(
         f'<div class="prompts-count">'
         f'<span class="num">{n}</span>'
         f'<span class="lbl">/{n_total} prompturi'
-        f'{" · filtrat" if (text_q or cat_q or diff_q or model_q) else ""}'
+        f'{" · filtrat" if any_filter else ""}'
         f'</span></div>',
         unsafe_allow_html=True,
     )
