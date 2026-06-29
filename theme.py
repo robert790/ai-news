@@ -582,12 +582,14 @@ def render_css() -> str:
   }}
 
   /* Pill-shaped buttons for the prompts filter rows.
-     Streamlit exposes the widget key as `st-key-KEY` on the parent
-     stElementContainer, so we target descendants whose ancestor has
-     one of our pill keys (pill_cat_*, pill_diff_*, pill_model_*). */
-  [class*="st-key-pill_cat_"] button[data-testid^="stBaseButton"],
-  [class*="st-key-pill_diff_"] button[data-testid^="stBaseButton"],
-  [class*="st-key-pill_model_"] button[data-testid^="stBaseButton"] {{
+     Targets both Streamlit 1.50 (`stBaseButton-…`) and 1.32
+     (`baseButton-…`, which is what HF Space runs). The widget
+     `key` doesn't propagate to DOM on 1.32, so we just match all
+     filter buttons in the prompts area by their testid suffix. */
+  button[data-testid="stBaseButton-secondary"],
+  button[data-testid="stBaseButton-primary"],
+  button[data-testid="baseButton-secondary"],
+  button[data-testid="baseButton-primary"] {{
     border-radius: 999px !important;
     padding: 0.32rem 0.7rem !important;
     font-family: 'JetBrains Mono', monospace !important;
@@ -601,33 +603,31 @@ def render_css() -> str:
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }}
-  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-secondary"],
-  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-secondary"],
-  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-secondary"] {{
+  button[data-testid="stBaseButton-secondary"],
+  button[data-testid="baseButton-secondary"] {{
     background: rgba(255, 255, 255, 0.02) !important;
     color: var(--muted) !important;
     border: 1px solid var(--border) !important;
   }}
-  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-secondary"]:hover,
-  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-secondary"]:hover,
-  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-secondary"]:hover {{
+  button[data-testid="stBaseButton-secondary"]:hover,
+  button[data-testid="baseButton-secondary"]:hover {{
     background: rgba(255, 255, 255, 0.06) !important;
     color: var(--text-2) !important;
     border-color: var(--border-strong) !important;
   }}
-  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-primary"],
-  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-primary"],
-  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-primary"] {{
+  button[data-testid="stBaseButton-primary"],
+  button[data-testid="baseButton-primary"] {{
     background: rgba(168, 192, 174, 0.16) !important;
     color: var(--sage) !important;
     border: 1px solid var(--sage) !important;
     font-weight: 600 !important;
   }}
-  [class*="st-key-pill_cat_"] button[data-testid="stBaseButton-primary"]:hover,
-  [class*="st-key-pill_diff_"] button[data-testid="stBaseButton-primary"]:hover,
-  [class*="st-key-pill_model_"] button[data-testid="stBaseButton-primary"]:hover {{
+  button[data-testid="stBaseButton-primary"]:hover,
+  button[data-testid="baseButton-primary"]:hover {{
     background: rgba(168, 192, 174, 0.22) !important;
   }}
+  /* The reset button is the only other button in the section; the
+     selectors above catch it too — visually consistent. */
 
   .prompts-count {{
     display: flex;
