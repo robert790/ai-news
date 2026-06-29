@@ -48,6 +48,18 @@ from learning import (
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
+from prompts import (
+    load_prompt_bible,
+    filter_prompts,
+    category_label,
+    category_icon,
+    category_color,
+    difficulty_label,
+    difficulty_color,
+    all_categories,
+    all_difficulties,
+    all_model_ids,
+)
 
 
 # ===== Page config =====
@@ -963,79 +975,182 @@ elif SECTION == "jobs":
 
 
 # =====================================================================
-# SECTION: PROMPTS
+# SECTION: PROMPTS — Prompt Bible (1137 prompts × 12 categories)
 # =====================================================================
 elif SECTION == "prompts":
 
+    bible = load_prompt_bible()
+    n_total = len(bible.prompts)
+    cats = all_categories(bible)
+    diffs = all_difficulties()
+    models = all_model_ids(bible)
+
     section_header(
         "Prompts",
-        "Prompturi gata de folosit. Copiază, lipește, rezolvă.",
+        f"{n_total} prompturi production-grade, 12 categorii, 16 modele. "
+        "Search, filtre, copy-paste.",
     )
 
-    with st.container(border=True):
-        st.markdown("### Prompt Bible")
+    # --- Filter row: search + 3 dropdowns in one line on desktop ---
+    f_cols = st.columns([3, 1.4, 1.2, 1.4], gap="small")
+    with f_cols[0]:
+        text_q = st.text_input(
+            "search",
+            placeholder="Caută în titlu, tag-uri, conținut...",
+            label_visibility="collapsed",
+            key="prompts_search",
+        )
+    with f_cols[1]:
+        cat_q = st.selectbox(
+            "category",
+            options=[""] + cats,
+            format_func=lambda x: "Toate categoriile" if x == "" else f"{category_icon(bible, x)} {category_label(bible, x)}",
+            label_visibility="collapsed",
+            key="prompts_cat",
+        )
+    with f_cols[2]:
+        diff_q = st.selectbox(
+            "difficulty",
+            options=[""] + diffs,
+            format_func=lambda x: "Orice nivel" if x == "" else difficulty_label(x),
+            label_visibility="collapsed",
+            key="prompts_diff",
+        )
+    with f_cols[3]:
+        model_q = st.selectbox(
+            "model",
+            options=[""] + models,
+            format_func=lambda x: "Orice model" if x == "" else bible.models.get(x, {}).get("label", x),
+            label_visibility="collapsed",
+            key="prompts_model",
+        )
+
+    results = filter_prompts(
+        bible,
+        text=text_q,
+        category=cat_q,
+        difficulty=diff_q,
+        model=model_q,
+    )
+
+    # Result count + sort
+    n = len(results)
+    sort_label = st.radio(
+        "sort",
+        options=["Default", "Difficulty asc", "Difficulty desc", "Title A→Z"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="prompts_sort",
+    )
+    if sort_label == "Difficulty asc":
+        results = sorted(results, key=lambda p: diffs.index(p.get("difficulty", "intermediate")))
+    elif sort_label == "Difficulty desc":
+        results = sorted(results, key=lambda p: -diffs.index(p.get("difficulty", "intermediate")))
+    elif sort_label == "Title A→Z":
+        results = sorted(results, key=lambda p: p.get("title", "").lower())
+
+    st.markdown(
+        f'<div class="prompts-count">'
+        f'<span class="num">{n}</span>'
+        f'<span class="lbl">/{n_total} prompturi'
+        f'{" · filtrat" if (text_q or cat_q or diff_q or model_q) else ""}'
+        f'</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
+
+    # --- Result cards ---
+    if n == 0:
         st.markdown(
-            '<p style="color: var(--lavender); font-family: JetBrains Mono, monospace; '
-            'font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; '
-            'margin: 0.5rem 0 1rem;">🚧 În construcție</p>',
+            '<div class="prompts-empty">'
+            'Nimic pe filtre. Schimbă text sau categorie.'
+            '</div>',
             unsafe_allow_html=True,
         )
-        st.markdown(
-            "Mii de prompturi organizate pe categorii — coding, writing, research, "
-            "brainstorming, debugging, documentare. Cu search, tags, și exemplu "
-            "de output pentru fiecare."
-        )
-        st.markdown(
-            '<p style="color: var(--muted); margin-top: 1rem; font-style: italic;">'
-            "Când folder-ul cu prompturi e gata, le integrăm aici. "
-            "Până atunci, încearcă starter pack-ul de mai jos."
-            "</p>",
-            unsafe_allow_html=True,
-        )
+    else:
+        for p in results:
+            cat_id = p.get("category", "")
+            cat_label = category_label(bible, cat_id)
+            cat_color = category_color(bible, cat_id)
+            diff = p.get("difficulty", "intermediate")
+            diff_color = difficulty_color(diff)
 
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+            title = p.get("title", "Untitled")
+            when = p.get("when", "")
+            tags = p.get("tags", []) or []
+            pmodels = p.get("models", []) or []
+            body = p.get("prompt", "")
+            variants = p.get("variants") or {}
+            notes = p.get("notes") or []
+            anti = p.get("antiPatterns") or []
 
-    st.markdown("#### Starter pack")
-    st.caption("Câteva prompturi ca să vezi vibe-ul.")
-
-    starter_prompts = [
-        {
-            "title": "Explained like I'm 12",
-            "category": "Learning",
-            "prompt": "Explică [concept] ca și cum aș avea 12 ani. Folosește o analogie din viața de zi cu zi.",
-        },
-        {
-            "title": "Code review blând",
-            "category": "Coding",
-            "prompt": "Review this code as a senior engineer who's kind, specific, and prioritizes clarity over cleverness. Point out 3 things to improve, 1 thing done well.",
-        },
-        {
-            "title": "Decision framework",
-            "category": "Strategy",
-            "prompt": "I'm deciding between [A] and [B]. Ask me 5 clarifying questions first, then give a recommendation with reasoning.",
-        },
-        {
-            "title": "Bug autopsy",
-            "category": "Debugging",
-            "prompt": "Help me understand why this code fails. Walk through it line by line, identify the root cause, and suggest 2 fixes with trade-offs.",
-        },
-    ]
-    for p in starter_prompts:
-        with st.container(border=True):
-            st.markdown(f"**{p['title']}**")
-            st.caption(
-                f'<span style="color: var(--lavender); font-family: JetBrains Mono, '
-                f'monospace; font-size: 0.7rem; letter-spacing: 0.04em;">'
-                f'{p["category"].upper()}</span>',
-                unsafe_allow_html=True,
+            # Header row: icon + title + badges
+            tags_html = (
+                "".join(
+                    f'<span class="pb-tag">{t}</span>'
+                    for t in tags[:6]
+                )
             )
+            models_html = (
+                " · ".join(
+                    bible.models.get(m, {}).get("label", m) for m in pmodels
+                )
+            )
+            when_block = (
+                f'<div class="pb-when">{when}</div>' if when else ""
+            )
+            tags_block = (
+                f'<div class="pb-tags">{tags_html}</div>' if tags_html else ""
+            )
+            models_block = (
+                f'<div class="pb-models">{models_html}</div>' if models_html else ""
+            )
+
             st.markdown(
-                f'<pre style="background: var(--surface-2); padding: 0.8rem; '
-                f'border-radius: 8px; margin: 0.7rem 0 0; font-family: JetBrains Mono, '
-                f'monospace; font-size: 0.8rem; color: var(--text-2); white-space: pre-wrap;">'
-                f'{p["prompt"]}</pre>',
+                f'<div class="pb-card">'
+                f'<div class="pb-card-head">'
+                f'<span class="pb-icon" style="color: {cat_color};">'
+                f'{category_icon(bible, cat_id)}</span>'
+                f'<span class="pb-title">{title}</span>'
+                f'<span class="pb-cat" style="color: {cat_color}; border-color: {cat_color}33;">'
+                f'{cat_label}</span>'
+                f'<span class="pb-diff" style="color: {diff_color}; border-color: {diff_color}33;">'
+                f'{difficulty_label(diff)}</span>'
+                f'</div>'
+                f'{when_block}'
+                f'{tags_block}'
+                f'{models_block}'
+                f'</div>',
                 unsafe_allow_html=True,
             )
+
+            # Variant tabs (one per supported model variant)
+            if variants:
+                tab_labels = ["default"] + list(variants.keys())
+                tabs = st.tabs(tab_labels)
+                with tabs[0]:
+                    st.code(body, language="text")
+                for i, (vname, vbody) in enumerate(variants.items(), start=1):
+                    with tabs[i]:
+                        st.code(vbody, language="text")
+            else:
+                st.code(body, language="text")
+
+            # Notes + AntiPatterns (collapsible expander)
+            if notes or anti:
+                with st.expander("Why it works · What breaks it", expanded=False):
+                    if notes:
+                        st.markdown("**Why it works**")
+                        for n_line in notes:
+                            st.markdown(f"- {n_line}")
+                    if anti:
+                        st.markdown("")
+                        st.markdown("**What breaks it**")
+                        for a_line in anti:
+                            st.markdown(f"- {a_line}")
+
+            st.markdown("<div style='height: 1.2rem;'></div>", unsafe_allow_html=True)
 
 
 # ===== Footer =====
