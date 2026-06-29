@@ -1089,7 +1089,8 @@ elif SECTION == "prompts":
                     st.rerun()
 
     # --- Sort + clear ---
-    sort_cols = st.columns([3, 1], gap="small", vertical_alignment="center")
+    # vertical_alignment was added in Streamlit 1.41; HF Space pins 1.32
+    sort_cols = st.columns([3, 1], gap="small")
     with sort_cols[0]:
         sort_label = st.radio(
             "sort",
