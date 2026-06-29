@@ -1,0 +1,199 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch7-reader"><section id="ch7">
+<div>
+<div>
+<div>1</div>
+<div>
+<h4>Pick a vertical you actually understand.</h4>
+<p>Not "AI for everyone." Pick something you know about — from your work, your hobby, your family's business, your old job. The best AI products come from people who <em>feel</em> the pain they're solving. Write down 3 ideas. Pick the one that hurts most.</p>
+</div>
+</div>
+<div>
+<div>2</div>
+<div>
+<h4>Talk to 10 humans in that world.</h4>
+<p>Email, message, call — doesn't matter. "Hi, I'm exploring building X. Would you give me 15 minutes?" Most won't reply. The ones who do will teach you more than any course. <strong>No building yet. Just listening.</strong></p>
+</div>
+</div>
+<div>
+<div>3</div>
+<div>
+<h4>Build the dumbest possible prototype.</h4>
+<p>Open ChatGPT, Claude, or DeepSeek's chat. Type your idea in. See how well it works. That's your baseline. Now try to make it 2× better with prompt engineering. Then try RAG by pasting in real documents. Get something ugly working before you make it pretty.</p>
+</div>
+</div>
+</div>
+<div class="callout">
+<strong>The whole game in one sentence:</strong> don't compete on the model. Compete on the problem you solve and how well you solve it. The model is a tool. The problem is the business.
+    </div>
+<p>You don't need to be Sam Altman. You don't need to be DeepSeek. You need to be a person who <em>knows a real pain</em> and <em>uses existing tools well</em> to fix it. That's a perfectly good company. That's most of the AI startups that will actually make money in the next 5 years.</p>
+<p>Now go talk to those 10 humans. Seriously. The sooner you start, the sooner it becomes real.</p>
+</section></div>

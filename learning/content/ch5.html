@@ -1,0 +1,266 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch5-reader"><section id="ch5">
+<div class="callout">
+<strong>The big idea:</strong> the AI is brilliant but has zero common sense. It doesn't know who you are, what you want, or how you like things formatted — unless you tell it. Your prompt is the steering wheel.
+    </div>
+<h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 32px 0 8px;">Seven rules. With before/after.</h3>
+<!-- Rule 1 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        Rule 1 · Give it a role
+      </div>
+<h3>Tell the AI who to be.</h3>
+<p>Without a role, the model averages across all possible helpful people. With a role, it locks onto a specific style and knowledge.</p>
+<div><div>❌ Weak prompt</div><div>Explain how taxes work.</div></div>
+<div><div>✓ Strong prompt</div><div>You are a friendly accountant explaining to a first-year freelancer in Romania. Use plain language. No jargon. Include one concrete example with real numbers.</div></div>
+</div>
+<!-- Rule 2 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="16" rx="2" width="18" x="3" y="4"></rect><path d="M7 9h10M7 13h6"></path></svg>
+        Rule 2 · Be specific about format
+      </div>
+<h3>Tell it exactly how to format the answer.</h3>
+<p>"Short answer" is vague. "Three bullet points, max 15 words each" is a contract.</p>
+<div><div>❌ Weak</div><div>Give me some startup ideas.</div></div>
+<div><div>✓ Strong</div><div>Give me 5 startup ideas in the legal-tech space. For each: one-line problem, one-line solution, target buyer. Format as a numbered list. No fluff.</div></div>
+</div>
+<!-- Rule 3 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"></path></svg>
+        Rule 3 · Show, don't just tell (few-shot)
+      </div>
+<h3>Give it 2–3 examples of what you want.</h3>
+<p>The single biggest unlock. If you can show the model what a good answer looks like, it'll match that style almost every time.</p>
+<div><div>❌ Weak</div><div>Write a friendly follow-up email to a customer.</div></div>
+<div><div>✓ Strong</div><div>Write a friendly follow-up email after a demo.
+Example of the tone I want:
+"Hi Maria — thanks for the chat Tuesday. As discussed, attaching the proposal. Happy to walk through it Friday if useful. — Alex"
+Now write one for a customer named Stefan who saw our product demo yesterday and hasn't replied yet.</div></div>
+</div>
+<!-- Rule 4 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><circle cx="12" cy="12" r="10"></circle><path d="M4.93 4.93l14.14 14.14"></path></svg>
+        Rule 4 · Say what NOT to do
+      </div>
+<h3>Negative constraints work.</h3>
+<p>Models listen to "don't" just as well as "do." Use this to kill the things you hate seeing.</p>
+<div><div>✓ With constraints</div><div>Summarize this article.
+- 3 sentences max.
+- Don't use jargon.
+- Don't start with "In today's..."
+- Don't make stuff up. If something isn't in the article, say so.</div></div>
+</div>
+<!-- Rule 5 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+        Rule 5 · Chain of thought
+      </div>
+<h3>For hard problems, ask it to think first.</h3>
+<p>Add "think step by step before answering" and the quality jumps on math, logic, planning, debugging. It uses more tokens but the answer is dramatically better.</p>
+<div><div>✓ For hard problems</div><div>I'm planning a 3-day trip to Cluj with a €400 budget. Think step by step: estimate flights, accommodation, food, and activities. Then give me a final plan under budget.</div></div>
+</div>
+<!-- Rule 6 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M21 12a9 9 0 11-9-9c2.5 0 4.7 1 6.4 2.6"></path><path d="M21 3v5h-5"></path></svg>
+        Rule 6 · Iterate
+      </div>
+<h3>Your first prompt will be wrong.</h3>
+<p>That's normal. The magic is in the second and third attempt. Read the output, see what's off, add a constraint or example, try again. Each round usually gets 2× better.</p>
+<p>Pro tip: paste the bad output back into the prompt and say "this is wrong because X. Try again." The model takes the correction seriously.</p>
+</div>
+<!-- Rule 7 -->
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="16" rx="2" width="18" x="3" y="4"></rect><path d="M3 8h18"></path></svg>
+        Rule 7 · Give context the model can't see
+      </div>
+<h3>The model doesn't know what you know.</h3>
+<p>Paste the customer's email. Quote the document. Include the actual data. Don't make the model guess — show it the source.</p>
+<div><div>✓ With context</div><div>Here's the customer's last 3 emails (pasted below). Draft a reply that acknowledges their frustration about the late delivery and offers the 20% discount we discussed internally.
+---
+[paste the emails here]</div></div>
+</div>
+<div>
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"></path></svg>
+        Your turn · 15 minutes
+      </div>
+<h4>Try the before/after yourself.</h4>
+<p>Open ChatGPT, Claude, or DeepSeek's chat. Take one of the "weak" prompts from this chapter, and rewrite it using at least 3 of the 7 rules. Notice the difference in the output. Then iterate once — add a constraint you didn't think of the first time. Save your best version somewhere; you'll reuse it.</p>
+<span>⏱ ~15 min</span>
+</div>
+</section></div>

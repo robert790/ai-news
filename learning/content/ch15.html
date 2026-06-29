@@ -1,0 +1,206 @@
+
+<style>
+  .lrn-reader {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    line-height: 1.7;
+    font-size: 1.02rem;
+  }
+  .lrn-reader p {
+    margin: 0 0 1rem 0;
+    color: #d4cebf;
+  }
+  .lrn-reader p strong {
+    color: #f4ede0;
+    font-weight: 600;
+  }
+  .lrn-reader p em { color: #d4a574; font-style: italic; }
+
+  .lrn-reader h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    font-weight: 500;
+    color: #f4ede0;
+    font-size: 1.25rem;
+    margin: 1.5rem 0 0.6rem;
+    line-height: 1.3;
+  }
+  .lrn-reader ul, .lrn-reader ol {
+    color: #d4cebf;
+    margin: 0 0 1.1rem 1.4rem;
+    padding-left: 0.4rem;
+  }
+  .lrn-reader li {
+    margin-bottom: 0.45rem;
+    line-height: 1.6;
+  }
+  .lrn-reader li::marker { color: #6a6458; }
+  .lrn-reader a {
+    color: #d4a574;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(212, 165, 116, 0.35);
+  }
+  .lrn-reader a:hover {
+    border-bottom-style: solid;
+  }
+  .lrn-reader code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #1f1d1a;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #e8a598;
+  }
+  .lrn-reader pre {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 1.2rem;
+  }
+  .lrn-reader pre code {
+    background: transparent;
+    padding: 0;
+    color: #f4ede0;
+  }
+
+  /* The source course's .callout (gold accent) */
+  .lrn-reader .callout {
+    background: rgba(212, 165, 116, 0.07);
+    border-left: 2px solid #d4a574;
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem;
+    margin: 1.1rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #f4ede0;
+  }
+  .lrn-reader .callout strong {
+    color: #d4a574;
+    font-weight: 600;
+  }
+
+  /* The source course's .analogy (teal accent + mono header) */
+  .lrn-reader .analogy {
+    background: rgba(168, 192, 174, 0.04);
+    border: 1px solid rgba(168, 192, 174, 0.18);
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem 1rem;
+    margin: 1.1rem 0;
+  }
+  .lrn-reader .analogy-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: #a8c0ae;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0.7rem 0 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+  }
+  .lrn-reader .analogy-head svg { color: #a8c0ae; }
+  .lrn-reader .analogy h3 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: #f4ede0;
+    margin: 0.4rem 0 0.4rem;
+    font-size: 1.1rem;
+  }
+  .lrn-reader .analogy p {
+    color: #d4cebf;
+    font-size: 0.98rem;
+    margin-bottom: 0.7rem;
+  }
+  .lrn-reader .analogy .real {
+    background: rgba(168, 192, 174, 0.06);
+    border-left: 2px solid #a8c0ae;
+    padding: 0.55rem 0.8rem;
+    border-radius: 0 6px 6px 0;
+    color: #c4d6c8;
+    margin-top: 0.7rem;
+  }
+  .lrn-reader .analogy .real strong { color: #a8c0ae; }
+
+  /* The kitchen SVG wrapper — keep proportionally sized */
+  .lrn-reader .kitchen {
+    background: #1f1d1a;
+    border: 1px solid #3a3530;
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  .lrn-reader .kitchen svg {
+    width: 100%;
+    height: auto;
+    max-width: 800px;
+    display: block;
+    margin: 0 auto;
+  }
+  .lrn-reader .kitchen-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: #8a8478;
+    margin-top: 0.6rem;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  /* Standalone SVGs (not inside .kitchen) */
+  .lrn-reader > svg {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+  }
+
+  /* Mobile parity */
+  @media (max-width: 640px) {
+    .lrn-reader { font-size: 0.98rem; }
+    .lrn-reader pre { font-size: 0.78rem; padding: 0.8rem; }
+  }
+</style>
+<div class="lrn-reader" id="ch15-reader"><section id="ch15">
+<h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 24px; margin: 24px 0 8px;">The minimum viable feed.</h3>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M4 11a9 9 0 019 9M4 4a16 16 0 0116 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+        Daily · 10 minutes
+      </div>
+<h3>The morning scan.</h3>
+<p>• <strong>Hacker News front page</strong> (news.ycombinator.com) — filter for AI tag. Best signal of what's actually shipping.</p>
+<p>• <strong>One X/Twitter list</strong>: build a list of 20 AI builders/researchers and check it once a day. Suggested names: Andrej Karpathy, Yann LeCun, Simon Willison, Swyx, Robert Scoble, Ethan Mollick.</p>
+<p>• <strong>Hugging Face daily papers</strong> (huggingface.co/papers) — new research, ranked by community votes.</p>
+</div>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><rect height="16" rx="2" width="18" x="3" y="4"></rect><path d="M3 8h18"></path></svg>
+        Weekly · 1 hour
+      </div>
+<h3>The weekly digest.</h3>
+<p>• <strong>Import AI newsletter</strong> (importai.net) by Jack Clark — the most thoughtful weekly AI summary.</p>
+<p>• <strong>The Batch</strong> (deeplearning.ai/the-batch) by Andrew Ng — accessible weekly roundup.</p>
+<p>• <strong>TLDR AI newsletter</strong> — quick hits, no fluff.</p>
+<p>• <strong>r/LocalLLaMA</strong> on Reddit — if you care about open models specifically.</p>
+</div>
+<div class="analogy">
+<div>
+<svg fill="none" height="14" preserveAspectRatio="xMidYMid meet" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="14"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"></path></svg>
+        Audio · while commuting
+      </div>
+<h3>Podcasts that earn their airtime.</h3>
+<p>• <strong>Latent Space</strong> (swyx + Alessio) — best interviews with AI builders.</p>
+<p>• <strong>Lex Fridman Podcast</strong> — long-form with the people who built the field.</p>
+<p>• <strong>The AI Daily Brief</strong> (Nathaniel Whittemore) — 15-min daily news.</p>
+</div>
+<div class="callout">
+<strong>My honest take:</strong> most people over-consume. Pick 2 of the above (one daily, one weekly). Stick with them for 6 months. Mastery comes from depth, not breadth.
+    </div>
+</section></div>
