@@ -700,4 +700,88 @@ def render_css() -> str:
   section[data-testid="stSidebar"] > div:first-child {{
     transform: translateX(0) !important;
   }}
+
+  /* ============================================
+     Responsive breakpoints
+     ============================================ */
+
+  /* Tablet: ≤1024px — tighter spacing, smaller sidebar */
+  @media (max-width: 1024px) {{
+    section[data-testid="stSidebar"] {{
+      min-width: 220px !important;
+    }}
+    section.main > div {{
+      max-width: 720px;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }}
+    .bg-radar {{
+      width: 60vh;
+      height: 60vh;
+      bottom: -28vh;
+      right: -28vw;
+    }}
+    .section-header h1 {{
+      font-size: 1.9rem;
+    }}
+  }}
+
+  /* Mobile: ≤640px — compact nav, hide secondary frames */
+  @media (max-width: 640px) {{
+    section[data-testid="stSidebar"] {{
+      min-width: 180px !important;
+    }}
+    section.main > div {{
+      max-width: 100%;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }}
+    .section-header h1 {{
+      font-size: 1.5rem;
+    }}
+    .section-header h1 .bracket {{
+      font-size: 0.6em;
+    }}
+    .stApp {{
+      background-size: 16px 16px;
+    }}
+    .bg-radar {{
+      width: 50vh;
+      height: 50vh;
+      bottom: -25vh;
+      right: -25vw;
+    }}
+    .bg-scan {{
+      animation-duration: 18s;
+    }}
+    /* Hide secondary sidebar frames on mobile (essential nav stays) */
+    .sb-frame-label[data-frame="telemetry"],
+    .sb-frame-label[data-frame="telemetry"] + .sb-frame,
+    .sb-frame-label[data-frame="activity"],
+    .sb-frame-label[data-frame="activity"] + .sb-frame {{
+      display: none;
+    }}
+    /* Tighter spacing */
+    .sb-frame {{
+      padding: 0.6rem 0.7rem;
+      margin: 0 0.5rem 0.6rem;
+    }}
+    .sb-frame-label {{
+      margin: 0 0 0.3rem 0.7rem;
+    }}
+    .sb-footer {{
+      font-size: 0.55rem;
+      padding: 0.6rem 0.8rem;
+      letter-spacing: 0.05em;
+    }}
+    [data-testid="stVerticalBlockBorderWrapper"] {{
+      padding: 0.9rem 1.1rem !important;
+    }}
+    .card-label {{
+      font-size: 0.58rem;
+    }}
+    .column-header {{
+      font-size: 1.2rem !important;
+    }}
+  }}
 </style>"""

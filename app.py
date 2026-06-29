@@ -206,7 +206,7 @@ with st.sidebar:
 
     # BRAND frame — crosshair cluster + name + tagline
     st.markdown(
-        '<div class="sb-frame-label">'
+        '<div class="sb-frame-label" data-frame="brand">'
         '<span class="bracket">┌──</span>[ BRAND ]<span class="bracket">──┐</span>'
         '</div>',
         unsafe_allow_html=True,
@@ -234,7 +234,7 @@ with st.sidebar:
 
     # SECTIONS frame label
     st.markdown(
-        '<div class="sb-frame-label">'
+        '<div class="sb-frame-label" data-frame="sections">'
         '<span class="bracket">┌──</span>[ SECTIONS ]<span class="bracket">──┐</span>'
         '</div>',
         unsafe_allow_html=True,
@@ -257,7 +257,7 @@ with st.sidebar:
 
     # TELEMETRY frame — coordinate readouts + cache bar
     st.markdown(
-        '<div class="sb-frame-label">'
+        '<div class="sb-frame-label" data-frame="telemetry">'
         '<span class="bracket">┌──</span>[ TELEMETRY ]<span class="bracket">──┐</span>'
         '</div>',
         unsafe_allow_html=True,
@@ -302,7 +302,7 @@ with st.sidebar:
     )
     ops_count = len(activity_rows)
     st.markdown(
-        f'<div class="sb-frame-label">'
+        f'<div class="sb-frame-label" data-frame="activity">'
         f'<span class="bracket">┌──</span>[ ACTIVITY ]<span class="bracket">──┐</span>'
         f'<span class="sb-counter">· {ops_count} OPS</span>'
         f'</div>',
