@@ -380,6 +380,63 @@ def test_apply_incoming_query_param_warns_on_bad_token():
     assert state._d == {}
 
 
+def test_apply_incoming_query_param_sets_one_shot_marker(monkeypatch):
+    """A successful restore must set the session marker so subsequent
+    calls in the same browser session don't re-overwrite state."""
+    monkeypatch.delenv("OPENRADAR_PROGRESS_SECRET", raising=False)
+    snap = {"v": 1, "sc": "ch4", "cc": ["ch1"], "ver": {}, "meth": {}}
+    token = progress.encode(snap)
+    state = FakeState()
+    assert progress.apply_incoming_query_param(state, SimpleNamespace(p=token)) is True
+    assert state[progress._PROGRESS_RESTORE_DONE_KEY] is True
+
+
+def test_apply_incoming_query_param_skips_when_already_restored(monkeypatch):
+    """The bug this regression test catches: a second call (e.g. on a
+    Streamlit rerun triggered by a fresh sync) must NOT overwrite
+    the user's most-recent checkbox toggle with the snapshot baked
+    into the original URL token.
+
+    The fix is the one-shot ``_PROGRESS_RESTORE_DONE_KEY`` session_state
+    marker set after the first successful restore. Without the marker,
+    the second call would re-decode ``?p=...`` and call ``restore()``,
+    which writes into ``session_state`` even keys that are already
+    set by user toggles - clobbering them.
+
+    We assert the FIX directly. With the marker set, the second call
+    returns ``False`` and the user's checkbox value survives.
+    """
+    monkeypatch.delenv("OPENRADAR_PROGRESS_SECRET", raising=False)
+    # Token claims ch4 / completed [ch1]; it knows nothing about
+    # verifier_ch1_0 (its 'ver' is empty).
+    snap = {"v": 1, "sc": "ch4", "cc": ["ch1"], "ver": {}, "meth": {}}
+    token = progress.encode(snap)
+    qp = SimpleNamespace(p=token)
+
+    # Simulate the post-tick rerun: state already has verifier_ch1_0
+    # set to True by the user's just-completed checkbox toggle. Mark
+    # is already set from the first restore earlier this session.
+    state = FakeState({"verifier_ch1_0": True})
+    state[progress._PROGRESS_RESTORE_DONE_KEY] = True
+
+    applied = progress.apply_incoming_query_param(state, qp)
+    assert applied is False  # marker blocks the second restore
+    # The user's just-toggled checkbox survives the rerun.
+    assert state["verifier_ch1_0"] is True
+
+
+def test_apply_incoming_query_param_cleared_marker_fires_again(monkeypatch):
+    """A fresh session (marker empty) must restore from ?p=... again -
+    this is the 'browser refresh / new tab' path.
+    """
+    monkeypatch.delenv("OPENRADAR_PROGRESS_SECRET", raising=False)
+    snap = {"v": 1, "sc": "ch3", "cc": [], "ver": {}, "meth": {}}
+    token = progress.encode(snap)
+    state = FakeState()  # marker empty
+    assert progress.apply_incoming_query_param(state, SimpleNamespace(p=token)) is True
+    assert state["selected_chapter"] == "ch3"
+
+
 def test_sync_query_param_writes_token_when_changed():
     state = FakeState({"selected_chapter": "ch2"})
     qp = SimpleNamespace()  # supports __setattr__

@@ -69,7 +69,7 @@ MAX_TOKEN_CHARS = 1500
 # a token that already encodes no secrets.
 SIG_BYTES = 16
 
-# Loop-guard sentinel - the encoded ?p=… token we wrote on the
+# Loop-guard sentinel - the encoded ?p=... token we wrote on the
 # previous render. sync_query_param skips the write when the freshly
 # encoded token matches this value, which prevents the update->rerun->
 # update cycle that would otherwise trigger an infinite Streamlit loop
@@ -77,6 +77,14 @@ SIG_BYTES = 16
 # Lives in session_state; pure-Python side data, never round-trips
 # through the snapshot/restore surface (key is private-prefixed).
 _PROGRESS_LAST_TOKEN_KEY="__last_token"
+
+# One-shot restore marker. Once we've restored from ?p=... in a
+# session, we never restore again in the same browser session -
+# otherwise the post-tick rerun would overwrite the user's just-ticked
+# checkbox with the snapshot baked into the URL at the previous sync.
+# Cleared by browser refresh (whole session_state resets), so pasting
+# the URL into a fresh tab still restores as expected.
+_PROGRESS_RESTORE_DONE_KEY="__restored"
 
 
 # ---------------------------------------------------------------------------
@@ -431,14 +439,25 @@ def apply_incoming_query_param(
     *,
     warn: Optional[Any] = None,
 ) -> bool:
-    """Restore from ``?p=...`` if a valid token is present.
+    """Restore from ``?p=...`` if a valid token is present and we
+    have not already restored in this Streamlit session.
 
     Returns ``True`` if state was restored, ``False`` otherwise.
+
+    Restoring is gated on a one-shot session_state marker so the
+    post-tick rerun does not overwrite the user's just-ticked checkbox
+    with the stale snapshot baked into the URL. The marker is cleared
+    by a full browser refresh (which resets the whole session_state),
+    so pasting the URL into a fresh tab still restores as expected.
 
     ``warn`` is optional and only used to surface a single ``st.warning``
     message when a token is present but invalid. We don't auto-strip
     ``?p=`` so the URL remains the persistence transport.
     """
+    already = state.get(_PROGRESS_RESTORE_DONE_KEY, False) if hasattr(state, "get") else False
+    if already:
+        return False
+
     token = get_incoming_token(query_params)
     if token is None:
         return False
@@ -451,6 +470,10 @@ def apply_incoming_query_param(
                 pass
         return False
     restore(snap, state)
+    try:
+        state[_PROGRESS_RESTORE_DONE_KEY] = True
+    except Exception:
+        pass
     return True
 
 
