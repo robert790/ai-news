@@ -356,7 +356,10 @@ def render_top_nav() -> str:
     via .or-topnav and `.or-nav-pills` rules in theme.py.
     """
     if "section" not in st.session_state:
-        st.session_state.section = "azi"
+        # Allow `?section=learning` deep-link via query params
+        _qp = st.query_params.get("section", "azi")
+        _valid = {"azi", "news", "learning", "jobs", "prompts"}
+        st.session_state.section = _qp if _qp in _valid else "azi"
 
     cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
@@ -684,24 +687,24 @@ def render_news() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: LEARNING · Drumul Erica (10 chapters)
+# SECTION: LEARNING · Hartă AI pe categorii (10 chapters)
 # ─────────────────────────────────────────────────────────────────────────
 def render_learning() -> None:
     from learning.timeline import render_hero_timeline
     from learning.learning_render import render_detail_panel
 
     section_head(
-        "DRUMUL ERICA · 10 TREPTE",
+        "HARTĂ AI · 10 CATEGORII",
         "Learning",
-        "De la Project Erica (2022) la prima ta aplicație. Acum.",
+        "Fiecare capitol = o categorie mare de AI. Basics + un exercițiu.",
     )
 
     st.markdown(
         '<p style="font-family:Newsreader,serif;font-style:italic;color:#c4b9a7;'
         'font-size:1.05rem;margin:0 0 1.4rem;line-height:1.55;max-width:680px;">'
-        'Începem cu Project Erica. Guvernele taie accesul la cele mai '
-        'puternice modele. Acum fuzionăm ce e disponibil. Tu ești undeva '
-        'pe curbă. Continuă.'
+        'LLMs, prompting, vision, diffusion, speech, RAG, agenți. '
+        '10 capitole, fiecare cu un «Build this» pe care îl faci ACUM. '
+        'Nu citi totul — fă primul exercițiu și treci la următorul.'
         '</p>',
         unsafe_allow_html=True,
     )
@@ -716,7 +719,7 @@ def render_learning() -> None:
         '<p style="margin:1.5rem 0 .7rem;font-family:JetBrains Mono,monospace;'
         'font-size:.65rem;color:var(--muted);letter-spacing:.18em;'
         'text-transform:uppercase;">'
-        'Capitole · 10 trepte de la Project Erica la prima aplicație</p>',
+        'Capitole · 10 categorii AI, fiecare cu un «Build this»</p>',
         unsafe_allow_html=True,
     )
 
