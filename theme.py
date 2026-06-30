@@ -601,6 +601,71 @@ def render_css() -> str:
     line-height: 1;
   }}
 
+  /* ── Methods block (Sebastian Rey BLUE) — ◆ MAIN + ○ alts ─── */
+
+  /* Main method callout — amber gradient border-left */
+  .or-method-main {{
+    margin-top: 1.5rem;
+    padding: 1.1rem 1.2rem;
+    background: linear-gradient(180deg,
+      rgba(212, 145, 90, 0.10),
+      rgba(212, 145, 90, 0.04));
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    transition: transform var(--t-fast) var(--ease);
+  }}
+  .or-method-main:hover {{
+    transform: translateX(2px);
+  }}
+  .or-method-main .or-method-tag {{
+    font-family: {f['mono']};
+    font-size: 0.62rem;
+    color: var(--amber);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+    font-weight: 600;
+  }}
+  .or-method-main .or-method-name {{
+    font-family: {f['display']};
+    font-size: 1.18rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 0.55rem;
+  }}
+  .or-method-main .or-method-summary {{
+    font-family: {f['display']};
+    font-size: 0.95rem;
+    color: var(--text-2);
+    line-height: 1.55;
+  }}
+  .or-method-main .or-method-when {{
+    margin-top: 0.7rem;
+    padding-top: 0.55rem;
+    border-top: 1px dashed rgba(212, 145, 90, 0.25);
+    font-family: {f['mono']};
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }}
+
+  /* Alt method label */
+  .or-method-alts-label {{
+    margin-top: 0.85rem;
+    font-family: {f['mono']};
+    font-size: 0.6rem;
+    color: var(--muted-2);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }}
+
+  /* Alt expander header — open circle marker */
+  .streamlit-expanderHeader:has(p:contains("○")) {{
+    font-family: {f['mono']} !important;
+    color: var(--muted) !important;
+  }}
+
   /* ── Mini bento (2-up · lesson + prompt on Azi) ───────────── */
   .or-bento-mini {{
     display: grid;

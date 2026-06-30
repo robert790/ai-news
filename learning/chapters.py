@@ -65,6 +65,7 @@ class Chapter:
     prereqs: List[str] = field(default_factory=list)
     domain: str = "concepts"
     era: str = "2026"
+    methods: List[Method] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------
@@ -150,6 +151,27 @@ CH1 = Chapter(
     prereqs=[],
     domain="history",
     era="1950–2022",
+    methods=[
+        Method(
+            name="Cronologia pe frigider",
+            summary=(
+                "Desenezi timeline-ul pe hârtie A3, cu fiecare eră ca "
+                "un cerc colorat și un cuvânt-cheie. Lipești-l unde-l "
+                "vezi zilnic — frigider, monitor, ușă."
+            ),
+            when_to_use="Când vrei context pentru știri tech fără să cauți.",
+            recommended=True,
+        ),
+        Method(
+            name="7 ere, 7 povești",
+            summary=(
+                "Pentru fiecare eră, scrie o întâmplare din viața ta "
+                "în care AI-ul te-a ajutat sau te-a păcălit."
+            ),
+            when_to_use="Când înveți mai bine prin asocieri personale.",
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -249,6 +271,20 @@ CH2 = Chapter(
     prereqs=["ch1"],
     domain="llm",
     era="2022",
+    methods=[
+        Method(
+            name='Detective de token-uri',
+            summary='Ia 10 propoziții din viața ta (email, mesaj, notiță). Trimite-le la un tokenizer (platform.openai.com/tokenizer). Numără token-urile pe fiecare.',
+            when_to_use='Când vrei să înțelegi de ce un prompt costă mai mult decât altul.',
+            recommended=True,
+        ),
+        Method(
+            name='Temperatura 0 vs 1',
+            summary='Același prompt, de două ori: o dată cu temperature=0, o dată cu temperature=1. Compară output-urile.',
+            when_to_use='Când vrei să vezi concret cât de mult variază un model.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -348,6 +384,20 @@ CH3 = Chapter(
     prereqs=["ch2"],
     domain="prompting",
     era="2022",
+    methods=[
+        Method(
+            name='3-prompt test',
+            summary='Ia o sarcină reală de la muncă. Scrie 3 variante: prost (fără context), cu rol (cine e AI-ul), cu exemplu (arată ce vrei). Testează-le pe chat.ai.',
+            when_to_use='Când prompt-ul tău dă rezultate slabe și nu știi de ce.',
+            recommended=True,
+        ),
+        Method(
+            name='Template reutilizabil',
+            summary='După ce un prompt funcționează, salvează-l ca șablon cu locuri de completat. Folosește-l de 5+ ori.',
+            when_to_use='Când faci aceeași sarcină repetat.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -445,6 +495,20 @@ CH4 = Chapter(
     prereqs=["ch3"],
     domain="vision",
     era="2024",
+    methods=[
+        Method(
+            name='20 poze, 1 tool',
+            summary='Ia 20 poze personale (pisici, mâncare, documente). Încarcă-le pe Google Cloud Vision (free tier) sau Roboflow. Compară classification vs detection.',
+            when_to_use='Când vrei să vezi ce poate AI-ul pe datele tale reale.',
+            recommended=True,
+        ),
+        Method(
+            name='YOLO pe webcam',
+            summary='pip install ultralytics. Pornește detection pe webcam. Vezi ce detectează în timp real.',
+            when_to_use='Când ești curios cum funcționează object detection local.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -540,6 +604,20 @@ CH5 = Chapter(
     prereqs=["ch3"],
     domain="diffusion",
     era="2024",
+    methods=[
+        Method(
+            name='Matricea de stiluri',
+            summary='Același subiect, 5 stiluri diferite: cinematic, pictură, desen, foto, anime. Generează-le toate în aceeași sesiune.',
+            when_to_use='Când vrei să înveți cum schimbă stilul output-ul.',
+            recommended=True,
+        ),
+        Method(
+            name='Jurnal de negative prompts',
+            summary='Colectează negative prompts care funcționează: «blur», «mâini deformate», «text ilizibil». Reutilizează-le.',
+            when_to_use='Când generezi multe imagini și vrei consistență.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -636,6 +714,20 @@ CH6 = Chapter(
     prereqs=["ch3"],
     domain="speech",
     era="2024",
+    methods=[
+        Method(
+            name='Whisper pe viața ta',
+            summary='Instalează Whisper local. Transcrie 5 fișiere audio: un podcast, o prelegere, un voice memo, o înregistrare meeting, un interviu.',
+            when_to_use='Când vrei să vezi cât de bine transcrie AI-ul în română.',
+            recommended=True,
+        ),
+        Method(
+            name='Checklist de voice cloning etic',
+            summary='Pentru fiecare use case de voice cloning, bifează: consimțământ explicit? sursă clară? dezvăluire că e AI?',
+            when_to_use='Când ai de gând să clonezi vocea cuiva.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -757,6 +849,20 @@ CH7 = Chapter(
     prereqs=["ch2"],
     domain="rag",
     era="2024",
+    methods=[
+        Method(
+            name='10 documente, 1 întrebare',
+            summary='Ia 10 fișiere proprii (articole, pagini wiki, fișiere). Încarcă-le în Chroma (local, gratuit). Pune o întrebare. Verifică: primele 3 rezultate sunt chiar ce voiai?',
+            when_to_use='Când ai multe documente și vrei să cauți rapid în ele.',
+            recommended=True,
+        ),
+        Method(
+            name='Cosine sim battle',
+            summary='Ia 20 de perechi de propoziții (asemănătoare vs diferite). Compară 2 modele de embeddings (bge vs nomic). Care prinde mai bine asemănarea?',
+            when_to_use='Când vrei să alegi modelul de embeddings pentru proiectul tău.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -851,6 +957,20 @@ CH8 = Chapter(
     prereqs=["ch7"],
     domain="agents",
     era="2025",
+    methods=[
+        Method(
+            name='Agent pe un proiect mic',
+            summary='Folosește Claude Code SAU Cursor pe un proiect mic (100-200 linii). Dă-i o sarcină simplă: «adaugă teste pentru funcția X». Observă cum iterează.',
+            when_to_use='Când vrei să înțelegi cum gândește un agent.',
+            recommended=True,
+        ),
+        Method(
+            name='Citește un trace',
+            summary='Găsește log-urile unui agent open-source (LangChain, LangGraph). Înțelege fluxul: ce tool-uri cheamă, în ce ordine.',
+            when_to_use='Când vrei să înveți din exemplu, nu din tutorial.',
+            recommended=False,
+        ),
+    ],
 )
 
 
@@ -981,6 +1101,20 @@ CH9 = Chapter(
     prereqs=["ch2"],
     domain="tools",
     era="2026",
+    methods=[
+        Method(
+            name='5 linii, 1 Ollama',
+            summary='Instalează Ollama. Descarcă llama3.2 (~2 GB). Scrie un script Python de 5 linii cu OpenAI SDK care cheamă Ollama. Rulează. Salvează.',
+            when_to_use='Când vrei primul tău AI tool local, ACUM.',
+            recommended=True,
+        ),
+        Method(
+            name='3 modele, 1 sarcină',
+            summary='Pe OpenRouter (openrouter.ai), testează aceeași sarcină pe 3 modele diferite. Notează: care câștigă la cost, care la calitate, care la viteză.',
+            when_to_use='Când ai de ales un model pentru producție.',
+            recommended=False,
+        ),
+    ],
 )
 
 # ---------------------------------------------------------------
@@ -1077,6 +1211,20 @@ CH10 = Chapter(
     prereqs=["ch9"],
     domain="career",
     era="2026",
+    methods=[
+        Method(
+            name='Aplică azi',
+            summary='Alege 3 anunțuri pe LinkedIn pentru poziția ta. Aplică la unul ACUM. Celelalte 2 mâine dimineață.',
+            when_to_use='Când procrastinezi cu «când sunt condiții perfecte».',
+            recommended=True,
+        ),
+        Method(
+            name='Audit cu Groq',
+            summary='Descrie un proiect al tău (ce face, ce folosește, ce-ai învățat). Cere-i feedback concret. Notează 3 îmbunătățiri.',
+            when_to_use='Când vrei o a doua opinie pe CV/proiect/portofoliu.',
+            recommended=False,
+        ),
+    ],
 )
 
 

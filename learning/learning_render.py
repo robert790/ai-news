@@ -418,6 +418,62 @@ def render_detail_panel(
                             unsafe_allow_html=True,
                         )
 
+            # --- Methods (◆ MAIN + ○ alternatives) ---
+            if ch.methods:
+                main = next((m for m in ch.methods if m.recommended), None)
+                alts = [m for m in ch.methods if not m.recommended]
+                if main:
+                    st.markdown(
+                        f'<div style="margin-top: 1.5rem; padding: 1.1rem 1.2rem; '
+                        f'background: linear-gradient(180deg, rgba(212,145,90,0.10), '
+                        f'rgba(212,145,90,0.04)); '
+                        f'border-left: 3px solid #d4915a; border-radius: 6px;">'
+                        f'<div style="font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.62rem; color: #d4915a; '
+                        f'letter-spacing: 0.16em; text-transform: uppercase; '
+                        f'margin-bottom: 0.55rem;">'
+                        f'◆ Metoda recomandată</div>'
+                        f'<div style="font-family: Newsreader, serif; '
+                        f'font-size: 1.18rem; font-weight: 500; color: #f4ede0; '
+                        f'line-height: 1.3; margin-bottom: 0.55rem;">'
+                        f'{main.name}</div>'
+                        f'<div style="font-family: Newsreader, serif; '
+                        f'font-size: 0.95rem; color: #cdc4b1; line-height: 1.55;">'
+                        f'{main.summary}</div>'
+                        f'<div style="margin-top: 0.7rem; padding-top: 0.55rem; '
+                        f'border-top: 1px dashed rgba(212,145,90,0.25); '
+                        f'font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.68rem; color: #9a8f7c; letter-spacing: 0.04em;">'
+                        f'Când: {main.when_to_use}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                if alts:
+                    st.markdown(
+                        f'<div style="margin-top: 0.6rem; '
+                        f'font-family: JetBrains Mono, monospace; '
+                        f'font-size: 0.6rem; color: #6a6058; '
+                        f'letter-spacing: 0.14em; text-transform: uppercase;">'
+                        f'○ Alte metode (pentru mai târziu)</div>',
+                        unsafe_allow_html=True,
+                    )
+                    for alt in alts:
+                        with st.expander(
+                            f"○ {alt.name}", expanded=False
+                        ):
+                            st.markdown(
+                                f'<div style="font-family: Newsreader, serif; '
+                                f'font-size: 0.95rem; color: #cdc4b1; '
+                                f'line-height: 1.55;">'
+                                f'{alt.summary}</div>'
+                                f'<div style="margin-top: 0.6rem; '
+                                f'font-family: JetBrains Mono, monospace; '
+                                f'font-size: 0.66rem; color: #6a6058; '
+                                f'letter-spacing: 0.04em;">'
+                                f'Când: {alt.when_to_use}</div>',
+                                unsafe_allow_html=True,
+                            )
+
             # --- Verifiers ---
             if ch.verifiers:
                 st.markdown(
