@@ -1,12 +1,11 @@
-"""Hero timeline · Drumul Erica · Learning v1.0 redesign.
+"""Hero timeline · 7 ere AI · Learning v1.1 redesign.
 
 Replaces the old Cytoscape skill tree with a horizontal SVG timeline
 of 7 eras, drawn as a flowing path with subtle CSS animations. This
-IS the visual that anchors the redesigned Learning tab — the
-unifying thread for the Erica story.
+IS the visual that anchors the redesigned Learning tab — context
+for the 10-chapter category walkthrough below.
 
 Why an SVG timeline and not another graph:
-- The user wants the story arc visible at a glance
 - A horizontal "you-are-here" timeline is far more legible than a
   graph for a 10-chapter linear curriculum
 - Pure SVG + CSS = no JS deps, no iframe, no Streamlit 1.32 vs 1.50
@@ -16,7 +15,6 @@ Why an SVG timeline and not another graph:
 
 Public API:
     render_hero_timeline()      → full-width hero SVG (7 eras + HERE)
-    render_chapter_card(cid)    → chip-style card with illustration
 """
 
 from __future__ import annotations
@@ -60,7 +58,7 @@ def render_hero_timeline() -> str:
                 f'stroke="#1a1816" stroke-width="3" class="tl-here-core"/>'
                 f'<text x="0" y="-32" text-anchor="middle" '
                 f'font-family="JetBrains Mono, monospace" font-size="13" '
-                f'fill="{era["color"]}" letter-spacing="2">ERIKA</text>'
+                f'fill="{era["color"]}" letter-spacing="2">ACUM</text>'
                 f'<text x="0" y="-50" text-anchor="middle" '
                 f'font-family="Outfit, Inter, sans-serif" font-size="11" '
                 f'fill="#8a8478" letter-spacing="3">TU EȘTI AICI</text>'
@@ -95,27 +93,27 @@ def render_hero_timeline() -> str:
 
     # Final assembled SVG
     svg = f"""
-<svg viewBox="0 0 1200 320" xmlns="http://www.w3.org/2000/svg" class="erika-timeline-svg">
+<svg viewBox="0 0 1200 320" xmlns="http://www.w3.org/2000/svg" class="or-timeline-svg">
   {line_svg}
   {''.join(circles_svg)}
   {''.join(labels_svg)}
   <text x="50%" y="270" text-anchor="middle"
         font-family="JetBrains Mono, monospace" font-size="11"
-        fill="#6a6458" letter-spacing="6">DE LA PROJECT ERICA · LA AICI</text>
+        fill="#6a6458" letter-spacing="6">7 ERE · 10 CATEGORII · UN DE ACUM</text>
   <text x="50%" y="295" text-anchor="middle"
         font-family="Newsreader, serif" font-size="15"
-        fill="#c4b9a7" font-style="italic">7 era. 10 capitole. un singur proiect: tu.</text>
+        fill="#c4b9a7" font-style="italic">de la reguli scrise de mână la agenți care iau decizii</text>
 </svg>
 """
 
     return f"""
 <style>
-  .erika-timeline-wrap {{
+  .or-timeline-wrap {{
     width: 100%;
     overflow-x: auto;
     padding: 1rem 0;
   }}
-  .erika-timeline-svg {{
+  .or-timeline-svg {{
     width: 100%;
     max-width: 1200px;
     height: auto;
@@ -148,7 +146,7 @@ def render_hero_timeline() -> str:
   }}
 </style>
 
-<div class="erika-timeline-wrap">
+<div class="or-timeline-wrap">
   {svg}
 </div>
 """

@@ -1,19 +1,32 @@
-"""Learning chapters · OpenRadar · Drumul Erica.
+"""Learning chapters · OpenRadar · Hartă AI pe categorii.
 
-We replaced the Sebastian Rey BLUE AI Road (course page) with a
-NARRATIVE-DRIVEN, ROMANIAN, STORY-ARCED curriculum:
+CURRICULUM: 10 capitole, fiecare capitol acoperă **o categorie mare
+de AI** cu basics + un exercițiu hands-on. Nu e o poveste personală
+— e un manual scurt care te pune în temă cu ce există.
 
-    era 1 (reguli) → era 2 (ML) → era 3 (DL) → era 4 (LLM) →
-    era 5 (restricții guvernamentale) → era 6 (fuziune) →
-    TU, aici, acum.
+    1. Fundamente        — istorie + cele 7 ere
+    2. LLMs              — text in/out, tokens, context, hallucination
+    3. Prompting         — cum vorbești cu un model ca un pro
+    4. Vision AI         — classification, detection, OCR
+    5. Diffusion & Media — image gen, video gen (Stable Diffusion, Sora)
+    6. Speech & Audio    — STT, TTS, music gen, voice cloning
+    7. Embeddings & RAG  — vector search, retrieval-augmented generation
+    8. Agents            — tool use, planning, MCP
+    9. Cum construiești  — SDK, Ollama, OpenRouter, n8n
+   10. Aplică            — piața AI din RO, portofoliu, primul job
 
 Why this matters:
-- ChatGPT poate face un curs AI 101. Nu poate face un curs care
-  leagă fundamentele cu realitatea 2026 (AI Act, export controls,
-  open-source model gap) ȘI cu un proiect personal care se
-  construiește pe parcurs (Erica). Asta e diferența.
-- 10 capitole nu 15 — mai puțin e mai mult când publicul e
-  începător. Calitate > cantitate.
+- Cineva care începe cu AI-ul azi nu are nevoie de „un proiect personal
+  narativ". Are nevoie de **hartă**: ce categorii există, ce face
+  fiecare, cum pune mâna pe ea în 30 de minute.
+- Sebastian's Methods (the structured pedagogy from BLUE AI Road)
+  va fi adăugat ulterior ca overlay per capitol — vezi TODO mai jos.
+
+TODO [→ methods overlay]:
+    Fiecare capitol va câștiga un bloc `methods: List[Method]` cu
+    metoda recomandată (◆) și 2-3 alternative (○). Metodele vin din
+    pedagogia Sebastian Rey — „Better Methods can move up" pattern.
+    Structura e deja definită (`@dataclass class Method` mai jos).
 
 Each chapter has:
     - id         : "ch1" .. "ch10"  (kept stable for caches)
@@ -24,10 +37,7 @@ Each chapter has:
     - verifiers  : 2-3 întrebări scurte «Ai înțeles?» — bifat e OK
     - build_this : 1 acțiune concretă pe care o faci ACUM
     - prereqs    : ["ch1", ...] — cap de capitole anterioare
-    - domain     : "history" | "story" | "concepts" | "skills" |
-                   "tools" | "policy" | "fusion" | "career"
-    - era        : "1950" | "1970" | "2012" | "2017" | "2022" |
-                   "2025" | "2026" | "tu"
+    - domain     : vezi DOMAINS mai jos
 """
 from __future__ import annotations
 
@@ -59,6 +69,9 @@ class Chapter:
 
 # ---------------------------------------------------------------
 # CAPITOLUL 01 · De unde vine AI-ul
+# ---------------------------------------------------------------
+# (CH2 — Proiectul Erica — eliminated. Cursul e pe categorii, nu pe
+# poveste personală. Sebastian's Methods vin ca overlay per capitol.)
 # ---------------------------------------------------------------
 
 CH1_BODY = r"""
@@ -141,82 +154,10 @@ CH1 = Chapter(
 
 
 # ---------------------------------------------------------------
-# CAPITOLUL 02 · Proiectul Erica
+# CAPITOLUL 02 · Cum gândește un LLM  (fostul CH3)
 # ---------------------------------------------------------------
 
 CH2_BODY = r"""
-Aici începe povestea personală. **Pe parcursul acestor 10 capitole
-construim un singur lucru: un asistent AI pe care îl cheamă Erica.**
-
-### Ce va fi Erica
-
-Un asistent personal — al tău, pe laptopul tău, care:
-
-- îți citește email-urile și îți scrie draft-uri de răspuns.
-- citește notițele tale și extrage task-uri.
-- te ajută la cod, în editor.
-- răspunde la întrebări chiar și când ești offline.
-- nu trimite nimic pe niciun server, dacă nu vrei.
-
-### Cum o construim
-
-Fiecare capitol adaugă o piesă concretă la Erica:
-
-| Capitol | Ce primește Erica |
-|---|---|
-| 3 — Cum gândește un LLM | alegi modelul potrivit |
-| 4 — Prompting | îi dai instrucțiuni clare |
-| 5 — Cum construiești cu AI | o faci să ruleze local (Ollama) |
-| 6 — Restricții | înțelegi limitele |
-| 7 — Fuziune | combini mai multe modele |
-| 8 — Unelte | o integrezi în workflow-ul tău |
-| 9 — Portofoliu | o arăți lumii |
-| 10 — Aplică | o folosești ca să aplici la joburi |
-
-La finalul cursului ai: **un asistent AI personal, instalat pe
-laptop, care te cunoaște și te ajută**. Nu e toy. E infrastructură
-pentru cariera ta.
-
-### De ce contează
-
-Nu construim Erica ca exercițiu tehnic. O construim ca **să
-demonstrăm un principiu**: cine știe să-și facă propriul AI tool
-are un edge real în piață. Nu "știu să folosesc ChatGPT". Ci
-"am un sistem AI personal care face exact ce am eu nevoie".
-
-### Unde ești acum
-
-Ai ales drumul. Capitolul următor: cum stă Erica în spatele
-cortinei — cum "gândește" un LLM. Fără matematică, cu analogii.
-"""
-
-CH2 = Chapter(
-    id="ch2",
-    number=2,
-    title="Proiectul Erica",
-    subtitle="Construim împreună un asistent AI personal. Îl vei folosi la muncă.",
-    body_md=CH2_BODY,
-    verifiers=[
-        "Știu că Erica e un proiect personal al meu, nu o platformă corporativă.",
-        "Știu că o construiesc pe parcursul capitolelor.",
-        "Știu că o voi rula local și va fi a mea.",
-    ],
-    build_this=(
-        "Scrie 3 sarcini repetitive pe care le faci la muncă și "
-        "pe care vrei ca Erica să ți le preia. "
-        "Fă o listă în Notes / Notion / pe hârtie."
-    ),
-    prereqs=["ch1"],
-    domain="story",
-    era="2026",
-)
-
-
-# ---------------------------------------------------------------
-# CAPITOLUL 03 · Cum gândește un LLM
-# ---------------------------------------------------------------
-
-CH3_BODY = r"""
 LLM-ul nu gândește. Recitește text prin statistică. Dar e suficient
 de bun cât să pară că gândește. Hai să vezi cum.
 
@@ -289,12 +230,12 @@ AI-ul e partener de brainstorming, nu enciclopedie.
 Cu cât îi înțeleli limitele, cu atât îl folosești mai bine.
 """
 
-CH3 = Chapter(
-    id="ch3",
-    number=3,
+CH2 = Chapter(
+    id="ch2",
+    number=2,
     title="Cum gândește un LLM",
     subtitle="Pattern-uri pe 500 GB de text. Nu gândește — prezice. Și e suficient cât să pară că gândește.",
-    body_md=CH3_BODY,
+    body_md=CH2_BODY,
     verifiers=[
         "Știu ce e un token și cum se formează.",
         "Știu ce e context window și de ce contează.",
@@ -305,8 +246,8 @@ CH3 = Chapter(
         "mesaj?» Apoi trimite același mesaj cu temperatura 0 vs 0.9. "
         "Notează diferența."
     ),
-    prereqs=["ch2"],
-    domain="concepts",
+    prereqs=["ch1"],
+    domain="llm",
     era="2022",
 )
 
@@ -315,7 +256,7 @@ CH3 = Chapter(
 # CAPITOLUL 04 · Prompting ca un Pro
 # ---------------------------------------------------------------
 
-CH4_BODY = r"""
+CH3_BODY = r"""
 Diferența dintre un prompt prost și un prompt bun = **câteva ore
 de lucru salvate pe zi**. Prompting-ul nu e artă misterioasă. E
 **comunicare clară cu un coleg literal**.
@@ -388,12 +329,12 @@ E ca angajarea unui nou coleg: îi spui clar **cine e**, **ce face**,
 lucrează mai bine. Nu e magie. E onboarding.
 """
 
-CH4 = Chapter(
-    id="ch4",
-    number=4,
+CH3 = Chapter(
+    id="ch3",
+    number=3,
     title="Prompting ca un Pro",
     subtitle="Comunică cu AI-ul ca un manager cu un coleg nou: clar, structurat, cu exemple.",
-    body_md=CH4_BODY,
+    body_md=CH3_BODY,
     verifiers=[
         "Știu să dau un rol într-un prompt.",
         "Știu să specifice formatul exact al răspunsului.",
@@ -404,19 +345,523 @@ CH4 = Chapter(
         "Scrie 3 versiuni de prompt: prost, cu rol, cu exemplu. "
         "Testează-le pe chat.ai. Păstrează ce funcționează."
     ),
-    prereqs=["ch3"],
-    domain="skills",
+    prereqs=["ch2"],
+    domain="prompting",
     era="2022",
 )
 
 
 # ---------------------------------------------------------------
-# CAPITOLUL 05 · Cum construiești cu AI
+# CAPITOLUL 04 · Vision AI  (NOU)
+# ---------------------------------------------------------------
+
+CH4_BODY = r"""
+Computer Vision (CV) e categoria AI care lucrează cu **imagini și
+video**: recunoaște obiecte, citește text, urmărește mișcare,
+generează imagini noi. E a doua categorie ca impact economic după
+LLM-uri.
+
+### Sarcinile de bază
+
+| Sarcină | Ce face | Exemplu real |
+|---|---|---|
+| **Clasificare** | Etichetează o imagine | „pisică" vs „câine" |
+| **Detection** | Găsește obiecte + cutiebounding | „2 persoane, 1 mașină" |
+| **Segmentation** | Conturează la nivel de pixel | hărți medicale, mașini autonome |
+| **OCR** | Extrage text din imagini | facturi, documente scanate |
+| **Face recognition** | Identifică persoane | securitate, tagging foto |
+| **Pose estimation** | Urmărește scheletul uman | sport, AR/VR |
+
+### Cum funcționează (pe scurt)
+
+Înainte de 2012, CV se baza pe filtre scrise de mână (edge detection,
+SIFT, HOG). **AlexNet (2012)** a câștigat ImageNet cu o rețea
+neuronală convoluțională (CNN) — și toată lumea a trecut pe deep
+learning peste noapte.
+
+Astăzi, vision models sunt transformer-based (ViT — Vision Transformer),
+antrenate pe miliarde de imagini cu subtitrări (CLIP, DINO, SAM).
+
+### Foundation models (2024+)
+
+- **CLIP** (OpenAI) — leagă imagini și text în același spațiu
+  vectorial. Poți căuta într-o bază de imagini cu text natural:
+  „poze cu câini în zăpadă".
+- **SAM** (Meta) — segment anything. Dai un click pe obiect, îți
+  decupează conturul exact.
+- **Florence 2** (Microsoft) — tiny model (270M parametri) care
+  face detection + captioning + OCR într-o singură trecere.
+
+### Unde se folosește
+
+- Retail: count people, detect empty shelves
+- Medical: X-ray analysis, tumor detection
+- Automotive: pedestrian detection, lane keeping
+- Agriculture: crop disease, yield estimation
+- Insurance: damage assessment din poze
+- Industrial: defect detection pe linii de fabricație
+
+### Cum începi tu
+
+**1. Începe cu un API gata făcut**: Google Cloud Vision, AWS
+Rekognition, Azure Computer Vision. Trimiti poză, primești JSON cu
+ce-a detectat. 5 minute setup, $1-2 per 1000 imagini.
+
+**2. Apoi încearcă modele open-source**: YOLO v8/v11 pentru
+detection rapidă, Florence-2 pentru captioning, SAM pentru
+segmentation. Rulează local cu `pip install ultralytics`.
+
+**3. Fine-tune** dacă ai nevoie de ceva specific (ex: defecte
+industriale ale tale). Ia YOLO pre-antrenat, antrenează-l pe
+100-500 poze etichetate.
+
+### Greșeli frecvente
+
+- Vrei „AI care vede" și te gândești la ceva general. Nu există.
+  Există detection SAU classification SAU segmentation — alege una.
+- Antrenare fără date suficiente. Sub 1000 de exemple pe clasă,
+  nu te aștepta la miracole.
+- Ignori lumina și unghiul. Modelele sunt pretențioase la poze
+  diferite de cele din train.
+"""
+
+CH4 = Chapter(
+    id="ch4",
+    number=4,
+    title="Vision AI",
+    subtitle="Clasificare, detection, OCR, segmentation. A doua categorie AI ca impact economic.",
+    body_md=CH4_BODY,
+    verifiers=[
+        "Știu diferența dintre classification, detection și segmentation.",
+        "Știu ce e CLIP și de ce e util pentru image search.",
+        "Știu că pot folosi un API gata făcut (Google Vision, AWS) fără antrenare.",
+    ],
+    build_this=(
+        "Descarcă 20 poze cu pisici și 20 cu câini. "
+        "Încarcă-le pe Google Cloud Vision (sau Roboflow free tier). "
+        "Compară classification vs detection. "
+        "Notează ce a greșit și de ce."
+    ),
+    prereqs=["ch3"],
+    domain="vision",
+    era="2024",
+)
+
+
+# ---------------------------------------------------------------
+# CAPITOLUL 05 · Diffusion & Generative Media  (NOU)
 # ---------------------------------------------------------------
 
 CH5_BODY = r"""
-Chat-ul e pentru conversație. SDK-ul e pentru aplicații.
-Diferența e **ceea ce poți automatiza**.
+Până în 2020, „AI-ul care generează imagini" era un toy cu rezoluție
+mică și fețe distorsionate. Azi, **Stable Diffusion, Midjourney,
+DALL-E 3, Imagen, Sora, Veo** produc imagini și video la nivel
+profesional. Toate se bazează pe **diffusion models**.
+
+### Cum funcționează diffusion (pe scurt, fără matematică)
+
+Imaginează-ți o poză clară. Adaugi treptat zgomot aleator până
+devine doar pure static. Rețeaua neuronală **învață să facă procesul
+invers**: din zgomot pur, reconstruiește o imagine coerentă.
+
+```
+Imagine clară → adaugă zgomot (1000 pași) → zgomot pur
+                                          │
+                       rețeaua învață să meargă invers
+                                          ▼
+Zgomot pur → scoate zgomot (1000 pași) → imagine clară
+```
+
+Training: milioane de imagini cu descrieri. Inference: pornești
+de la zgomot aleator + un text prompt, modelul merge înapoi.
+
+### Concepte esențiale
+
+- **Prompt** — textul care descrie ce vrei. Cu cât mai specific,
+  cu atât mai bine: „portret cinematografic, bărbat 30 ani, lumină
+  de apus, stil foto-documentar" bate „bărbat".
+- **Negative prompt** — ce NU vrei: „blur, mâini deformate, text
+  ilizibil, calitate scăzută".
+- **Guidance scale** — cât de strict ascultă modelul prompt-ul.
+  Mare = literal dar boring. Mic = creativ dar pierde detalii.
+- **Steps** — câte iterații de denoising. 20-30 e sweet spot.
+- **Seed** — număr care controlează random. Același seed + același
+  prompt = aceeași imagine. Util pentru iterații.
+
+### Tools (2026)
+
+| Tool | Tip | Cost | Note |
+|---|---|---|---|
+| **Midjourney** | Cloud (Discord) | $10/lună | Cel mai „artistic", preferat de designeri |
+| **DALL-E 3** | Cloud (API OpenAI) | per imagine | Integrare bună cu ChatGPT |
+| **Stable Diffusion** | Open-source, local | gratuit | Rulezi pe Mac M2+ sau cu GPU |
+| **Flux** | Open-source (Black Forest Labs) | gratuit | Calitate > SD, mai nou |
+| **ComfyUI** | UI pentru SD/Flux local | gratuit | Pipeline-uri vizuale complexe |
+
+### Video gen (2025+)
+
+**Sora** (OpenAI), **Veo** (Google), **Runway Gen-3**, **Kling**
+(chinezesc, foarte bun) — toate generează clipuri 5-30 secunde
+din text. Costă mult per clip, dar calitatea a depășit orice
+animație tradițională pentru multe use case-uri.
+
+### Use cases reale
+
+- Marketing: vizualuri pentru ads în ore, nu zile
+- E-commerce: pune haine pe modele care nu există
+- Arhitectură: randări din schițe
+- Gaming: texturi generate procedural
+- Educativ: ilustrații on-demand
+
+### Greșeli frecvente
+
+- Prompt vag → output mediocru
+- Ignori composition (regula treimilor, focal point)
+- Nu iterezi. Prima imagine nu e cea mai bună.
+"""
+
+CH5 = Chapter(
+    id="ch5",
+    number=5,
+    title="Diffusion & Generative Media",
+    subtitle="Cum generează AI imagini și video din text. Stable Diffusion, Midjourney, Sora.",
+    body_md=CH5_BODY,
+    verifiers=[
+        "Știu ce e un diffusion model și cum funcționează pe scurt.",
+        "Știu diferența dintre prompt și negative prompt.",
+        "Știu că pot rula Stable Diffusion local pe Mac M2+.",
+    ],
+    build_this=(
+        "Instalează Stable Diffusion local (sau folosește Midjourney). "
+        "Scrie 5 prompturi pentru același subiect cu stiluri diferite "
+        "(cinematic, pictură, desen, foto, anime). "
+        "Salvează ce funcționează într-un folder cu seed + prompt."
+    ),
+    prereqs=["ch3"],
+    domain="diffusion",
+    era="2024",
+)
+
+
+# ---------------------------------------------------------------
+# CAPITOLUL 06 · Speech & Audio AI  (NOU)
+# ---------------------------------------------------------------
+
+CH6_BODY = r"""
+A treia mare categorie: AI pentru **voce și sunet**. Include speech-
+to-text (transcriere), text-to-speech (sinteză vocală), music
+generation, voice cloning, audio enhancement.
+
+### Speech-to-Text (STT)
+
+Transformă audio în text. Utilizări: transcriere meeting-uri,
+subtitrări, interfețe vocale, dictare medicală.
+
+| Tool | Limbi | Preț | Calitate |
+|---|---|---|---|
+| Whisper (OpenAI) | 99 | gratuit, local | excelent |
+| Deepgram | 36+ | per minut | excelent, rapid |
+| Google Speech-to-Text | 125+ | per minut | bun |
+| AssemblyAI | engleză best | per minut | excelent |
+
+Whisper e special: open-source, rulează local, suportă 99 limbi.
+Îl instalezi cu `pip install openai-whisper` și transcrii orice.
+
+### Text-to-Speech (TTS)
+
+Transformă text în audio cu voce naturală. Trecut: voci robotice.
+Azi: indistinguishable de om.
+
+- **ElevenLabs** — cel mai realist, suportă voice cloning
+- **OpenAI TTS** — 6 voci, simplu, ieftin
+- **Google Cloud TTS** — multe voci, multe limbi
+- **Coqui TTS / Piper** — open-source, local
+
+### Voice cloning
+
+Cu 10-30 secunde de audio, poți clona vocea cuiva. Utilizări:
+- Narare audiobook în vocea autorului (cu permisiune)
+- Dublare în altă limbă păstrând vocea originală
+- Personaje consistente în jocuri/animații
+
+**Atenție etică**: voice cloning fără consimțământ e deepfake.
+Legislativ: EU AI Act cere consimțământ explicit + watermarking.
+
+### Music Generation
+
+- **Suno** — generează melodii complete (voce + instrumente) din text
+- **Udio** — similar, calitate foarte bună
+- **Stable Audio** (Stability AI) — open-source, pentru background music
+- **AIVA** — specializat pe compoziție clasică/cinematică
+
+Use cases: jingle-uri pentru ads, muzică de fundal pentru video,
+prototipuri pentru compozitori.
+
+### Audio enhancement
+
+- **ElevenLabs Sound Effects** — generează SFX din text
+- **Adobe Podcast** — remove noise, enhance voice (gratuit, magic)
+- **Demucs** (Meta) — separă vocea de instrumentale (open-source)
+
+### Cum începi
+
+1. Instalează Whisper local — transcrie 10 fișiere audio din viața ta
+2. Testează ElevenLabs cu 5 voci diferite — vezi care îți place
+3. Încearcă Suno — generează un jingle de 30 secunde pentru ceva
+
+### Greșeli frecvente
+
+- STT pe audio cu noise mult → output dezastruos. Curăță întâi.
+- TTS fără pauze potrivite → sună robotic. Folosește SSML.
+- Music gen cu prompt vag → rezultat generic. Fii specific la gen, mood, tempo.
+"""
+
+CH6 = Chapter(
+    id="ch6",
+    number=6,
+    title="Speech & Audio AI",
+    subtitle="Transcriere (Whisper), sinteză vocală (ElevenLabs), music gen (Suno).",
+    body_md=CH6_BODY,
+    verifiers=[
+        "Știu să instalez Whisper și să transcriu audio local.",
+        "Știu diferența dintre STT, TTS, voice cloning și music gen.",
+        "Știu că voice cloning cere consimțământ (legal + etic).",
+    ],
+    build_this=(
+        "Instalează Whisper local. "
+        "Ia un fișier audio de 5 minute (un podcast, o prelegere). "
+        "Transcrie-l. "
+        "Notează: ce-a greșit, unde s-a descurcat, cum poți îmbunătăți."
+    ),
+    prereqs=["ch3"],
+    domain="speech",
+    era="2024",
+)
+
+
+# ---------------------------------------------------------------
+# CAPITOLUL 07 · Embeddings & RAG  (NOU)
+# ---------------------------------------------------------------
+
+CH7_BODY = r"""
+LLM-urile știu multe, dar **nu știu nimic specific despre tine sau
+compania ta**. Asta e limita fundamentală. Soluția: **RAG**
+(Retrieval-Augmented Generation) — adaugi context din documente
+proprii înainte de a cere modelului să răspundă.
+
+### Ce sunt embeddings
+
+Un embedding e un **vector de numere** (de obicei 384–3072 dim)
+care reprezintă semantic o bucată de text. Texte similare au vectori
+apropiați.
+
+```
+„câinele latră"       → [0.12, -0.45, 0.78, ..., 0.34]
+„câinele scheună"    → [0.15, -0.42, 0.76, ..., 0.33]   # aproape
+„mașina merge"       → [-0.56, 0.22, -0.18, ..., 0.05]  # departe
+```
+
+Măsura de „aproape" = **cosine similarity** (unghiul dintre vectori).
+
+### Cum faci embeddings
+
+Modele populare:
+- **OpenAI text-embedding-3-small** (1536 dim, $0.02/M tokens)
+- **Cohere embed-v3** (1024 dim, multilingual)
+- **bge-large** (BAAI, open-source, 1024 dim)
+- **e5-large-v2** (Microsoft, open-source)
+- **nomic-embed-text** (local, 768 dim)
+
+```python
+import openai
+resp = openai.embeddings.create(
+    model="text-embedding-3-small",
+    input="Cum funcționează un LLM?"
+)
+vec = resp.data[0].embedding  # list of 1536 floats
+```
+
+### Vector databases
+
+Stochezi embeddings + metadata, cauți rapid „cel mai apropiat" de
+un query. Opțiuni:
+
+| DB | Tip | Cost |
+|---|---|---|
+| **Chroma** | Local, simplu | gratuit |
+| **FAISS** (Meta) | Local, foarte rapid | gratuit |
+| **Qdrant** | Server, production-ready | self-host sau cloud |
+| **Weaviate** | Server, bogat în features | self-host sau cloud |
+| **Pinecone** | Managed, foarte simplu | pay-as-you-go |
+
+### RAG pattern (ce trebuie să știi)
+
+```
+Întrebare utilizator
+        │
+        ▼
+[1] Embedding pe întrebare
+        │
+        ▼
+[2] Caută top-K documente similare în vector DB
+        │
+        ▼
+[3] Concatenăzi: context găsit + întrebare
+        │
+        ▼
+[4] Trimite la LLM cu prompt: "Răspunde pe baza contextului"
+        │
+        ▼
+[5] LLM-ul produce răspuns grounded în datele tale
+```
+
+De ce RAG > fine-tuning pentru date proprii:
+- Date proaspete fără re-antrenare (re-embed + restart)
+- Poți cita sursa exactă (audit + verificare)
+- Cost mic (nu re-antrenezi un model de miliarde $)
+
+### Use cases
+
+- Chatbot pe documentele companiei tale (HR, legal, suport)
+- Căutare semantică în codebase (Gitingest, Cursor)
+- Q&A pe baza ta de cunoștințe (Notion, Confluence)
+- Recommendation systems (produse similare)
+
+### Greșeli frecvente
+
+- Chunking prost. Bucăți prea mari = prea puțin context specific.
+  Prea mici = pierdut context. Sweet spot: 200-800 tokens cu overlap.
+- Fără reranking. Embedding search nu e perfect; adaugă un re-ranker
+  (Cohere Rerank, cross-encoder) pentru top-50 → top-5.
+- Ignori evaluarea. Testează cu întrebări reale și măsoară
+  recall@5, MRR.
+"""
+
+CH7 = Chapter(
+    id="ch7",
+    number=7,
+    title="Embeddings & RAG",
+    subtitle="Cum adaugi AI-ului context din datele tale. Vector DB + retrieval.",
+    body_md=CH7_BODY,
+    verifiers=[
+        "Știu ce e un embedding și cum se calculează similaritatea.",
+        "Știu diferența dintre RAG și fine-tuning.",
+        "Știu să aleg o vector DB (Chroma local, Qdrant production).",
+    ],
+    build_this=(
+        "Ia 10 documente (articole, pagini wiki, fișiere). "
+        "Încarcă-le în Chroma (local, gratuit). "
+        "Pune o întrebare. "
+        "Verifică: primele 3 rezultate sunt chiar ce-ai vrut?"
+    ),
+    prereqs=["ch2"],
+    domain="rag",
+    era="2024",
+)
+
+
+# ---------------------------------------------------------------
+# CAPITOLUL 08 · Agents  (NOU)
+# ---------------------------------------------------------------
+
+CH8_BODY = r"""
+LLM-ul singur răspunde la întrebări. **Agentul** ia decizii, apelează
+unelte, iterează. E diferența dintre „calculator" și „operator".
+
+### Ce e un agent
+
+Un agent = LLM + buclă de raționament + acces la unelte.
+
+```python
+while not done:
+    thought = llm("Ce urmează?", context=history)
+    action = llm.parse(thought)  # tool call
+    result = tools[action.name](**action.args)
+    history.append((thought, action, result))
+done = llm("Rezumă ce-ai aflat")
+```
+
+Exemple de unelte: search web, read file, run code, query DB, send email.
+
+### Patterns
+
+- **ReAct** (Reason + Act) — gândește, acționează, observă, repetă
+- **Plan-and-Execute** — face un plan, execută pas cu pas
+- **Multi-agent** — mai mulți agenți colaborează (1 cercetează,
+  altul scrie, al treilea verifică)
+- **Reflexion** — agentul se auto-evaluează și încearcă din nou
+
+### MCP — Model Context Protocol
+
+Anthropic a lansat în 2024 **MCP**, un standard deschis pentru
+conectarea toolurilor la agenți. E ca **USB-C pentru AI**: agentul
+conectat la un MCP server poate citi fișiere, rula comenzi, accesa
+API-uri în mod standardizat.
+
+Ecosistemul crește rapid: Claude Code, Cursor, Continue, n8n, multe
+altele suportă MCP. Dacă vrei să construiești un tool pentru AI,
+expune-l ca MCP server.
+
+### Frameworks
+
+| Framework | Limbă | Note |
+|---|---|---|
+| **LangChain** | Python/JS | Cel mai popular, mulți abstractions |
+| **LangGraph** | Python/JS | Production-grade agents, stateful graphs |
+| **CrewAI** | Python | Multi-agent simplu, role-based |
+| **AutoGen** (Microsoft) | Python | Multi-agent conversațional |
+| **Haystack** | Python | Deepset, mai orientat pe RAG |
+
+### Use cases reale
+
+- Customer support agent (citește docs, răspunde, escaladează)
+- Coding agent (Claude Code, Cursor — citește repo, editează, testează)
+- Research agent (căutare web, sinteză, raport)
+- Data analyst agent (query SQL, generează chart, explică)
+
+### Greșeli frecvinte
+
+- Agent cu prea multe unelte → confuz, aleator. Max 5-10 unelte
+  inițial, extinde pe măsură ce testezi.
+- Fără limită de iterații. Un agent blocat poate rula la infinit.
+  Pune max_steps = 10-20.
+- Fără human-in-the-loop pentru acțiuni distructive (ștergere fișiere,
+  send email, payment). Confirmă înainte de execuție.
+- Overengineering. 80% din use cases se rezolvă cu un simplu tool
+  call. Agentul complet e pentru 20%.
+"""
+
+CH8 = Chapter(
+    id="ch8",
+    number=8,
+    title="Agents",
+    subtitle="LLM + unelte + buclă. De la chat la automatizare. MCP ca USB-C pentru AI.",
+    body_md=CH8_BODY,
+    verifiers=[
+        "Știu ce e un agent și cum diferă de un simplu tool call.",
+        "Știu ce e MCP și de ce e important.",
+        "Știu cel puțin un framework (LangChain / LangGraph / CrewAI).",
+    ],
+    build_this=(
+        "Folosește Claude Code SAU Cursor cu un proiect mic. "
+        "Dă-i o sarcină simplă: «adaugă teste pentru funcția X». "
+        "Observă cum iterează. "
+        "Notează: unde a funcționat, unde a eșuat, de ce."
+    ),
+    prereqs=["ch7"],
+    domain="agents",
+    era="2025",
+)
+
+
+# ---------------------------------------------------------------
+# CAPITOLUL 09 · Cum construiești cu AI  (combinat, tools + restrictions)
+# ---------------------------------------------------------------
+
+CH9_BODY = r"""
+Chat-ul e pentru conversație. SDK-ul e pentru aplicații. Ollama e
+pentru local. **Aici legăm tot ce-am învățat într-unelte reale
+pe care le poți folosi mâine.**
 
 ### Nivelurile de utilizare
 
@@ -471,8 +916,24 @@ Anthropic a lansat în 2024 un standard deschis: **MCP**. E ca un
 USB-C pentru AI: un model conectat la MCP poate citi fișiere, rula
 comenzi, accesa API-uri. Claude Code, Cursor, n8n folosesc MCP.
 
-E un subiect avansat, dar important. Îl aprofundăm la capitolul
-de unelte.
+### Cele 5 unelte pe care le stăpânești
+
+**1. Cursor** — editor de cod cu AI integrat. Vorbești cu codul:
+„Refactorizează funcția asta", „Adaugă teste". $20/lună Pro.
+
+**2. Claude Code CLI** — agent terminal de la Anthropic. Citește,
+editează, creează fișiere. Bun pentru sarcini lungi multi-file.
+
+**3. n8n** (sau Langflow) — GUI open-source pentru flow-uri AI fără
+cod. Monitorizează folder → Ollama → Notion. Trigger email → LLM → Trello.
+
+**4. Ollama** — AI local, gratuit, offline. Modele recomandate:
+- producție: Llama 3.3 70B (64 GB RAM sau M2 Ultra)
+- laptop normal: Qwen 2.5 14B sau Mistral Small
+- viteză: Llama 3.2 3B sau Phi 4 mini
+
+**5. OpenRouter** — un API key, 50+ modele. Switch între ele la
+runtime. Util pentru testare, failover, cost optimization.
 
 ### Flow-uri fără cod
 
@@ -480,455 +941,47 @@ de unelte.
 construi pipeline-uri AI fără cod. Utile pentru automatizări simple.
 Limitate pentru logică complexă.
 
-### Ce construiești pentru Erica acum
-
-La capitolul următor (Restricții) instalezi Ollama și descarci un
-model local — primul pas pentru o Erica care rulează pe laptopul tău.
-"""
-
-CH5 = Chapter(
-    id="ch5",
-    number=5,
-    title="Cum construiești cu AI",
-    subtitle="Chat = pentru tine. SDK = pentru program. Ollama = pentru tine, fără internet.",
-    body_md=CH5_BODY,
-    verifiers=[
-        "Știu diferența dintre chat și SDK/API.",
-        "Știu ce e Ollama și de ce aș vrea să rulez AI local.",
-        "Știu că OpenAI SDK funcționează cu multe modele compatibile.",
-    ],
-    build_this=(
-        "Instalează Ollama (ollama.com). "
-        "Descarcă `ollama pull llama3.2` (~2 GB). "
-        "Conversează cu el din terminal: `ollama run llama3.2`. "
-        "Întreabă-l ceva simplu. Salvează conversația."
-    ),
-    prereqs=["ch3"],
-    domain="tools",
-    era="2026",
-)
-
-
-# ---------------------------------------------------------------
-# CAPITOLUL 06 · Restricțiile au venit
-# ---------------------------------------------------------------
-
-CH6_BODY = r"""
-Din 2025, guvernele au tăiat accesul la cele mai puternice modele.
-Nu e tehnică. E geopolitică. Capitolul ăsta îți pune contextul pe
-care ChatGPT nu ți-l dă — pentru că nu vrea să te sperii.
-
-### EU AI Act (intrat 2024–2025)
-
-Uniunea Europeană a adoptat primul cadru legal cuprinzător pentru
-AI. Orice model peste **10^25 FLOPs** de antrenament intră sub
-regim special:
-
-- evaluări de risc obligatorii
-- transparență despre date
-- supraveghere umană obligatorie pentru decizii
-- interdicții pentru anumite use cases (social scoring, etc.)
-
-Efectul: frontier labs (OpenAI, Anthropic, Google) trebuie să
-respecte reguli înainte de a lansa modele în Europa. Unele le
-launch-ui mai întâi în State, altele le restricționează.
-
-### US Export Controls (Biden, continuate Trump)
-
-SUA au blocat exportul de GPU-uri high-end (A100, H100, B200)
-spre China și alte țări. E un Act al războiului tehnologic.
-
-Asta a forțat China să-și construiască propriile GPU-uri (Huawei
-Ascend) și propriile modele (DeepSeek, Qwen, GLM, Kimi).
-
-### Efectul pentru tine
-
-**Realitatea 2026**: modelele frontier sunt limitate, scumpe, sau
-imposibil de accesat. Ce-ți rămâne:
+### Restricții 2026
 
 | Tier | Ce ai | Cost | Calitate |
 |---|---|---|---|
 | Closed frontier | GPT-5, Claude Opus | $$$, API gate | ★★★★★ |
 | Closed mid-tier | GPT-5 mini, Claude Haiku, Gemini Flash | $ | ★★★ |
-| Open-weight top | Llama 3.3 70B, Qwen 2.5 72B | $0 (rulezi local) | ★★★★ |
+| Open-weight top | Llama 3.3 70B, Qwen 2.5 72B | $0 (local) | ★★★★ |
 | Open-weight small | Llama 3.2 3B, Phi 4, Gemma 2 | $0 | ★★ |
 
-Dacă știi doar ChatGPT, te bazezi pe un singur tier și pe bunul
-voinței unui singur vendor. Dacă știi fuziune, ești imun.
-
-### Ce nu e apocalipsa
-
-Restricțiile nu sunt "AI-ul se termină". Sunt **realiniere**. Cine
-știe să combine modele mici e mai valoros decât cine știe să scrie
-un prompt într-o singură fereastră.
-
-Și mai e ceva: **open-source e mai bun ca niciodată**. Llama 3.3
-70B bate GPT-4 la multe benchmark-uri. Qwen 2.5 bate GPT-4o la
-matematică în limba chineză. Frontier ≠ best.
-
-### Ce înseamnă pentru Erica
-
-Erica va rula local (Ollama). Va fi **imună** la schimbările
-geopolitice. Asta nu e pregătire pentru dezastru, e **design
-inteligent**.
+EU AI Act + US export controls = modelele frontier sunt limitate.
+Open-source (Llama, Qwen, DeepSeek) e alternativa reală.
 
 ### Ce faci acum
 
-Dacă încă nu ai Ollama instalat de la capitolul anterior, instalează.
-Dacă l-ai instalat, descarcă și `qwen2.5` și `llama3.3` — începe să
-experimentezi cu mai multe modele locale.
-"""
-
-CH6 = Chapter(
-    id="ch6",
-    number=6,
-    title="Restricțiile au venit",
-    subtitle="EU AI Act, export controls, China. Nu e tehnic, e geopolitic. Noi nu așteptăm.",
-    body_md=CH6_BODY,
-    verifiers=[
-        "Știu ce e EU AI Act și de ce afectează modelele frontier.",
-        "Știu de ce open-source (Llama, Qwen) e o alternativă reală.",
-        "Știu că modelele locale pot fi imune la schimbările geopolitice.",
-    ],
-    build_this=(
-        "Documentează 2 modele pe care le-ai folosit deja "
-        "(unul closed, unul open) și unul pe care nu l-ai încercat. "
-        "Notează: cost, context window, ce-l face bun, ce-l face slab."
-    ),
-    prereqs=["ch5"],
-    domain="policy",
-    era="2025",
-)
-
-
-# ---------------------------------------------------------------
-# CAPITOLUL 07 · Era Fuziunii
-# ---------------------------------------------------------------
-
-CH7_BODY = r"""
-Nu mai ai un model grozav. Ai 5 modele bune. **Trucul e să le faci
-să lucreze împreună ca să simulezi unul grozav.** Asta e era 7.
-
-### Conceptul: routing
-
-Un model mic (3B) primește toate întrebările. Decide care model e
-mai potrivit. Trimite întrebarea acolo.
-
-```
-Întrebare: "Cum sortez un array în Python?"
-                    │
-                    ▼
-           ┌─── Router (Llama 3.2 3B) ───┐
-           │ Decide: cod → Qwen Coder  │
-           │ Decide: matematică → DeepSeek-Math │
-           │ Decide: chat generic → Llama 3.3 70B │
-           ▼
-           Modelul ales răspunde
-```
-
-Cost: plătești un model mic permanent pentru decizie, dar taxezi
-doar modelul mare când e nevoie.
-
-### Conceptul: cascading
-
-Model mic răspunde primul. Dacă nu e "sigur" pe răspuns (confidence
-scăzut), pasează la model mare pentru verificare.
-
-```
-Răspuns mic (Qwen 3B): "Funcția sorted()"
-        │
-        ▼ Router analizează dacă e "complet"
-        │
-   ┌────┴─────┐
-   │          │
- Încredere   Fără încredere
- mare (>0.8)  (<0.8)
-   │          │
- Returnă     Trimite la Claude
- direct      Opus pentru răspuns complet
-```
-
-### Conceptul: ensemble
-
-Trei modele generează răspunsuri. Un al patrulea le compară și
-alege ce-i mai potrivit sau combină perspectivele.
-
-```
-Întrebare → LLM A, LLM B, LLM C (în paralel)
-                │
-                ▼
-           LLM Judge — alege cel mai bun răspuns
-                │
-                ▼
-           Output final
-```
-
-Costisitor, dar funcționează bine pentru decizii importante.
-
-### Conceptul: prompt piping
-
-Rezultatul unui model devine input pentru altul. Lanț de procesoare.
-
-```
-LLM 1: rezumă articolul (3 paragrafe)
-LLM 2: extrage 5 idei principale (din rezumat)
-LLM 3: generează un titlu SEO-friendly (din idei)
-LLM 4: traduce în română (din titlu)
-```
-
-### Unelte care te ajută
-
-- **OpenRouter** — un API key, 50+ modele, pay-as-you-go. Oferă
-  routing în build.
-- **LiteLLM** — proxy Python care route automat. Compatibil cu orice
-  SDK OpenAI-style.
-- **LangGraph** — orchestrare de fluxuri multi-agent. De studiat mai
-  târziu (capitol intermediar).
-
-### Analogia: bucătăria cu 5 bucătari
-
-Nu mai ai un singur bucătar-șef care face tot. Ai o echipă unde:
-
-- unul face paste,
-- altul face desert,
-- al treilea face salate,
-- tu ești managerul care decide cine face ce.
-
-Cu cât echipa e mai bună, cu atât meniul e mai divers.
-
-### Ce construiești pentru Erica
-
-Un **router simplu** care direcționează întrebări:
-- dacă e despre cod → Qwen Coder (local)
-- dacă e despre tine (date personale) → Llama 3.3 (local)
-- dacă nu e sigur → Claude API (cloud)
-
-Câteva zeci de linii Python. E cel mai important capitol tehnic.
-"""
-
-CH7 = Chapter(
-    id="ch7",
-    number=7,
-    title="Era fuziunii",
-    subtitle="5 modele bune > 1 model grozav. Routing, cascading, ensemble, prompt piping.",
-    body_md=CH7_BODY,
-    verifiers=[
-        "Știu ce e routing și la ce ajută.",
-        "Știu ce e cascading și cum diferă de ensemble.",
-        "Știu ce e OpenRouter și de ce e util pentru experimentare.",
-    ],
-    build_this=(
-        "Alege o sarcină pe care o faci des. "
-        "Identifică 3 modele care ar fi bune pentru bucăți din ea. "
-        "Testează pe OpenRouter (openrouter.ai) sau direct prin API. "
-        "Notează care a câștigat și de ce."
-    ),
-    prereqs=["ch5", "ch6"],
-    domain="fusion",
-    era="2026",
-)
-
-
-# ---------------------------------------------------------------
-# CAPITOLUL 08 · Cele 5 unelte
-# ---------------------------------------------------------------
-
-CH8_BODY = r"""
-Nu ai nevoie de 50. Ai nevoie de **5**. Restul e shiny object
-syndrome.
-
-### Unelta 1 · Cursor
-
-Editor de cod cu AI integrat. Poți vorbi cu codul tău:
-"Refactorizează funcția asta", "Adaugă teste", "Explică de ce nu
-merge". Poți selecta fișiere întregi ca context.
-
-Folosește Claude sau GPT-5 sub capotă. Costă $20/lună pentru tier
-Pro. Pentru cineva care scrie cod zilnic, e rentabil din prima lună.
-
-### Unelta 2 · Claude Code CLI
-
-Instrument terminal de la Anthropic. Rulează agenți AI care citesc,
-editează, creează fișiere. Funcționează cu orice repo Git.
-
-Diferența față de Cursor: stă în terminal, nu în editor. Bun pentru
-sarcini lungi, multi-file, automatizări.
-
-Instalezi cu `npm i -g @anthropic-ai/claude-code`. Primești un API
-key de la Anthropic.
-
-### Unelta 3 · n8n (sau Langflow)
-
-GUI open-source pentru flow-uri AI fără cod.
-
-Exemple:
-- monitorizează un folder, când apare PDF trimite-l la Ollama, salvează
-  rezumatul în Notion
-- primește email, extrage task-uri, pune-le pe Trello
-- scrapează un site zilnic, alertează-mă pe Telegram dacă apare ceva
-  cu un keyword
-
-Alternativă: **Langflow** pentru flow-uri mai vizuale și orientate
-pe agenți AI.
-
-### Unelta 4 · Ollama (repetat, important)
-
-AI local, gratuit, offline. Îl ai deja din capitolul 5. Recomandare:
-
-- pentru producție: Llama 3.3 70B (rulează pe 64 GB RAM sau Apple M2 Ultra+)
-- pentru laptop normal: Qwen 2.5 14B sau Mistral Small
-- pentru viteză: Llama 3.2 3B sau Phi 4 mini
-
-### Unelta 5 · OpenRouter
-
-Un API key, 50+ modele. Switch între ele la runtime. Excelent
-pentru:
-
-- testare mai rapidă
-- failover (dacă un model e jos, altul preia)
-- cost optimization (rutezi automat la cel mai ieftin)
-- evaluare comparativă
-
-### De ce aceste 5
-
-Acoperă 95% din use case-uri reale, în România 2026:
-
-- scrii cod → Cursor / Claude Code
-- automatizezi ceva → n8n
-- vrei AI pe date sensibile → Ollama
-- experimentezi cu mai multe modele → OpenRouter
-
-Restul (Lovable, Bolt, Windsurf, Cody, Continue) sunt bune, dar
-adaugă complexity inutilă înainte să ai o bază solidă.
-
-### Ce construiești pentru Erica acum
-
-Un script (~100 linii Python) care:
-
-1. Citește conținutul unui folder
-2. Trimite fiecare fișier la Ollama (Llama 3.2 3B local)
-3. Salvează rezumatele într-un fișier JSON
-4. Permite query-uri: "ce zice fișierul X despre Y?"
-
-Acesta e primul feature real al Erico-ai. Încă simplu, dar e al tău.
-"""
-
-CH8 = Chapter(
-    id="ch8",
-    number=8,
-    title="Cele 5 unelte pe care trebuie să le stăpânești",
-    subtitle="Cursor · Claude Code · n8n · Ollama · OpenRouter. Cu astea faci 95% din muncă.",
-    body_md=CH8_BODY,
-    verifiers=[
-        "Am folosit sau testat Cursor.",
-        "Am rulat Ollama cu un model local descărcat.",
-        "Am făcut un mini-proiect cu n8n SAU am folosit OpenRouter.",
-    ],
-    build_this=(
-        "Instalează toate 5 dacă nu le ai. "
-        "Fă un script în Cursor care folosește Ollama local. "
-        "Încarcă-l pe un repo Git (chiar și privat). "
-        "Scrie un README de 10 rânduri."
-    ),
-    prereqs=["ch5", "ch7"],
-    domain="tools",
-    era="2026",
-)
-
-
-# ---------------------------------------------------------------
-# CAPITOLUL 09 · Construiește-ți portofoliul
-# ---------------------------------------------------------------
-
-CH9_BODY = r"""
-Recrutorii te judecă pe **30 de secunde din CV** și pe **GitHub**.
-Fără proiecte, ești un alt «știu AI» pe hârtie.
-
-### Principiul: 4 proiecte, fiecare demonstrează altceva
-
-| # | Proiect | Demonstrează | Stack |
-|---|---|---|---|
-| 1 | CLI care rezumă fișiere locale cu Ollama | Local AI basics | Python + Ollama |
-| 2 | Flow cu OpenRouter + cascading | Routing + cost optimization | Python + LiteLLM |
-| 3 | Aplicație mică cu Cursor | Gen AI product thinking | Cursor + Claude |
-| 4 | Agent cu MCP care citește un folder | Agentic AI | Claude Code + MCP |
-
-### Anti-pattern-uri de evitat
-
-- ❌ Tutorial clonat fără modificări.
-- ❌ Demo toy fără date reale.
-- ❌ Proiect fără README.
-- ❌ Repo fără commit-uri regulate (arată că ai lucrat constant).
-
-### Cum prezinți proiectul
-
-README.md cu:
-
-```
-## Nume proiect
-Scrie 1 propoziție: ce face și pentru cine.
-
-## Demo
-[link la video de 60 secunde SAU screenshot]
-
-## Instalare
-3 pași clari. Cineva care n-a lucrat cu tine să poată rula în 5 min.
-
-## Ce am învățat
-2-3 bullet-uri. Onest. Arată că ai gândit.
-```
-
-### Unde publici
-
-- **GitHub** — toate 4 proiectele, publice sau private cu demo video.
-- **LinkedIn** — pune-le în featured. Profilul tău se schimbă complet.
-- **Site personal** (opțional) — despre al tău + 4 proiecte.
-
-### Commit-uri regulate
-
-Recrutorii se uită la activitatea ta GitHub. Arată consecvență:
-
-- nu comita totul într-o zi
-- arată iterații, experimentare, fails
-- scrie mesaje de commit clare: "add routing for math queries", not "stuff"
-
-### Mindset
-
-Proiectele nu trebuie să fie perfecte. Trebuie să fie **oneste și
-funcționale**. Un proiect simplu care merge e mai valoros decât unul
-ambițios care nu merge.
-
-Dacă ai 4 proiecte pe GitHub și 4 README-uri clare, ești deja în
-top 20% al candidaților AI junior din România.
-
-### Anti-procrastinare
-
-Nu "când am inspirație". **Acum**. 30 de minute pe proiect pe zi.
-În 12 zile ai 4 proiecte. În 30 de zile ai primul interview care
-cere să povestești despre ele.
+1. Instalează Ollama și descarcă `llama3.2` (2 GB) — primul model local
+2. Fă un script Python cu OpenAI SDK care cheamă Ollama local
+3. Testează 3 modele pe OpenRouter pe aceeași sarcină
+4. Instalează n8n și fă un flow: trigger → Ollama → fișier
 """
 
 CH9 = Chapter(
     id="ch9",
     number=9,
-    title="Construiește-ți portofoliul",
-    subtitle="4 proiecte, 4 README-uri, 1 profil LinkedIn. Asta te pune în top 20%.",
+    title="Cum construiești cu AI",
+    subtitle="Chat = pentru tine. SDK = pentru program. Ollama = local. OpenRouter = 50+ modele.",
     body_md=CH9_BODY,
     verifiers=[
-        "Am cel puțin 1 proiect publicat pe GitHub cu README.",
-        "Am un profil LinkedIn actualizat cu proiectele.",
-        "Știu diferența dintre proiect «demo» și proiect «real».",
+        "Știu diferența dintre chat, SDK și local (Ollama).",
+        "Știu că OpenAI SDK funcționează cu orice model compatibil.",
+        "Știu ce e MCP și de ce contează ca standard deschis.",
     ],
     build_this=(
-        "Alege un proiect pe care îl vei face ACUM. "
-        "În 30 de minute creează repo + skeleton + README. "
-        "Commită. Trimite link la 2 persoane. Cere feedback."
+        "Instalează Ollama. Descarcă llama3.2. "
+        "Scrie un script Python (OpenAI SDK) care trimite un prompt "
+        "la Ollama local și afișează răspunsul. "
+        "Salvează-l. E primul tău AI tool."
     ),
-    prereqs=["ch8"],
-    domain="career",
+    prereqs=["ch2"],
+    domain="tools",
     era="2026",
 )
-
 
 # ---------------------------------------------------------------
 # CAPITOLUL 10 · Aplică acum
@@ -1049,27 +1102,31 @@ def get_all_chapters() -> list[Chapter]:
 
 # Domains — used by the chip grid + skill tree.
 DOMAINS = {
-    "history":  ("Istoric", "cuminte/introvertit"),
-    "story":    ("Poveste", "warm"),
-    "concepts": ("Concepte", "lavender"),
-    "skills":   ("Skills", "sage"),
-    "tools":    ("Unelte", "coral"),
-    "policy":   ("Politică", "amber"),
-    "fusion":   ("Fuziune", "sky"),
-    "career":   ("Carieră", "amethyst"),
+    "history":   ("Istoric",    "cuminte"),
+    "llm":       ("LLMs",       "lavender"),
+    "prompting": ("Prompting",  "amethyst"),
+    "vision":    ("Vision AI",  "sky"),
+    "diffusion": ("Diffusion",  "coral"),
+    "speech":    ("Speech",     "amber"),
+    "rag":       ("Embeddings", "sage"),
+    "agents":    ("Agents",     "rose"),
+    "tools":     ("Unelte",     "warm"),
+    "career":    ("Carieră",    "amethyst"),
 }
 
 
 def domain_color(domain_id: str) -> str:
     palette = {
-        "history":  "#d4cebf",
-        "story":    "#e8a598",
-        "concepts": "#b5a8c9",
-        "skills":   "#a8c0ae",
-        "tools":    "#d4a574",
-        "policy":   "#d9b87a",
-        "fusion":   "#a5c5d4",
-        "career":   "#c98a82",
+        "history":   "#d4cebf",
+        "llm":       "#b5a8c9",
+        "prompting": "#c98a82",
+        "vision":    "#a5c5d4",
+        "diffusion": "#d4a574",
+        "speech":    "#d9b87a",
+        "rag":       "#a8c0ae",
+        "agents":    "#e8a598",
+        "tools":     "#c4b9a7",
+        "career":    "#c98a82",
     }
     return palette.get(domain_id, "#b5a8c9")
 

@@ -519,8 +519,7 @@ def render_detail_panel(
             st.markdown(
                 f'<div style="font-family: Newsreader, serif; '
                 f'font-size: 0.95rem; color: #c4b9a7; line-height: 1.55;">'
-                f'Ești în drumul spre Project Erica. {total - ch.number} '
-                f'capitole rămase până la final.</div>',
+                f'{total - ch.number} capitole rămase până la final.</div>',
                 unsafe_allow_html=True,
             )
             st.markdown(
@@ -544,7 +543,7 @@ def render_detail_panel(
                     '<p style="font-family: Newsreader, serif; font-style: italic; '
                     'color: #8a8478; font-size: 0.85rem; margin-top: 1rem; '
                     'line-height: 1.5;">'
-                    'Începe cu Project Erica. Nu citi totul — fă primul '
-                    '"Build this" și treci la 02.</p>',
+                    'Începe cu capitolul 1. Nu citi totul — fă primul '
+                    '«Build this» și treci la 02.</p>',
                     unsafe_allow_html=True,
                 )

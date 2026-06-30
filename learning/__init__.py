@@ -1,4 +1,4 @@
-"""Learning module — Drumul Erica (v1.0 redesign)."""
+"""Learning module — Hartă AI pe categorii (v1.1 redesign)."""
 from .chapters import (
     CHAPTERS,
     DOMAIN_META,
