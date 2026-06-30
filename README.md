@@ -1,43 +1,66 @@
 ---
-title: Ziarul Digital
+title: OpenRadar · Ziarul Digital
 emoji: 📡
 colorFrom: green
-colorTo: yellow
+colorTo: amber
 sdk: streamlit
 sdk_version: 1.32.0
 app_file: app.py
 pinned: false
 license: mit
-short_description: Romanian-first AI news + trending repos for engineers
+short_description: Romanian-first AI radar — news + 10-chapter learning + jobs + prompts
 ---
 
-# 📡 Ziarul Digital
+# 📡 OpenRadar
 
-Daily AI for engineers. Sip your coffee, scan the world.
+Romanian-first AI radar for builders. Scan news, walk a 10-chapter curriculum, match jobs, copy prompts.
 
-- **News AI** — Hacker News AI stories, summarized in Romanian
-- **Trending repos** — findarepo.com daily top 10 by 7-day star growth
-- **AI Learning Path** — coming soon (RAG over The AI Road curriculum)
-- **AI Job Transition** — coming soon (skill-gap matching)
+- **Groq** ☀ — daily AI briefing in Romanian
+- **News** ◌ — Hacker News AI stories, DeepSeek-summarized (deterministic fallback)
+- **Learning** ❡ — 10-chapter category walkthrough: history → LLMs → vision → diffusion → speech → RAG → agents → build → apply
+- **Jobs** ◆ — skill-gap matcher between your CV and AI infra roles (Romania focus)
+- **Prompts** ✦ — curated prompt library with copy buttons
 
 ## How it works
 
-The app fetches AI-related stories from Hacker News and trending repos from findarepo.com, summarizes everything via DeepSeek (with a deterministic fallback when no API key is set), and renders it as a relaxed dark workspace.
+The app fetches AI-related stories from Hacker News and trending repos from
+findarepo.com, summarizes via DeepSeek (OpenAI-compatible, with a
+deterministic fallback when no key is set), and renders the whole thing as
+a warm-dark workspace with sage/amber/coral accents. Learning is offline
+content — 10 chapters with methods, verifiers, and a curator persona (Groq).
 
-## Sources
+## Deep links
 
-- [Hacker News](https://news.ycombinator.com) via the public Algolia Search API
-- [findarepo.com](https://findarepo.com) — daily top GitHub repos by measured 7-day star growth
+- `/` — Groq (default landing)
+- `/?section=learning&ch=ch1` — opens chapter 1 directly
+- `/?section=news`, `?section=jobs`, `?section=prompts`
 
 ## Local development
 
 ```bash
-git clone https://huggingface.co/spaces/zero/ziarul-digital
-cd ziarul-digital
-pip install -r requirements.txt
-cp .env.example .env  # add your DEEPSEEK_API_KEY for real summaries
-streamlit run app.py
+git clone https://huggingface.co/spaces/vrobert94/ai-news
+cd ai-news
+python3 -m venv .venv
+./.venv/bin/pip install -r requirements.txt
+cp .env.example .env  # add DEEPSEEK_API_KEY for real summaries
+./.venv/bin/streamlit run app.py
 ```
+
+> macOS Apple Silicon: use `arch -arm64 ./.venv/bin/python3` for venv Python
+> to avoid pydantic-core arch mismatch.
+
+## Deployment
+
+Pushed to both GitHub (`robert790/ai-news`) and Hugging Face Spaces
+(`vrobert94/ai-news`). HF rebuild is automatic on push (~60s).
+
+## More
+
+- See **[HANDOFF.md](HANDOFF.md)** for full architecture, conventions,
+  where this is going, and gotchas for continuing in another environment.
+- See **[docs/LEARNING_TAB_PLAN.md](docs/LEARNING_TAB_PLAN.md)** for the
+  learning tab design rationale.
+- See **[DEPLOY.md](DEPLOY.md)** for HF Spaces deploy notes.
 
 ## License
 
