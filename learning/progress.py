@@ -69,8 +69,14 @@ MAX_TOKEN_CHARS = 1500
 # a token that already encodes no secrets.
 SIG_BYTES = 16
 
-# Track noise: if the same token round-trips, don't trigger a rerun.
-_LAST_TOKEN_KEY = "_progress_last_token"
+# Loop-guard sentinel - the encoded ?p=… token we wrote on the
+# previous render. sync_query_param skips the write when the freshly
+# encoded token matches this value, which prevents the update->rerun->
+# update cycle that would otherwise trigger an infinite Streamlit loop
+# every time we touch st.query_params to keep the URL in sync.
+# Lives in session_state; pure-Python side data, never round-trips
+# through the snapshot/restore surface (key is private-prefixed).
+_PROGRESS_LAST_TOKEN_KEY="__last_token"
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +478,7 @@ def sync_query_param(
     if not token:
         return False
 
-    last = state.get(_LAST_TOKEN_KEY) if hasattr(state, "get") else None
+    last = state.get(_PROGRESS_LAST_TOKEN_KEY) if hasattr(state, "get") else None
     if last == token:
         return False
 
@@ -489,7 +495,7 @@ def sync_query_param(
             return False
 
     try:
-        state[_LAST_TOKEN_KEY] = token
+        state[_PROGRESS_LAST_TOKEN_KEY] = token
     except Exception:
         pass
     return True

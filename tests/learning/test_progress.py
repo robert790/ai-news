@@ -387,7 +387,7 @@ def test_sync_query_param_writes_token_when_changed():
     assert written is True
     assert isinstance(qp.p, str) and qp.p
     # And the loop-guard is in place.
-    assert state[progress._LAST_TOKEN_KEY] == qp.p
+    assert state[progress._PROGRESS_LAST_TOKEN_KEY] == qp.p
 
 
 def test_sync_query_param_no_op_when_unchanged():
