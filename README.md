@@ -2,13 +2,13 @@
 title: OpenRadar · Ziarul Digital
 emoji: 📡
 colorFrom: green
-colorTo: amber
+colorTo: yellow
 sdk: streamlit
 sdk_version: 1.32.0
 app_file: app.py
 pinned: false
 license: mit
-short_description: Romanian-first AI radar — news + 10-chapter learning + jobs + prompts
+short_description: Romanian-first AI radar · news + learning + jobs
 ---
 
 # 📡 OpenRadar
