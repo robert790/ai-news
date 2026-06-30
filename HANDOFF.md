@@ -2,6 +2,7 @@
 
 > Romanian-first AI news + a 10-chapter learning path.  
 > Last updated: 2026-06-30 · Streamlit 1.50 local / 1.32 on HF Spaces.
+> Takeover update: 2026-06-30 — see §15.
 
 ---
 
@@ -12,7 +13,7 @@ OpenRadar (was "Ziarul Digital") is a Streamlit app with **5 sections**:
 | Section    | Tab | What it does                                                                 |
 |------------|-----|------------------------------------------------------------------------------|
 | **Groq**   | ☀   | Daily AI briefing — 3 stories, 1 takeaway, ask-the-curator chat.             |
-| **News**   | ◌   | Hacker News AI stories, summarized in Romanian (DeepSeek fallback).           |
+| **News**   | ◌   | Hacker News AI stories, summarized in Romanian (Groq; deterministic fallback). |
 | **Learning** | ❡ | 10-chapter category walkthrough (history → LLMs → diffusion → agents → career). |
 | **Jobs**   | ◆   | Skill-gap matcher between your CV and AI infra roles (Romania focus).         |
 | **Prompts** | ✦ | Curated prompt library with copy buttons.                                    |
@@ -29,7 +30,7 @@ preserved in chapter body text).
 /Users/zero/Minimax Projects/ai-news/
 ├── app.py                    1058 lines · top nav + section dispatch + 5 renderers
 ├── theme.py                  1007 lines · ~28KB CSS (warm dark, amber/sage/coral)
-├── config.py                  36 lines  · env-driven config (DEEPSEEK etc.)
+├── config.py                  36 lines  · env-driven config (GROQ_API_KEY etc.)
 ├── prompts.py                ~5.5KB    · prompt library data
 ├── tips.py                   ~4.7KB    · tip system
 ├── learning/
@@ -43,7 +44,7 @@ preserved in chapter body text).
 │   ├── parser.py              ~?        · markdown → HTML
 │   ├── chapter_tags.py        ~?        · domain tag helpers
 │   └── content/                         · chapter raw markdown + assets
-├── llm/                       · DeepSeek client (OpenAI-compatible)
+├── llm/                       · Groq client (OpenAI-compatible); legacy DeepSeek references kept in history
 ├── scrapers/                  · HN + findarepo fetcher
 ├── prompts_data/              · prompt library JSON
 ├── data/                      · cached fetch results
@@ -71,7 +72,7 @@ modules). The visual layer lives entirely in `theme.py` — one CSS dump fed via
 - **Python 3.9** (HF Spaces) / 3.13 (local)
 - **Streamlit 1.50** local · **1.32** on HF (pinned via Dockerfile in HF Space)
 - **httpx** for HTTP, **beautifulsoup4** for parsing
-- **openai** client pointed at DeepSeek (`https://api.deepseek.com`, OpenAI-compatible)
+- **openai** client pointed at **Groq** (`https://api.groq.com/openai/v1`, OpenAI-compatible). Optional **Anthropic** path via `ANTHROPIC_API_KEY` for the `PREMIUM_ENABLED` tier.
 - No frontend build step. No JS framework. CSS only.
 - **No** pydantic, **no** SQLAlchemy, **no** LangChain — kept minimal for HF cold start.
 
@@ -89,7 +90,7 @@ modules). The visual layer lives entirely in `theme.py` — one CSS dump fed via
 cd "/Users/zero/Minimax Projects/ai-news"
 python3 -m venv .venv
 arch -arm64 ./.venv/bin/python3 -m pip install -r requirements.txt
-cp .env.example .env  # edit DEEPSEEK_API_KEY if you want live summaries
+cp .env.example .env  # edit GROQ_API_KEY if you want live summaries
 ```
 
 > **Why `arch -arm64`?** The venv was created with a pydantic-core wheel
@@ -332,8 +333,11 @@ These are the things that bit us. Future contributors should NOT rediscover them
       Următorul capitol card, and right sidebar.
 
 ### Medium-term (1-2 weeks)
-- [ ] **Real Groq LLM call** — `insight.py` currently has DeepSeek fallback.
-      Swap model based on user-set env var (GROQ_API_KEY vs DEEPSEEK_API_KEY).
+- [x] ~~Real Groq LLM call~~ — `insight.py` once had a DeepSeek fallback.
+      *Superseded on 2026-06-30 by the takeover refactor: `config.py` now
+      reads `GROQ_API_KEY` (and optionally `ANTHROPIC_API_KEY`); the old
+      `DEEPSEEK_API_KEY` env name is no longer read by any runtime path.
+      Refresh this section on the next sweep.*
 - [ ] **RAG over chapter content** — `rag/` placeholder exists. Embed chapter
       bodies + cross-refs → answer "where does ch4 mention Vision?" queries.
 - [ ] **Jobs section wired up** — currently has UI scaffold, no skill-gap
@@ -366,15 +370,22 @@ If you're continuing this project on a different machine (not Robert's Mac):
    git remote add huggingface https://huggingface.co/spaces/<your-user>/ai-news
    ```
 
-3. **No DeepSeek key = degraded News tab.** Demo mode returns canned
-   summaries. Add `DEEPSEEK_API_KEY=...` to `.env` for real summarization.
+3. **No Groq key = degraded News tab.** Demo mode returns canned
+   summaries. Add `GROQ_API_KEY=*** to `.env` for real summarization.
+   (`DEEPSEEK_API_KEY` is a legacy name from an earlier build; `config.py`
+   no longer reads it. If it is still set on the HF Space, it is ignored
+   by current code and can be left in place or deleted — your call — but
+   do not delete without grepping `config.py` and `llm/` to confirm no
+   older runtime path still references it.)
 
 4. **No Ollama on this machine.** The Methods overlay mentions "5 linii, 1
    Ollama" as a ch9 ritual — the user runs Ollama locally; the app doesn't.
 
-5. **`venv` is not portable.** The `.venv` is committed in this repo (it's
-   already there for some reason) but won't work on Linux — just recreate it:
-   `python3 -m venv .venv && pip install -r requirements.txt`.
+5. **`venv` is not portable.** The repo does NOT commit a venv. Every fresh
+   clone needs `python3 -m venv .venv && pip install -r requirements.txt`
+   (this Linux host requires the `python3.13-venv` apt package if `ensurepip`
+   is missing). The earlier "committed `.venv`" line in this same gotcha
+   list was incorrect; do not act on it.
 
 6. **The `learning/content/` directory has chapter assets.** If you see
    broken images in chapters, that's where to look.
@@ -390,8 +401,11 @@ If you're continuing this project on a different machine (not Robert's Mac):
 9. **No tests written.** The `tests/` folder is a placeholder. The codebase
    relies on visual verification + Python import-time checks.
 
-10. **No CI/CD.** Just `git push`. If you want CI, add a `.github/workflows/`
-    later — but not now.
+10. **CI exists on GitHub now.** `.github/workflows/ci.yml` runs a compileall
+    + import smoke on every `push` and `pull_request` (Python 3.11,
+    `contents: read`, 10-min timeout, `pip` cache). After takeover, `main`
+    passes CI; future PRs must keep it green before merge. HF deploys are
+    **still manual** — see §15.
 
 ---
 
@@ -415,6 +429,9 @@ for self-contained one-offs (current pattern: Methods + Următorul capitol).
 ## 14. Final state · commit log (latest 10)
 
 ```
+22f213c chore(ci): add minimal smoke workflow
+7030a40 fix(hf): valid metadata (colorTo=yellow, short_description<60)
+7ef35c6 docs: HANDOFF.md + refresh README
 2af3a5d feat(learning): next-chapter card + methods progress
 44cab4a feat(learning): Sebastian Rey BLUE methods overlay (◆ MAIN + ○ alts)
 345da6d rename: Azi → Groq (nav tab + learning persona)
@@ -422,13 +439,52 @@ for self-contained one-offs (current pattern: Methods + Următorul capitol).
 a01ad4f refactor(learning): kill Project Erica, walk through AI categories
 4af886b fix(nav): backwards-compatible columns for Streamlit 1.32 (HF)
 eb79c14 feat(nav): replace sidebar with top nav (brand | pills | status)
-8e4ec18 feat(learning): Redesign chapter detail panel as Drumul Erica arc
-c97d585 feat(learning): new chapters + timeline hero + isolated detail panel (in-progress)
-8bb92a9 merge feat/learning-groq: TL;DR + Azi's take + cross-refs + Ask Azi
 ```
 
-All pushed to `origin` (GitHub: `robert790/ai-news`) and `huggingface`
-(HF Space: `vrobert94/ai-news`).
+`main` is in sync with `origin` (GitHub: `robert790/ai-news`). At takeover on
+2026-06-30, public probes suggested the HF Space (`vrobert94/ai-news`) was
+some hours behind `main` because HF deploys were still manual. Until you
+run an explicit `git push huggingface main` from a machine with the HF
+token in its git credential store, the live app serves whatever commit
+was last mirrored from Robert's Mac. Re-probe the Space's `last-modified`
+header before assuming it is current.
+
+---
+
+## 15. Hermes takeover note (2026-06-30)
+
+Snapshot as of takeover on **2026-06-30** on a Linux VPS (Debian 13,
+Python 3.13.5). Date-stamped; treat as a point-in-time record, not a
+permanent section.
+
+- **Canonical:** GitHub `main` at takeover was `22f213c` (PR #1 squash-merged).
+  HF Space is downstream — always treat `origin/main` as the source of truth.
+- **CI:** `.github/workflows/ci.yml` runs a compileall + config/core import
+  smoke on every `push` and `pull_request` (Python 3.11, `contents: read`,
+  10-min timeout, `pip` cache). PR #1's CI passed green.
+- **HF deploy:** still **manual and explicit** at takeover. No GitHub Action,
+  webhook, or repo secret mirrored `main` to HF; the VPS had no HF remote
+  configured and no HF token in any credential store. To deploy: `git fetch
+  origin main && git push huggingface main` from a machine that has the HF
+  token in its git credential store.
+- **Drift at takeover:** public probes suggested the live Space's
+  `last-modified` was some hours behind GitHub `main` (no auto-mirror was
+  active at that moment). Re-probe before each release — `last-modified`
+  is the truth, the HF Space URL is downstream.
+- **Secrets env truth (current code):** `GROQ_API_KEY` required for
+  non-demo summaries; `ANTHROPIC_API_KEY` optional for the
+  `PREMIUM_ENABLED` tier; `DEEPSEEK_API_KEY` is **legacy / no reader** —
+  `grep -RIn DEEPSEEK config.py llm/` returned zero matches; safe to
+  keep or delete, but re-grep yourself before deleting.
+- **Validated local path at takeover:** `apt install python3.13-venv &&
+  python3 -m venv .venv && pip install -r requirements.txt` (local Streamlit
+  resolved to 1.58.0; HF still pins 1.32.0 via its own Dockerfile;
+  `app.py::_columns()` keeps both happy). Smoke: `compileall` +
+  config/tips/prompts import + Streamlit boot on `127.0.0.1:8522` returned
+  HTTP 200 on `/` and `/?section=learning&ch=ch1`.
+
+Future maintainers: when this section no longer reflects state, refresh
+or delete it — do not let it accumulate.
 
 ---
 

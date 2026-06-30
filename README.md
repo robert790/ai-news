@@ -16,7 +16,7 @@ short_description: Romanian-first AI radar · news + learning + jobs
 Romanian-first AI radar for builders. Scan news, walk a 10-chapter curriculum, match jobs, copy prompts.
 
 - **Groq** ☀ — daily AI briefing in Romanian
-- **News** ◌ — Hacker News AI stories, DeepSeek-summarized (deterministic fallback)
+- **News** ◌ — Hacker News AI stories, Groq-summarized in Romanian (deterministic fallback when no key is set)
 - **Learning** ❡ — 10-chapter category walkthrough: history → LLMs → vision → diffusion → speech → RAG → agents → build → apply
 - **Jobs** ◆ — skill-gap matcher between your CV and AI infra roles (Romania focus)
 - **Prompts** ✦ — curated prompt library with copy buttons
@@ -24,8 +24,8 @@ Romanian-first AI radar for builders. Scan news, walk a 10-chapter curriculum, m
 ## How it works
 
 The app fetches AI-related stories from Hacker News and trending repos from
-findarepo.com, summarizes via DeepSeek (OpenAI-compatible, with a
-deterministic fallback when no key is set), and renders the whole thing as
+findarepo.com, summarizes via Groq (OpenAI-compatible, free tier, Romanian-first
+prompts), with a deterministic fallback when no key is set. The interface is
 a warm-dark workspace with sage/amber/coral accents. Learning is offline
 content — 10 chapters with methods, verifiers, and a curator persona (Groq).
 
@@ -42,7 +42,7 @@ git clone https://huggingface.co/spaces/vrobert94/ai-news
 cd ai-news
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt
-cp .env.example .env  # add DEEPSEEK_API_KEY for real summaries
+cp .env.example .env  # add GROQ_API_KEY for real summaries
 ./.venv/bin/streamlit run app.py
 ```
 
