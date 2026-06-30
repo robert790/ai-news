@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Compile + import smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        # 3.11: stable lower-bound for streamlit 1.x, numpy 2, pandas 3, pyarrow 24.
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Compile sources
+        run: |
+          python -m compileall app.py theme.py config.py learning llm scrapers prompts.py tips.py
+
+      - name: Import smoke
+        run: |
+          python -c "import config; print('CONFIG_OK', config.APP_LANGUAGE)"
+          python -c "import prompts, tips; print('CORE_MODULES_OK')"
