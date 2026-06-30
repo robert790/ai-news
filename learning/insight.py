@@ -5,14 +5,14 @@ Three Groq-powered features:
 1. `chapter_tldr(chapter_id)`            — 2-3 sentence summary,
                                           rendered at the top of Read
                                           tab. Cached per chapter/day.
-2. `azis_take(chapter_id, recent_news)`  — 1 short paragraph that
-                                          connects the chapter's lesson
-                                          to what was in the news feed
-                                          today. Cached per chapter/day.
-3. `ask_azi(question, chapter_id)`       — Conversational Q&A with
-                                          chapter as context. No cache
-                                          (real-time, but rate-limited
-                                          in app.py).
+2. `groqs_take(chapter_id, recent_news)` — 1 short paragraph that
+                                           connects the chapter's lesson
+                                           to what was in the news feed
+                                           today. Cached per chapter/day.
+3. `ask_groq(question, chapter_id)`      — Conversational Q&A with
+                                           chapter as context. No cache
+                                           (real-time, but rate-limited
+                                           in app.py).
 
 Caching strategy: pure in-memory (lru_cache on the chapter_id+date
 key). On Streamlit reruns we re-evaluate function args but the lru
@@ -77,7 +77,8 @@ def _demo_take(chapter_id: str, news_sig: str) -> str:
     return (
         "Azi, pe fluxul nostru de știri, nu am găsit potriviri directe "
         "pentru acest capitol. Verifică din nou după următorul refresh — "
-        "cross-refs sunt generate pe baza articolelor din ultimele 7 zile."
+        "cross-refs sunt generate pe baza articolelor din ultimele 7 zile. "
+        "(Demo fallback — când Groq e configurat, acest text e generat live.)"
     )
 
 
@@ -98,7 +99,7 @@ SYSTEM_TLDR = (
 )
 
 SYSTEM_TAKE = (
-    "Ești Azi — un redactor AI care face legătura dintre un capitol "
+    "Ești Groq — un redactor AI care face legătura dintre un capitol "
     "de curs AI și știrile reale din ziua respectivă. Primești titlul "
     "capitolului, niște tag-uri de matching, și 1-3 titluri de știri "
     "relevante. Scrie UN SINGUR paragraf (3-4 propoziții) în română "
@@ -111,7 +112,7 @@ SYSTEM_TAKE = (
 )
 
 SYSTEM_ASK = (
-    "Ești Azi, asistent de curs pentru OpenRadar. Răspunzi la "
+    "Ești Groq, asistent de curs pentru OpenRadar. Răspunzi la "
     "întrebări despre un capitol tehnic. Primești: titlul capitolului, "
     "un rezumat, și întrebarea utilizatorului. Răspunde în română, "
     "ton direct, exact, max 150 cuvinte. Folosește ce știi despre capitol "
@@ -172,7 +173,7 @@ def _generate_take_user(chapter_id: str, news_signature: str) -> str:
         f"Tagline: {meta.get('tagline', '?')}\n"
         f"Tag-uri: {', '.join(t[0] for t in tags[:6])}\n"
         f"Știri de azi (cele mai relevante): {news_signature}\n\n"
-        f"Scrie Azi's take în română."
+        f"Scrie Groq's take în română."
     )
 
 
@@ -187,7 +188,7 @@ def chapter_tldr(chapter_id: str) -> tuple[str, str]:
     return tldr, "demo"
 
 
-def azis_take(chapter_id: str, recent_news_titles: list[str]) -> tuple[str, str]:
+def groqs_take(chapter_id: str, recent_news_titles: list[str]) -> tuple[str, str]:
     """Return (take_text, source).
 
     `recent_news_titles` are the already-matched top-3 news titles
@@ -206,7 +207,7 @@ def azis_take(chapter_id: str, recent_news_titles: list[str]) -> tuple[str, str]
     return take, "demo"
 
 
-def ask_azi(question: str, chapter_id: str) -> tuple[str, str]:
+def ask_groq(question: str, chapter_id: str) -> tuple[str, str]:
     """Answer a free-text question about a chapter. Uses Groq if available."""
     if not question.strip():
         return ("", "demo")

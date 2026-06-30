@@ -8,7 +8,7 @@ Layout:
   │   • status   │                                     │
   └──────────────┴─────────────────────────────────────┘
 
-Each of the 5 sections (azi / news / learning / jobs / prompts) is
+Each of the 5 sections (groq / news / learning / jobs / prompts) is
 rendered by its own `render_*` function. The sidebar calls `render_*`
 based on the radio selection. Helpers (card, hero, bento, nav) live at
 the top and are reused everywhere.
@@ -58,7 +58,7 @@ from learning import (
     DOMAIN_META,
     domain_color,
 )
-from learning.insight import ask_azi
+from learning.insight import ask_groq
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
@@ -221,7 +221,7 @@ def section_head(eyebrow: str, title: str, caption: str = "") -> None:
 
 
 def hero_block(eyebrow_html: str, headline_html: str, sub: str) -> None:
-    """Cinematic centered hero for the Azi landing.
+    """Cinematic centered hero for the Groq landing.
 
     `eyebrow_html` is trusted HTML (caller built it). `sub` is plain
     text and gets escaped here.
@@ -331,7 +331,7 @@ def _build_tip_lines(n: int = 4, seed_key: str = "tips_v3") -> str:
 
 
 def tips_strip(n: int = 4) -> None:
-    """Full-width cycling dev-tip pill — only on Azi landing."""
+    """Full-width cycling dev-tip pill — only on Groq landing."""
     st.markdown(
         '<div class="or-tips or-reveal">'
         '<span class="or-tips-tag">TIP</span>'
@@ -357,16 +357,16 @@ def render_top_nav() -> str:
     """
     if "section" not in st.session_state:
         # Allow `?section=learning` deep-link via query params
-        _qp = st.query_params.get("section", "azi")
-        _valid = {"azi", "news", "learning", "jobs", "prompts"}
-        st.session_state.section = _qp if _qp in _valid else "azi"
+        _qp = st.query_params.get("section", "groq")
+        _valid = {"groq", "news", "learning", "jobs", "prompts"}
+        st.session_state.section = _qp if _qp in _valid else "groq"
 
     cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
     # Brand
     with cols[0]:
         st.markdown(
-            '<a class="or-topnav-brand" href="?section=azi">'
+            '<a class="or-topnav-brand" href="?section=groq">'
             f'{RADAR_MARK}'
             '<span class="or-name">OpenRadar</span>'
             '</a>',
@@ -377,7 +377,7 @@ def render_top_nav() -> str:
     # own column. CSS handles the pill styling via [class*="st-key-nav_"].
     with cols[1]:
         section_labels = [
-            ("azi",      "☀  Azi"),
+            ("groq",     "☀  Groq"),
             ("news",     "◌  News"),
             ("learning", "❡  Learning"),
             ("jobs",     "◆  Jobs"),
@@ -428,15 +428,15 @@ def render_top_nav() -> str:
 SECTION = render_top_nav()
 
 # Fallback for unknown / stale section values
-if SECTION not in {"azi", "news", "learning", "jobs", "prompts"}:
-    SECTION = "azi"
-    st.session_state.section = "azi"
+if SECTION not in {"groq", "news", "learning", "jobs", "prompts"}:
+    SECTION = "groq"
+    st.session_state.section = "groq"
 
 
 # ─────────────────────────────────────────────────────────────────────────
 # SECTION: AZI · daily brief landing
 # ─────────────────────────────────────────────────────────────────────────
-def render_azi() -> None:
+def render_groq() -> None:
     """The default landing: cinematic hero, then a 3-card bento of
     News / Tools / Jobs (top 3 each), then a mini-bento for lesson + prompt."""
 
@@ -1040,7 +1040,7 @@ def render_prompts() -> None:
 
 # ─── Dispatch ───────────────────────────────────────────────────────────
 DISPATCH = {
-    "azi":      render_azi,
+    "groq":     render_groq,
     "news":     render_news,
     "learning": render_learning,
     "jobs":     render_jobs,
@@ -1052,7 +1052,7 @@ if "selected_chapter" not in st.session_state:
     st.session_state.selected_chapter = "ch1"
 
 # Fallback for unknown section values coming from the URL or stale state
-SECTION = SECTION if SECTION in DISPATCH else "azi"
+SECTION = SECTION if SECTION in DISPATCH else "groq"
 
 # Run the chosen renderer
 DISPATCH[SECTION]()

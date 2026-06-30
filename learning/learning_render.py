@@ -2,7 +2,7 @@
 
 This module owns the entire "what you see when a chapter is open"
 experience: header, body markdown render, cross-refs (real links,
-no AI generation), Ask Azi Q&A (the ONLY place Groq is used for
+no AI generation), Ask Groq Q&A (the ONLY place Groq is used for
 Learning), verifiers checkboxes, build-this action, and prev/next
 navigation. Right-sidebar meta lives here too.
 
@@ -31,7 +31,7 @@ from learning.cross_refs import (
     fetch_quick_repos_for_chapter as cr_fetch_repos,
     find_prompts_for_chapter as cr_find_prompts,
 )
-from learning.insight import ask_azi
+from learning.insight import ask_groq
 
 
 # ====================================================================
@@ -268,7 +268,7 @@ def render_detail_panel(
     cols = st.columns([3, 1])
 
     # =====================
-    # LEFT · body + cross-refs + Ask Azi + verifiers + build this
+    # LEFT · body + cross-refs + Ask Groq + verifiers + build this
     # =====================
     with cols[0]:
         with st.container(border=True):
@@ -385,10 +385,10 @@ def render_detail_panel(
                     )
                 st.markdown("</div>", unsafe_allow_html=True)
 
-            # --- Ask Azi · the ONLY place Groq is used in Learning ---
-            with st.expander("💬 Întreabă-l pe Azi · despre acest capitol", expanded=False):
+            # --- Ask Groq · the ONLY place Groq is used in Learning ---
+            with st.expander("💬 Întreabă-l pe Groq · despre acest capitol", expanded=False):
                 st.caption(
-                    "Azi e asistentul tău AI pe OpenRadar. Groq (Llama 3.1 8B) "
+                    "Groq e asistentul tău AI pe OpenRadar. Llama 3.1 8B "
                     "răspunde live la întrebări despre AI în general și "
                     "despre capitolul ăsta."
                 )
@@ -400,8 +400,8 @@ def render_detail_panel(
                     label_visibility="collapsed",
                 )
                 if ask_q and ask_q.strip():
-                    with st.spinner("Azi gândește..."):
-                        answer, ask_src = ask_azi(ask_q, ch.id)
+                    with st.spinner("Groq gândește..."):
+                        answer, ask_src = ask_groq(ask_q, ch.id)
                     if answer:
                         src_label = "GROQ · LIVE" if ask_src == "groq" else "DEMO"
                         st.markdown(

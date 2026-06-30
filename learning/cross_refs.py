@@ -12,7 +12,7 @@ Strategy:
 
 Items come from the scrapers' public entry points. We DON'T call
 scrapers fresh per render — we accept the news from whatever was
-loaded on the side (Azi section already fetches them). For
+loaded on the side (Groq section already fetches them). For
 chapter-only contexts (no news loaded), we do a quick `fetch_*`
 call but cap results.
 
