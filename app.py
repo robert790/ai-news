@@ -28,6 +28,18 @@ from zoneinfo import ZoneInfo
 
 import streamlit as st
 
+
+def _columns(spec, gap="small", vertical_alignment="center"):
+    """Backwards-compatible `st.columns` wrapper.
+
+    Streamlit 1.50+ supports `vertical_alignment`; 1.32 (HF Spaces)
+    doesn't. Drop the kwarg on older versions.
+    """
+    import inspect
+    if "vertical_alignment" in inspect.signature(st.columns).parameters:
+        return st.columns(spec, gap=gap, vertical_alignment=vertical_alignment)
+    return st.columns(spec, gap=gap)
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 from scrapers import (
@@ -346,7 +358,7 @@ def render_top_nav() -> str:
     if "section" not in st.session_state:
         st.session_state.section = "azi"
 
-    cols = st.columns([1.4, 4.2, 1.6], gap="medium", vertical_alignment="center")
+    cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
     # Brand
     with cols[0]:
@@ -388,7 +400,7 @@ def render_top_nav() -> str:
         dot_cls = "" if is_live else "demo"
         status_text = "ONLINE" if is_live else "DEMO"
 
-        inner = st.columns([3, 1.2], gap="small", vertical_alignment="center")
+        inner = _columns([3, 1.2], gap="small")
         with inner[0]:
             st.markdown(
                 f'<div class="or-topnav-status">'
