@@ -37,3 +37,4 @@ jobs:
         run: |
           python -c "import config; print('CONFIG_OK', config.APP_LANGUAGE)"
           python -c "import prompts, tips; print('CORE_MODULES_OK')"
+          python -c "from learning.progress import snapshot_for_chapters, encode, decode; s={'v':1,'sc':'ch1','cc':[],'ver':{},'meth':{}}; t=encode(s); assert decode(t) is not None or t=='' ; print('PROGRESS_OK')"

@@ -59,6 +59,7 @@ from learning import (
     domain_color,
 )
 from learning.insight import ask_groq
+from learning import progress as _progress  # PR1: ?p=... persistence transport
 import config
 from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
@@ -73,6 +74,15 @@ from prompts import (
     all_difficulties,
     all_model_ids,
 )
+
+
+# ─── PR1 persistence: restore from ?p=... before any Learning state reads ───
+# Streamlit has already populated session_state with widget keys by the time
+# the page body runs, but the only "default" key we touch here is "section".
+# We restore Learning progress BEFORE render_top_nav runs so that any
+# subsequent read of selected_chapter / completed_chapters sees the restored
+# values. Never raises. Never strips the param.
+_progress.apply_incoming_query_param(st.session_state, st.query_params)  # type: ignore[arg-type]  # Streamlit's SessionStateProxy is structurally SessionStateLike; Pyright is over-strict at the integration boundary.
 
 
 # ─── Page setup ─────────────────────────────────────────────────────────
@@ -1047,12 +1057,27 @@ DISPATCH = {
     "prompts":  render_prompts,
 }
 
-# Ensure session defaults exist
-if "selected_chapter" not in st.session_state:
-    st.session_state.selected_chapter = "ch1"
-
 # Fallback for unknown section values coming from the URL or stale state
 SECTION = SECTION if SECTION in DISPATCH else "groq"
 
 # Run the chosen renderer
 DISPATCH[SECTION]()
+
+
+# ─── PR1 persistence: write the latest snapshot back into ?p=... ──────────
+# After DISPATCH[SECTION]() returns, Streamlit's widget replay has populated
+# session_state with every verifier_* / method_done_* key for the current
+# render. We snapshot the full state (chapters-driven for the Learning keys,
+# plain for navigation) and write it to ?p=... only if it changed. The loop
+# guard (``_progress_last_token`` in session_state) prevents the kind of
+# assignment→rerun→assignment loop that would otherwise loop forever in
+# Streamlit's reactive model.
+try:
+    _progress.sync_query_param(
+        st.session_state,  # type: ignore[arg-type]  # see comment above
+        st.query_params,
+        chapters=get_all_chapters(),
+    )
+except Exception:
+    # Sync is best-effort: never crash the page over a persistence write.
+    pass
