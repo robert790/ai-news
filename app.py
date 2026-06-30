@@ -1,32 +1,32 @@
-"""Streamlit UI for OpenRadar · v2.1.
+"""OpenRadar · Streamlit UI v3.
 
-Sidebar-first navigation. Always-visible nav lets users flip between
-the three top-level sides — Learning, Jobs, News — plus Azi (default
-daily brief) and Prompts (when the user's folder arrives).
+Layout:
+  ┌──────────────┬─────────────────────────────────────┐
+  │  sidebar     │  section content (max 1080px)       │
+  │   • brand    │                                     │
+  │   • nav      │                                     │
+  │   • status   │                                     │
+  └──────────────┴─────────────────────────────────────┘
 
-  ☀️ Azi        — daily brief: top 3 from each + lesson + prompt
-  📡 News       — full feeds from 6 sources
-  📚 Learning   — AI Road course (v0.4 = RAG)
-  💼 Jobs       — AI job feed + skill matching (v0.6)
-  🛠 Prompts    — Prompt Bible (placeholder until folder is ready)
-
-Design follows frontend-design-expert principles:
-  - clarity: one nav, one section, one purpose per page
-  - consistency: same card style, typography, color usage everywhere
-  - efficiency: zero hunting — sidebar always visible
-  - delight: subtle hover lift, gentle reveal animations
+Each of the 5 sections (azi / news / learning / jobs / prompts) is
+rendered by its own `render_*` function. The sidebar calls `render_*`
+based on the radio selection. Helpers (card, hero, bento, nav) live at
+the top and are reused everywhere.
 
 Run: streamlit run app.py
 """
-import streamlit as st
-from datetime import datetime
-from typing import Optional
+from __future__ import annotations
+
 import html
 import json
-from zoneinfo import ZoneInfo
-import sys
-from pathlib import Path
 import random
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+from zoneinfo import ZoneInfo
+
+import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -52,7 +52,6 @@ from theme import render_css, COLORS, SECTION_ACCENT
 from tips import TIPS as ALL_TIPS
 from prompts import (
     load_prompt_bible,
-    filter_prompts,
     category_label,
     category_icon,
     category_color,
@@ -64,57 +63,108 @@ from prompts import (
 )
 
 
-# ===== Page config =====
+# ─── Page setup ─────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="OpenRadar",
     page_icon="📡",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",  # sidebar is dead — top nav now
 )
-
 st.markdown(render_css(), unsafe_allow_html=True)
 
-# Background overlays — radar pulse rings + scan line
-# Both are fixed-position with pointer-events: none, sit behind content (z-index 0)
+# Ambient overlays — radar rings (top-right) + slow scan line
 st.markdown(
-    '<div class="bg-radar"></div>'
-    '<div class="bg-scan"></div>',
+    '<div class="or-radar" aria-hidden="true"></div>'
+    '<div class="or-scan" aria-hidden="true"></div>',
     unsafe_allow_html=True,
 )
 
 
-# ===== Data loaders (cached) =====
+# ─── Inline SVG icons ───────────────────────────────────────────────────
+# Lucide-style stroke icons. Shapes only — class is supplied at the call
+# site so a single icon can render at multiple sizes/colors.
+
+ICON_SHAPES = {
+    "sun":      ('<circle cx="12" cy="12" r="4"/>'
+                 '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41'
+                 'M17.66 17.66l1.41 1.41M2 12h2M20 12h2'
+                 'M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'),
+    "antenna":  ('<path d="M2 12c2-3 5-5 10-5s8 2 10 5"/>'
+                 '<path d="M5 15c1-2 4-3.5 7-3.5s6 1.5 7 3.5"/>'
+                 '<path d="M8.5 18c.5-1 1.7-1.7 3.5-1.7s3 .7 3.5 1.7"/>'
+                 '<circle cx="12" cy="20" r="1.2" fill="currentColor"/>'),
+    "book":     ('<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/>'
+                 '<path d="M20 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/>'),
+    "briefcase":('<rect x="3" y="7" width="18" height="13" rx="2"/>'
+                 '<path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'
+                 '<path d="M3 13h18"/>'),
+    "spark":    ('<path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>'
+                 '<path d="M19 14l.7 1.7L21 16l-1.3.3L19 18l-.7-1.7'
+                 'L17 16l1.3-.3z"/>'),
+    "bento":    ('<rect x="3" y="3" width="8" height="8" rx="1"/>'
+                 '<rect x="13" y="3" width="8" height="5" rx="1"/>'
+                 '<rect x="13" y="10" width="8" height="11" rx="1"/>'
+                 '<rect x="3" y="13" width="8" height="8" rx="1"/>'),
+    "compass":  ('<circle cx="12" cy="12" r="9"/>'
+                 '<path d="M15 9l-2 6-6 2 2-6z"/>'),
+    "case":     ('<rect x="3" y="7" width="18" height="13" rx="2"/>'
+                 '<path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>'),
+}
+
+
+def icon(name: str, cls: str = "nav-ico") -> str:
+    """Render an inline SVG icon by name. String concat (avoids f-string
+    backslash issues on Python 3.9)."""
+    return (
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
+        'class="' + cls + '">' + ICON_SHAPES[name] + '</svg>'
+    )
+
+
+# Brand radar mark — concentric rings with four spokes. Explicit
+# width/height so the SVG can't fall back to browser-default 300x150px
+# when the surrounding CSS hasn't been applied yet.
+RADAR_MARK = (
+    '<svg width="22" height="22" viewBox="0 0 32 32" fill="none" '
+    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" '
+    'class="or-mark">'
+    '<circle cx="16" cy="16" r="13"/>'
+    '<circle cx="16" cy="16" r="8" opacity="0.6"/>'
+    '<circle cx="16" cy="16" r="3" opacity="0.85"/>'
+    '<line x1="16" y1="2" x2="16" y2="6" opacity="0.7"/>'
+    '<line x1="16" y1="26" x2="16" y2="30" opacity="0.7"/>'
+    '<line x1="2" y1="16" x2="6" y2="16" opacity="0.7"/>'
+    '<line x1="26" y1="16" x2="30" y2="16" opacity="0.7"/>'
+    '</svg>'
+)
+
+
+# ─── Data loaders (cached) ──────────────────────────────────────────────
 @st.cache_data(ttl=1800, show_spinner=False)
-def load_hn():
-    return fetch_hackernews_ai(limit=8)
-
+def load_hn():       return fetch_hackernews_ai(limit=8) or []
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def load_hf():
-    return fetch_hf_papers(limit=8)
-
+def load_hf():       return fetch_hf_papers(limit=8) or []
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def load_repos():
-    return fetch_findarepo_daily(limit=8)
-
+def load_repos():    return fetch_findarepo_daily(limit=8) or []
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def load_github():
-    return fetch_github_trending(limit=8)
-
+def load_github():   return fetch_github_trending(limit=8) or []
 
 @st.cache_data(ttl=1800, show_spinner=False)
-def load_lobsters():
-    return fetch_lobsters(limit=8)
-
+def load_lobsters(): return fetch_lobsters(limit=8) or []
 
 @st.cache_data(ttl=86400, show_spinner=False)
-def load_importai():
-    return fetch_importai(limit=5)
+def load_importai(): return fetch_importai(limit=5) or []
 
 
-# ===== Helpers =====
+# ─── Helpers ────────────────────────────────────────────────────────────
+def esc(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def fmt_date(iso_str: str) -> str:
     if not iso_str:
         return ""
@@ -123,11 +173,11 @@ def fmt_date(iso_str: str) -> str:
         now = datetime.now(ZoneInfo("UTC"))
         delta = now - dt
         if delta.days == 0:
-            hours = delta.seconds // 3600
-            if hours == 0:
-                mins = max(delta.seconds // 60, 1)
-                return f"{mins}m ago"
-            return f"{hours}h ago"
+            h = delta.seconds // 3600
+            if h == 0:
+                m = max(delta.seconds // 60, 1)
+                return f"{m}m ago"
+            return f"{h}h ago"
         if delta.days == 1:
             return "yesterday"
         if delta.days < 7:
@@ -137,102 +187,67 @@ def fmt_date(iso_str: str) -> str:
         return iso_str[:10] or ""
 
 
-def section_header(title: str, caption: str = ""):
-    """Render the consistent section header. Used in every section.
+def live_badge(text: str = "LIVE FEED") -> str:
+    """Pulsing green pill — used in hero eyebrow & top bar."""
+    return (
+        '<span class="or-live"><span class="dot"></span>'
+        f'{esc(text)}</span>'
+    )
 
-    Brackets are rendered inline so they always sit adjacent to the title
-    (CSS pseudo-elements get stretched by block-level h1 layout). Pass
-    `caption=""` to skip the caption line entirely (use when caption
-    lives somewhere else on the page, e.g. inside `.top-bar-right`).
-    """
-    cap_html = f'<p class="caption">{caption}</p>' if caption else ""
+
+def section_head(eyebrow: str, title: str, caption: str = "") -> None:
+    """Standard top-of-section header. Used on News / Jobs / Prompts."""
+    cap = f'<p class="or-caption">{esc(caption)}</p>' if caption else ""
     st.markdown(
-        f'<div class="section-header reveal-1">'
-        f'<h1><span class="bracket">[</span> {title} <span class="bracket">]</span></h1>'
-        f'{cap_html}'
+        f'<div class="or-section-head or-reveal">'
+        f'<span class="or-eyebrow">{esc(eyebrow)}</span>'
+        f'<div><h1>{esc(title)}</h1></div>'
+        f'{cap}'
         f'</div>',
         unsafe_allow_html=True,
     )
 
 
-def subhead(label: str, color: str = "muted"):
-    """Small uppercase label above content blocks. Optional accent color."""
-    st.markdown(
-        f'<div class="subsection-label reveal-1" style="color: var(--{color});">{label}</div>',
-        unsafe_allow_html=True,
-    )
+def hero_block(eyebrow_html: str, headline_html: str, sub: str) -> None:
+    """Cinematic centered hero for the Azi landing.
 
-
-def column_header(label: str, icon: str, count: int, color: str) -> None:
-    """Render a prominent column header for the Azi landing page.
-
-    Used at the top of each column to make the section structure obvious.
-    Shows icon, label, count, and an accent line in the column's color.
-
-    Args:
-        label:  the column name (e.g., "News", "Tools", "Jobs")
-        icon:   single emoji that represents the column
-        count:  number of items currently in the column
-        color:  hex color used for the label and bottom accent line
+    `eyebrow_html` is trusted HTML (caller built it). `sub` is plain
+    text and gets escaped here.
     """
-    count_text = f"{count} {'item' if count == 1 else 'items'}"
     st.markdown(
-        f'<div style="display: flex; align-items: baseline; gap: 0.6rem; '
-        f'padding-bottom: 0.7rem; margin-bottom: 1rem; '
-        f'border-bottom: 2px solid {color};">'
-        f'<span style="font-size: 1.4rem;">{icon}</span>'
-        f'<span style="font-family: Newsreader, serif; font-size: 1.5rem; '
-        f'font-weight: 600; color: {color}; line-height: 1;">{label}</span>'
-        f'<span style="font-family: JetBrains Mono, monospace; font-size: 0.65rem; '
-        f'color: #8a8478; letter-spacing: 0.08em; text-transform: uppercase; '
-        f'margin-left: auto;">{count_text}</span>'
-        f'</div>',
+        '<div class="or-hero or-reveal">'
+        f'<div class="or-eyebrow">{eyebrow_html}</div>'
+        f'<h1>{headline_html}</h1>'
+        f'<p class="or-sub">{esc(sub)}</p>'
+        '</div>',
         unsafe_allow_html=True,
     )
 
 
-def live_badge(text: str = "LIVE") -> None:
-    """Render a pulsing LIVE indicator badge. Used on data feed sections."""
+def top_bar(caption: str = "") -> None:
+    """Single-row top bar: live pill on left, italic caption on right."""
+    live = live_badge("LIVE FEED")
+    cap_html = f'<span class="or-caption">{esc(caption)}</span>' if caption else ""
     st.markdown(
-        f'<span class="live-badge">'
-        f'<span class="status-dot"></span>{text}'
-        f'</span>',
+        '<div class="or-top-bar or-reveal">'
+        f'<div>{live}</div>'
+        f'<div>{cap_html}</div>'
+        '</div>',
         unsafe_allow_html=True,
     )
-
-
-SUMMARY_TRUNCATE_LIMIT = 140  # chars shown in card summary
 
 
 def or_card(
     label: str,
     label_color: str,
     title: str,
-    title_url: "Optional[str]" = None,
+    title_url: Optional[str] = None,
     summary: str = "",
     meta: str = "",
-    meta_html: "Optional[str]" = None,
+    meta_html: Optional[str] = None,
+    summary_limit: int = 140,
 ) -> None:
-    """Render a clean Apple-inspired card.
-
-    Single hairline border, generous padding, no top-accent line,
-    no transform on hover (was breaking scroll). Use this in place of
-    `st.container(border=True)` for cards on landing pages.
-
-    Args:
-        label: small uppercased tag (e.g. "▸ HN FEED").
-        label_color: "coral" | "sky" | "sage" | "lavender" | "muted".
-        title: card title — auto-escaped.
-        title_url: optional external link.
-        summary: optional body text — auto-escaped, auto-truncated.
-        meta: plain-text meta line (HackerNews · ⬆ 209 · 2d ago) — auto-escaped.
-        meta_html: optional raw HTML for the meta line (use instead of `meta`
-            if you need markup like the Jobs score). Caller is responsible
-            for escaping user data in the HTML.
-    """
-    def esc(s: str) -> str:
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
+    """One news / repo / lesson card. Single hairline border, soft hover."""
     if title_url:
         title_block = (
             f'<a class="or-card-link" href="{esc(title_url)}" target="_blank">'
@@ -242,11 +257,11 @@ def or_card(
         title_block = f'<span class="or-card-title">{esc(title)}</span>'
 
     if summary:
-        s_trim = summary[: SUMMARY_TRUNCATE_LIMIT]
-        suffix = "…" if len(summary) > SUMMARY_TRUNCATE_LIMIT else ""
-        summary_block = f'<p class="or-card-summary">{esc(s_trim)}{suffix}</p>'
+        s_trim = summary[:summary_limit]
+        suffix = "…" if len(summary) > summary_limit else ""
+        sum_block = f'<p class="or-card-summary">{esc(s_trim)}{suffix}</p>'
     else:
-        summary_block = ""
+        sum_block = ""
 
     if meta_html is not None:
         meta_block = f'<div class="or-card-meta">{meta_html}</div>'
@@ -259,510 +274,437 @@ def or_card(
         f'<div class="or-card">'
         f'<div class="or-card-label {esc(label_color)}">{esc(label)}</div>'
         f'{title_block}'
-        f'{summary_block}'
+        f'{sum_block}'
         f'{meta_block}'
         f'</div>',
         unsafe_allow_html=True,
     )
 
 
-def _build_tip_lines(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
-    """Pick `n` random tips once per session (stable) and emit the
-    cycling `.tip-line` HTML. Returns a string so callers can wrap it
-    in any container (corner pill, top-of-page bar, etc.) without
-    Streamlit injecting a wrapper `<div>`.
-    """
+def bento_card(icon_key: str, title: str, count: int, accent: str, body_html: str) -> str:
+    """One cell of a bento grid — returns HTML, caller wraps with `.or-bento`."""
+    return (
+        '<div class="or-bento-card">'
+        '<div class="or-bento-head">'
+        + icon(icon_key, "or-bento-icon")
+        + f'<span class="or-bento-title" style="color:{accent};">{esc(title)}</span>'
+        + f'<span class="or-bento-count">{count}</span>'
+        '</div>'
+        + body_html +
+        '</div>'
+    )
+
+
+def bento_open(inner_html: str) -> str:
+    return f'<div class="or-bento">{inner_html}</div>'
+
+
+# ─── Tips cycling strip (ambient wisdom) ───────────────────────────────
+def _build_tip_lines(n: int = 4, seed_key: str = "tips_v3") -> str:
     if seed_key not in st.session_state:
         rng = random.Random()
-        rng.seed()  # OS entropy
+        rng.seed()
         st.session_state[seed_key] = rng.sample(ALL_TIPS, min(n, len(ALL_TIPS)))
 
-    picked = st.session_state[seed_key]
-
-    rows: list[str] = []
-    for cat, body, _attrib in picked:
-        body_esc = (
-            body.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-        )
+    rows = []
+    for cat, body, _attrib in st.session_state[seed_key]:
+        body_esc = body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         rows.append(
-            f'<div class="tip-line">'
-            f'<span class="tips-cat {cat}">{cat}</span>'
-            f'<span class="body">{body_esc}</span>'
-            f'</div>'
+            '<div class="or-tip-line">'
+            f'<span class="or-tip-cat tip-cat {esc(cat)}">{esc(cat)}</span>'
+            f'<span class="or-tip-body">{body_esc}</span>'
+            '</div>'
         )
     return "".join(rows)
 
 
-def _tips_corner_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
-    """Compact cycling dev-tip pill (used inside `.top-bar-right`)."""
-    return (
-        '<div class="tips-corner" aria-label="developer tip">'
-        '<span class="tips-icon">tip</span>'
-        '<div class="tips-slot">'
-        + _build_tip_lines(n=n, seed_key=seed_key) +
+def tips_strip(n: int = 4) -> None:
+    """Full-width cycling dev-tip pill — only on Azi landing."""
+    st.markdown(
+        '<div class="or-tips or-reveal">'
+        '<span class="or-tips-tag">TIP</span>'
+        '<div class="or-tips-slot">'
+        + _build_tip_lines(n=n) +
         '</div>'
-        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
 
-def _tips_top_html(n: int = 4, seed_key: str = "tips_strip_v1") -> str:
-    """Wider cycling dev-tip bar for the top of a section. Same cycling
-    animation as the corner pill, but stretches full-width and a touch
-    larger so it reads as a primary surface instead of a chip.
+# ─── Top nav (sidebar is dead) ─────────────────────────────────────────
+def render_top_nav() -> str:
+    """Render the top nav row. Returns the active section id.
+
+    Desktop:  ┌──────────┬─────────────────────────┬──────────────┐
+              │ brand    │ 5-pill button group     │ status + act │
+              └──────────┴─────────────────────────┴──────────────┘
+
+    Mobile (≤720px, CSS-only): stack into 3 rows — brand on top, full-
+    width pills below, status + refresh at the bottom. CSS handles it
+    via .or-topnav and `.or-nav-pills` rules in theme.py.
     """
-    return (
-        '<div class="tips-top" aria-label="developer tip">'
-        '<span class="tips-icon">tip</span>'
-        '<div class="tips-slot-top">'
-        + _build_tip_lines(n=n, seed_key=seed_key) +
-        '</div>'
-        '</div>'
-    )
+    if "section" not in st.session_state:
+        st.session_state.section = "azi"
 
+    cols = st.columns([1.4, 4.2, 1.6], gap="medium", vertical_alignment="center")
 
-def tips_top(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
-    """Render the dev-tip bar at the TOP of the section, full-width."""
-    st.markdown(_tips_top_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
-
-
-def top_bar(
-    left_html: str,
-    right_html: str = "",
-    seed_key: str = "tips_corner_v1",
-) -> None:
-    """Render a horizontal bar. By default the right side hosts the cycling
-    dev-tip pill, but pass `right_html` to override (e.g., put the section
-    caption there instead). Whole bar is one HTML string so Streamlit
-    doesn't wrap the inner pieces in their own `<div>`.
-    """
-    right_content = right_html or _tips_corner_html(seed_key=seed_key)
-    html = (
-        '<div class="top-bar reveal-1">'
-        f'<div class="top-bar-left">{left_html}</div>'
-        f'<div class="top-bar-right">{right_content}</div>'
-        '</div>'
-    )
-    st.markdown(html, unsafe_allow_html=True)
-
-
-def tips_strip(n: int = 4, seed_key: str = "tips_strip_v1") -> None:
-    """Standalone dev-tip pill (full-width variant). Prefer `tips_top()`
-    for the page-top placement, or `top_bar()` for the corner placement.
-    """
-    st.markdown(_tips_top_html(n=n, seed_key=seed_key), unsafe_allow_html=True)
-
-
-# ===== Sidebar =====
-now = datetime.now(ZoneInfo("Europe/Bucharest"))
-date_short = now.strftime("%a %d %b").lower()
-status_html = (
-    '<span style="color: var(--sage);">● Groq connected</span>'
-    if config.has_llm()
-    else '<span style="color: var(--muted-2);">⚠ demo</span>'
-)
-
-# Session state defaults
-if "selected_chapter" not in st.session_state:
-    st.session_state.selected_chapter = "ch1"
-
-with st.sidebar:
-    # Top status bar — system tray
-    st.markdown(
-        '<div class="sb-statusbar">'
-        '<span class="sb-status-name">▣ Open Radar</span>'
-        '<span class="sb-version">v2.1</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    # BRAND frame — crosshair cluster + name + tagline
-    st.markdown(
-        '<div class="sb-frame-label" data-frame="brand">'
-        '<span class="bracket">┌──</span>[ BRAND ]<span class="bracket">──┐</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="sb-frame">'
-        '<div class="sb-cluster">'
-        '<span class="c">⊕</span><span class="c">⊕</span><span class="c">⊕</span>'
-        '<span class="c">⊕</span><span class="c center">⊕</span><span class="c">⊕</span>'
-        '<span class="c">⊕</span><span class="c">⊕</span><span class="c">⊕</span>'
-        '</div>'
-        '<div class="sb-brand">'
-        '<svg width="18" height="18" viewBox="0 0 20 20" class="crosshair">'
-        '<circle cx="10" cy="10" r="7" fill="none" stroke="#a8c0ae" stroke-width="1" opacity="0.55"/>'
-        '<line x1="10" y1="0" x2="10" y2="20" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
-        '<line x1="0" y1="10" x2="20" y2="10" stroke="#a8c0ae" stroke-width="1" opacity="0.45"/>'
-        '<circle cx="10" cy="10" r="1.6" fill="#a8c0ae"/>'
-        '</svg>'
-        '<h2>OpenRadar</h2>'
-        '</div>'
-        '<div class="tagline">OSINT signal feed · since 2026</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    # SECTIONS frame label
-    st.markdown(
-        '<div class="sb-frame-label" data-frame="sections">'
-        '<span class="bracket">┌──</span>[ SECTIONS ]<span class="bracket">──┐</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-    SECTION = st.radio(
-        "Navigate",
-        options=["azi", "news", "learning", "jobs", "prompts"],
-        format_func={
-            "azi":      "☀  AZI",
-            "news":     "📡  NEWS",
-            "learning": "📚  LEARNING",
-            "jobs":     "💼  JOBS",
-            "prompts":  "🛠  PROMPTS",
-        }.get,
-        index=0,
-        label_visibility="hidden",
-        key="section",
-    )
-
-    # TELEMETRY frame — coordinate readouts + cache bar
-    st.markdown(
-        '<div class="sb-frame-label" data-frame="telemetry">'
-        '<span class="bracket">┌──</span>[ TELEMETRY ]<span class="bracket">──┐</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-    cache_filled = "█" * 7
-    cache_empty = "░" * 3
-    st.markdown(
-        f'<div class="sb-frame">'
-        f'<div class="sb-telemetry-row"><span class="k">LAT</span><span class="v">44.4268°N</span></div>'
-        f'<div class="sb-telemetry-row"><span class="k">LON</span><span class="v">26.1025°E</span></div>'
-        f'<div class="sb-telemetry-divider"></div>'
-        f'<div class="sb-telemetry-row"><span class="k">DATE</span><span class="v">{date_short}</span></div>'
-        f'<div class="sb-telemetry-row"><span class="k">SESSION</span><span class="v">ops-7a3f</span></div>'
-        f'<div class="sb-telemetry-row"><span class="k">CACHE</span>'
-        f'<span class="sb-cache-bar"><span class="bar">{cache_filled}<span class="empty">{cache_empty}</span></span>'
-        f'<span class="pct">67%</span></span></div>'
-        f'<div class="sb-telemetry-row"><span class="k">STATUS</span><span class="v">'
-        f'<span class="status-dot"></span>ONLINE</span></div>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
-    # ACTIVITY frame — recent ops log with timestamps, durations, color-coded status
-    activity_rows = [
-        # (HH:MM:SS, op_name, duration, status: ok | running | error)
-        ("02:14:32", "hn.fetch()",       "124ms", "ok"),
-        ("02:14:30", "repos.sync()",     " 89ms", "ok"),
-        ("02:14:18", "hf.papers.load()", "312ms", "ok"),
-        ("02:14:15", "lobsters.fetch()", " 67ms", "ok"),
-        ("02:14:08", "session.start",    "   ──", "running"),
-    ]
-    status_icon = {"ok": "✓", "running": "⋯", "error": "✗"}
-    status_class = {"ok": "status-ok", "running": "status-running", "error": "status-error"}
-    rows_html = "".join(
-        f'<div class="sb-activity-row">'
-        f'<span class="time">{t}</span>'
-        f'<span class="op">▸ {op}</span>'
-        f'<span class="dur">{dur}</span>'
-        f'<span class="status {status_class[st]}">{status_icon[st]}</span>'
-        f'</div>'
-        for t, op, dur, st in activity_rows
-    )
-    ops_count = len(activity_rows)
-    st.markdown(
-        f'<div class="sb-frame-label" data-frame="activity">'
-        f'<span class="bracket">┌──</span>[ ACTIVITY ]<span class="bracket">──┐</span>'
-        f'<span class="sb-counter">· {ops_count} OPS</span>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(f'<div class="sb-frame">{rows_html}</div>', unsafe_allow_html=True)
-
-    # ACTIONS frame — quick action buttons
-    st.markdown(
-        '<div class="sb-frame-label" data-frame="actions">'
-        '<span class="bracket">┌──</span>[ ACTIONS ]<span class="bracket">──┐</span>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown('<div class="sb-frame"><div class="sb-action">', unsafe_allow_html=True)
-    if st.button("↻  Refresh feeds", key="refresh_feeds", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
-    st.markdown('</div><div class="sb-action">', unsafe_allow_html=True)
-    if st.button("⌘  Copy URL", key="copy_url", use_container_width=True):
-        st.toast("URL: https://huggingface.co/spaces/vrobert94/ai-news")
-    st.markdown('</div><div class="sb-action">', unsafe_allow_html=True)
-    if st.button("⤴  Open in new tab", key="open_new_tab", use_container_width=True):
+    # Brand
+    with cols[0]:
         st.markdown(
-            '<script>window.open("https://huggingface.co/spaces/vrobert94/ai-news", "_blank");</script>',
+            '<a class="or-topnav-brand" href="?section=azi">'
+            f'{RADAR_MARK}'
+            '<span class="or-name">OpenRadar</span>'
+            '</a>',
             unsafe_allow_html=True,
         )
-    st.markdown('</div></div>', unsafe_allow_html=True)
 
-    # Footer
+    # 5 nav buttons — each renders as a Streamlit `st.button` in its
+    # own column. CSS handles the pill styling via [class*="st-key-nav_"].
+    with cols[1]:
+        section_labels = [
+            ("azi",      "☀  Azi"),
+            ("news",     "◌  News"),
+            ("learning", "❡  Learning"),
+            ("jobs",     "◆  Jobs"),
+            ("prompts",  "✦  Prompts"),
+        ]
+        st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
+        btn_cols = st.columns(5, gap="small")
+        for (key, label), col in zip(section_labels, btn_cols):
+            with col:
+                if st.button(
+                    label,
+                    key=f"nav_{key}",
+                    use_container_width=True,
+                    type="primary" if st.session_state.section == key else "secondary",
+                ):
+                    st.session_state.section = key
+                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Status + refresh action
+    with cols[2]:
+        is_live = config.has_llm()
+        dot_cls = "" if is_live else "demo"
+        status_text = "ONLINE" if is_live else "DEMO"
+
+        inner = st.columns([3, 1.2], gap="small", vertical_alignment="center")
+        with inner[0]:
+            st.markdown(
+                f'<div class="or-topnav-status">'
+                f'<span class="or-live-pill">'
+                f'<span class="or-status-dot {dot_cls}"></span>'
+                f'<span>{status_text}</span>'
+                f'</span>'
+                f'<span class="or-tag-desktop" style="opacity:.5;">· v3</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+        with inner[1]:
+            if st.button("↻", key="nav_refresh", use_container_width=True,
+                         help="Refresh feeds (clear cache)"):
+                st.cache_data.clear()
+                st.toast("Cache cleared.")
+                st.rerun()
+
+    return st.session_state.section
+
+
+SECTION = render_top_nav()
+
+# Fallback for unknown / stale section values
+if SECTION not in {"azi", "news", "learning", "jobs", "prompts"}:
+    SECTION = "azi"
+    st.session_state.section = "azi"
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# SECTION: AZI · daily brief landing
+# ─────────────────────────────────────────────────────────────────────────
+def render_azi() -> None:
+    """The default landing: cinematic hero, then a 3-card bento of
+    News / Tools / Jobs (top 3 each), then a mini-bento for lesson + prompt."""
+
+    hero_block(
+        eyebrow_html=(
+            "<span class='or-live'>"
+            "<span class='dot'></span>LIVE · BUCUREȘTI · "
+            + datetime.now(ZoneInfo("Europe/Bucharest")).strftime("%a %d %b").upper()
+            + "</span>"
+        ),
+        headline_html=(
+            'Today, in <span class="or-accent">signals</span>.'
+        ),
+        sub="Bei cafeaua, scanezi lumea, pleci la treaba. "
+            "Top 3 din fiecare · lecția zilei · un prompt de încercat.",
+    )
+
+    tips_strip(n=4)
+
+    # ── Bento: News / Tools / Jobs (one cell each) ──
+    hn = load_hn()[:3]
+
+    # Always normalize repos to a common dict shape, regardless of source.
+    # findarepo returns TrendingRepo dataclass; github_trending returns NewsItem.
+    repo_dicts = [
+        {
+            "full_name":  r.full_name,
+            "description": r.description,
+            "url":        r.url,
+            "stars":      r.stars,
+            "growth":     f"+{r.growth}/7d" if r.growth and not str(r.growth).startswith("+") else str(r.growth),
+            "language":   r.language or "—",
+            "source":     "findarepo",
+        }
+        for r in load_repos()[:3]
+    ]
+    if not repo_dicts:
+        repo_dicts = [
+            {
+                "full_name":  it.title,
+                "description": it.summary or "",
+                "url":        it.url,
+                "stars":      str(it.score),
+                "growth":     "today",
+                "language":   (it.tags[0] if it.tags else "—"),
+                "source":     "GitHub",
+            }
+            for it in load_github()[:3]
+        ]
+
+    mock_jobs = [
+        {"title": "LLM Engineer", "company": "DRUID AI", "location": "București", "match": "82%"},
+        {"title": "AI Product Manager", "company": "Bitdefender", "location": "București", "match": "76%"},
+        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%"},
+    ]
+
+    news_body = "".join(
+        f'<div class="or-card" style="margin-bottom:.5rem;background:transparent;border-color:var(--border);">'
+        f'<div class="or-card-label coral">▸ HN FEED</div>'
+        f'<a class="or-card-link" href="{esc(item.url)}" target="_blank">'
+        f'<span class="or-card-title">{esc(item.title[:70])}</span></a>'
+        f'<p class="or-card-summary">{esc(item.summary[:100])}</p>'
+        f'<div class="or-card-meta">⬆ {item.score} · {esc(fmt_date(item.published_at))}</div>'
+        f'</div>'
+        for item in hn
+    ) or '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">Curăță cache-ul și încearcă din nou.</div>'
+
+    tools_body = "".join(
+        '<div class="or-card" style="margin-bottom:.5rem;background:transparent;border-color:var(--border);">'
+        f'<div class="or-card-label sky">▸ {esc(rd.get("source","").upper())} · {esc(str(rd.get("language","")).upper())}</div>'
+        f'<a class="or-card-link" href="{esc(rd.get("url","#"))}" target="_blank">'
+        f'<span class="or-card-title">{esc(rd.get("full_name", rd.get("title",""))[:70])}</span></a>'
+        f'<p class="or-card-summary">{esc(rd.get("description", rd.get("summary",""))[:100])}</p>'
+        f'<div class="or-card-meta">★ {esc(str(rd.get("stars","")))} · ↗ {esc(str(rd.get("growth","+")))}</div>'
+        '</div>'
+        for rd in repo_dicts
+    ) or '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">findarepo offline. Încearcă GitHub Trending.</div>'
+
+    jobs_body = "".join(
+        f'<div class="or-card" style="margin-bottom:.5rem;background:transparent;border-color:var(--border);">'
+        f'<div class="or-card-label sage">▸ {esc(j["location"].upper())}</div>'
+        f'<span class="or-card-title">{esc(j["title"])}</span>'
+        f'<p class="or-card-summary" style="margin-bottom:.35rem;">{esc(j["company"])}</p>'
+        f'<div class="or-card-meta"><span class="or-card-score" style="font-size:1rem;">{esc(j["match"])}</span>'
+        f'<span style="text-transform:uppercase;">match</span></div>'
+        f'</div>'
+        for j in mock_jobs
+    )
+
+    bento_html = (
+        bento_open(
+            bento_card("bento",   "News",  len(hn),          COLORS["coral"],  news_body) +
+            bento_card("compass", "Tools", len(repo_dicts),  COLORS["sky"],    tools_body) +
+            bento_card("case",    "Jobs",  len(mock_jobs),   COLORS["sage"],   jobs_body)
+        )
+    )
+    st.markdown(bento_html, unsafe_allow_html=True)
+
+    # ── Mini-bento: lesson + prompt ──
     st.markdown(
-        '<div class="sb-footer">━━━ OpenRadar ━━━</div>',
+        '<div class="or-bento-mini or-reveal-2">'
+        '<div class="or-mini">'
+        '<div class="or-mini-tag">▸ LESSON TODAY</div>'
+        '<h3>Ce este un LLM?</h3>'
+        '<p class="or-mini-body">Rețele neuronale antrenate pe cantități '
+        'masive de text. Învață pattern-uri statistice care le permit să '
+        'genereze text coerent, să răspundă la întrebări și să raționeze '
+        'într-o oarecare măsură.</p>'
+        '<div class="or-mini-foot">'
+        '<span>Capitolul 3 · 5 min</span>'
+        '<a href="../ai-beginners-guide/index.html#chapter-3" target="_blank">Citește capitolul →</a>'
+        '</div>'
+        '</div>'
+        '<div class="or-mini prompts">'
+        '<div class="or-mini-tag">▸ PROMPT TO TRY</div>'
+        '<h3>Explică-mi ca și cum aș avea 12 ani</h3>'
+        '<p class="or-mini-body">Forțează LLM-ul să simplifice orice concept '
+        'tehnic, înainte să-l aplici. Cel mai bun test dacă chiar ai înțeles '
+        'ceva.</p>'
+        '<div class="or-mini-foot">'
+        '<span>beginner · any model</span>'
+        '<a href="?section=prompts">Vezi prompturi →</a>'
+        '</div>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Footer line — minimal
+    st.markdown(
+        '<div style="margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--border);'
+        'font-family:JetBrains Mono,monospace;font-size:.65rem;color:var(--muted-2);'
+        'text-align:center;letter-spacing:.04em;">'
+        'OpenRadar · pentru ingineri care beau cafeaua cu ochii pe lume'
+        '</div>',
         unsafe_allow_html=True,
     )
 
 
-# =====================================================================
-# SECTION: AZI — daily brief
-# =====================================================================
-if SECTION == "azi":
-
-    # 1. Top of section: wider cycling dev-tip bar (prominent, full-width).
-    tips_top(n=4)
-
-    # 2. Section header. Caption lives inside `.top-bar-right` instead of
-    #    under the h1, so we pass an empty string here.
-    section_header("Azi", "")
-
-    # 3. Top bar: LIVE FEED badge on the left, renamed caption on the right.
-    #    "Bei cafeaua, scanezi lumea, pleci la treaba" replaces the older
-    #    "Bea cafeaua, scanează lumea, pleci la treabă."
-    top_bar(
-        left_html='<span class="live-badge"><span class="status-dot"></span>LIVE FEED</span>',
-        right_html='<span class="top-bar-caption">'
-                   'Top 3 din fiecare. Bei cafeaua, scanezi lumea, pleci la treaba.'
-                   '</span>',
-    )
-
-    col_news, col_tools, col_jobs = st.columns(3, gap="medium")
-
-    with col_news:
-        hn = load_hn() or []
-        top3 = hn[:3]
-        column_header("News", "📡", len(top3), "#e8a598")
-        for item in top3:
-            summary = (item.summary or "")[:SUMMARY_TRUNCATE_LIMIT]
-            or_card(
-                label="▸ HN FEED",
-                label_color="coral",
-                title=item.title[:90],
-                title_url=item.url,
-                summary=summary,
-                meta=f"HackerNews · ⬆ {item.score} · {fmt_date(item.published_at)}",
-            )
-
-    with col_tools:
-        # Prefer findarepo (curated 7-day growth deltas). Fallback to GitHub
-        # Trending today if findarepo returns empty (network hiccup, scrape
-        # miss, transient failure). Either way, normalize into a common
-        # card-friendly dict so or_card renders cleanly.
-        repos = load_repos() or []
-        if repos:
-            top3 = [
-                {
-                    "title": r.full_name,
-                    "summary": r.description,
-                    "url": r.url,
-                    "stars": r.stars,
-                    "growth": f"+{r.growth}/7d",
-                    "language": r.language,
-                    "source": "findarepo",
-                }
-                for r in repos[:3]
-            ]
-        else:
-            gh = load_github() or []
-            top3 = [
-                {
-                    "title": it.title,
-                    "summary": it.summary or "",
-                    "url": it.url,
-                    "stars": f"{it.score}",
-                    "growth": "today",
-                    "language": (it.tags[0] if it.tags else "—").upper(),
-                    "source": "GitHub Trending",
-                }
-                for it in gh[:3]
-            ]
-        column_header("Tools", "⭐", len(top3), "#a5c5d4")
-        for t in top3:
-            or_card(
-                label=f"▸ {t['source']}",
-                label_color="sky",
-                title=t["title"][:90],
-                title_url=t["url"],
-                summary=t["summary"],
-                meta=f"★ {t['stars']} · ↗ {t['growth']} · {t['language']}",
-            )
-
-    with col_jobs:
-        mock_jobs = [
-            {"title": "LLM Engineer", "company": "DRUID AI", "location": "Bucharest", "match": "82%"},
-            {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%"},
-            {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%"},
-        ]
-        column_header("Jobs", "💼", len(mock_jobs), "#a8c0ae")
-        for j in mock_jobs:
-            or_card(
-                label="▸ MATCH",
-                label_color="sage",
-                title=j["title"],
-                summary=f"{j['company']} · 📍 {j['location']}",
-                meta_html=f'<span class="or-card-score">{j["match"]}</span> match score',
-            )
-        st.caption("🚧 Live job feed vine în v0.6")
-
-    st.markdown("<div style='height: 2.5rem;'></div>", unsafe_allow_html=True)
-
-    col_lesson, col_prompt = st.columns(2, gap="medium")
-    with col_lesson:
-        subhead("📚 Lecția zilei", "sage")
-        with st.container(border=True):
-            st.markdown("### Ce este un LLM?")
-            st.caption("Capitolul 3 · 5 minute · The AI Road")
-            st.markdown(
-                "Large Language Models sunt rețele neuronale antrenate pe cantități "
-                "masive de text. Învață pattern-uri statistice care le permit să "
-                "genereze text coerent, să răspundă la întrebări, și să raționeze "
-                "într-o oarecare măsură."
-            )
-            st.markdown(
-                '<a href="../ai-beginners-guide/index.html#chapter-3" target="_blank">'
-                'Citește capitolul →</a>',
-                unsafe_allow_html=True,
-            )
-
-    with col_prompt:
-        subhead("🛠 Prompt de încercat", "lavender")
-        with st.container(border=True):
-            st.markdown("### Explică-mi ca și cum aș avea 12 ani")
-            st.caption("Forțează LLM-ul să simplifice orice concept tehnic.")
-            st.markdown(
-                '<pre style="background: var(--surface-2); padding: 0.9rem; '
-                'border-radius: 8px; margin: 0.8rem 0; font-family: JetBrains Mono, '
-                'monospace; font-size: 0.8rem; color: var(--text-2); white-space: pre-wrap;">'
-                'Explică [concept] ca și cum aș avea 12 ani. '
-                'Folosește o analogie din viața de zi cu zi.</pre>',
-                unsafe_allow_html=True,
-            )
-            st.caption("🚧 Prompt Bible completă vine cu folder-ul tău")
-
-
-# =====================================================================
-# SECTION: NEWS
-# =====================================================================
-elif SECTION == "news":
-
-    section_header(
+# ─────────────────────────────────────────────────────────────────────────
+# SECTION: NEWS · full feed from 6 sources
+# ─────────────────────────────────────────────────────────────────────────
+def render_news() -> None:
+    section_head(
+        "FEED · ȘASE SURSE",
         "News",
         "Deep dive pe 6 surse: cercetare, comunitate, trenduri, analiză.",
     )
 
-    subhead("🔬 Cercetare", "sky")
-    papers = summarize_batch(load_hf()[:5])
-    if papers:
-        for p in papers:
-            with st.container(border=True):
-                st.markdown(f"[{p.title}]({p.url})")
-                st.markdown(f"_{p.summary}_")
-                meta = [f"⬆ {p.score}"]
-                if p.author:
-                    meta.append(f"👤 {p.author[:50]}")
-                st.caption(" · ".join(meta))
+    # 1. Research (HF papers)
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--sky);'
+        'margin:0 0 1rem;">▸ Cercetare</p>',
+        unsafe_allow_html=True,
+    )
+    for p in summarize_batch(load_hf()[:5]):
+        or_card(
+            label="HF Papers",
+            label_color="sky",
+            title=p.title,
+            title_url=p.url,
+            summary=p.summary,
+            meta=f"⬆ {p.score} · 👤 {esc(p.author or 'anon')}",
+        )
 
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-
-    subhead("💬 Comunitate", "coral")
+    # 2. Community — HN + Lobsters side-by-side
+    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--coral);'
+        'margin:0 0 1rem;">▸ Comunitate</p>',
+        unsafe_allow_html=True,
+    )
     col_hn, col_lob = st.columns(2, gap="medium")
     with col_hn:
         st.caption("HackerNews")
-        hn_items = summarize_batch(load_hn()[:5])
-        if hn_items:
-            for item in hn_items:
-                with st.container(border=True):
-                    st.markdown(f"[{item.title}]({item.url})")
-                    st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'} · {fmt_date(item.published_at)}")
-
+        for item in summarize_batch(load_hn()[:5]):
+            or_card(
+                label="HN",
+                label_color="coral",
+                title=item.title,
+                title_url=item.url,
+                summary=item.summary,
+                meta=f"⬆ {item.score} · {fmt_date(item.published_at)}",
+            )
     with col_lob:
         st.caption("Lobsters")
-        lob_items = summarize_batch(load_lobsters()[:5])
-        if lob_items:
-            for item in lob_items:
-                with st.container(border=True):
-                    st.markdown(f"[{item.title}]({item.url})")
-                    st.caption(f"⬆ {item.score} · 👤 {item.author or 'anon'} · {fmt_date(item.published_at)}")
+        for item in summarize_batch(load_lobsters()[:5]):
+            or_card(
+                label="Lobsters",
+                label_color="coral",
+                title=item.title,
+                title_url=item.url,
+                summary=item.summary,
+                meta=f"⬆ {item.score} · {fmt_date(item.published_at)}",
+            )
 
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-
-    subhead("⭐ Trenduri GitHub", "lavender")
+    # 3. Trends
+    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--lavender);'
+        'margin:0 0 1rem;">▸ Trenduri GitHub</p>',
+        unsafe_allow_html=True,
+    )
     col_fr, col_gh = st.columns(2, gap="medium")
     with col_fr:
         st.caption("findarepo · 7-day growth")
-        repos = load_repos()[:5]
-        if repos:
-            for r in repos:
-                with st.container(border=True):
-                    st.markdown(f"[{r.full_name}]({r.url})")
-                    st.caption(f"★ {r.stars} · ↗ +{r.growth}/7d · `{r.language}`")
-
+        for r in load_repos()[:5]:
+            or_card(
+                label="findarepo",
+                label_color="sky",
+                title=r.full_name,
+                title_url=r.url,
+                summary=r.description,
+                meta=f"★ {r.stars} · ↗ +{r.growth}/7d · {esc(r.language or '—')}",
+            )
     with col_gh:
         st.caption("GitHub Trending · today")
-        gh_items = load_github()[:5]
-        if gh_items:
-            for it in gh_items:
-                with st.container(border=True):
-                    st.markdown(f"[{it.title}]({it.url})")
-                    tags_short = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
-                    st.caption(f"⬆ {it.score} stars today · `{tags_short}`")
+        for it in load_github()[:5]:
+            tags = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
+            or_card(
+                label="GitHub",
+                label_color="sky",
+                title=it.title,
+                title_url=it.url,
+                meta=f"⬆ {it.score} stars · {esc(tags)}",
+            )
 
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+    # 4. Weekly analysis
+    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--coral);'
+        'margin:0 0 1rem;">▸ Analiză săptămânală</p>',
+        unsafe_allow_html=True,
+    )
+    for it in summarize_batch(load_importai()[:3]):
+        or_card(
+            label="Import AI",
+            label_color="lavender",
+            title=it.title,
+            title_url=it.url,
+            summary=it.summary,
+            meta=f"📝 {esc(it.author or '')} · {fmt_date(it.published_at)}",
+        )
 
-    subhead("📰 Analiză săptămânală", "coral")
-    ai_items = summarize_batch(load_importai()[:3])
-    if ai_items:
-        for it in ai_items:
-            with st.container(border=True):
-                st.markdown(f"[{it.title}]({it.url})")
-                st.markdown(f"_{it.summary}_")
-                st.caption(f"📝 {it.author} · {fmt_date(it.published_at)}")
 
-
-# =====================================================================
-# SECTION: LEARNING — Drumul Erica (v1.0 redesign)
-# =====================================================================
-elif SECTION == "learning":
-
+# ─────────────────────────────────────────────────────────────────────────
+# SECTION: LEARNING · Drumul Erica (10 chapters)
+# ─────────────────────────────────────────────────────────────────────────
+def render_learning() -> None:
     from learning.timeline import render_hero_timeline
+    from learning.learning_render import render_detail_panel
 
-    section_header(
+    section_head(
+        "DRUMUL ERICA · 10 TREPTE",
         "Learning",
-        "Drumul Erica · 10 capitole de la Project Erica la aici. Acum.",
+        "De la Project Erica (2022) la prima ta aplicație. Acum.",
     )
 
     st.markdown(
-        '<p style="font-family: Newsreader, serif; font-style: italic; '
-        'color: #c4b9a7; font-size: 1.05rem; margin: 0.4rem 0 1.2rem 0; line-height: 1.55;">'
-        'Începem cu Project Erica (2022). Apoi guvernele taie accesul '
-        'la cele mai puternice modele. Acum fuzionăm ce e disponibil. '
-        'Tu ești undeva pe curbă. Continuă.'
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:#c4b9a7;'
+        'font-size:1.05rem;margin:0 0 1.4rem;line-height:1.55;max-width:680px;">'
+        'Începem cu Project Erica. Guvernele taie accesul la cele mai '
+        'puternice modele. Acum fuzionăm ce e disponibil. Tu ești undeva '
+        'pe curbă. Continuă.'
         '</p>',
         unsafe_allow_html=True,
     )
 
-    # The 7-era timeline hero
     st.markdown(render_hero_timeline(), unsafe_allow_html=True)
 
-    # =========================================================
-    # CHAPTER CHIP GRID — 10 chapters · linear progression
-    # =========================================================
+    # ── Chapter chip grid ──
     selected_id = st.session_state.get("selected_chapter", "ch1")
     ch_list = get_all_chapters()
 
     st.markdown(
-        '<div style="margin: 1.5rem 0 0.7rem 0; font-family: JetBrains Mono, monospace; '
-        'font-size: 0.65rem; color: #8a8478; letter-spacing: 0.1em; '
-        'text-transform: uppercase;">'
-        'Capitole · 10 trepte de la Project Erica la prima aplicație</div>',
+        '<p style="margin:1.5rem 0 .7rem;font-family:JetBrains Mono,monospace;'
+        'font-size:.65rem;color:var(--muted);letter-spacing:.18em;'
+        'text-transform:uppercase;">'
+        'Capitole · 10 trepte de la Project Erica la prima aplicație</p>',
         unsafe_allow_html=True,
     )
 
@@ -772,154 +714,126 @@ elif SECTION == "learning":
         c_cols = st.columns(len(row), gap="small")
         for ci, c in enumerate(row):
             with c_cols[ci]:
-                is_sel = c.id == selected_id
-                accent = domain_color(c.domain)
-                pill_bg = (
-                    f"background: {accent}22; border-color: {accent}80; color: {accent};"
-                    if is_sel
-                    else "background: #1f1d1a; border-color: #3a3530; color: #c4b9a7;"
-                )
-                st.markdown(
-                    f'<style>'
-                    f'.chip-{c.id} button {{ '
-                    f'font-family: Newsreader, serif !important; '
-                    f'font-size: 0.82rem !important; '
-                    f'padding: 0.55rem 0.4rem !important; '
-                    f'border-radius: 6px !important; '
-                    f'transition: opacity 200ms ease !important; '
-                    f'min-height: 38px !important; '
-                    f'line-height: 1.15 !important; '
-                    f'}}'
-                    f'.chip-{c.id} button:hover {{ opacity: 0.78 !important; }}'
-                    f'</style>'
-                    f'<div class="chip-{c.id}" style="{pill_bg} '
-                    f'border: 1px solid; border-radius: 6px; '
-                    f'padding: 0.55rem 0.4rem; margin-bottom: 0.5rem; '
-                    f'text-align: center; '
-                    f'transition: opacity 200ms ease;">'
-                    f'<span style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.6rem; opacity: 0.75; margin-right: 0.4rem;">'
-                    f'{c.number:02d}</span>'
-                    f'{html.escape(c.title[:28])}'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
+                # Single styled button per chip. The button itself IS the chip;
+                # primary/secondary type carries the selected vs muted state.
+                # The accent color for the selected state is supplied via a
+                # small inline `<style>` per chapter using testid attributes
+                # in 1.50+ fall back to plain pill style below.
+                title = c.title if len(c.title) <= 18 else c.title[:16].rstrip() + "…"
                 if st.button(
-                    f"Open {c.title[:18]}",
+                    f"{c.number:02d}  {title}",
                     key=f"lrn_chip_{c.id}",
-                    use_container_width=False,
+                    use_container_width=True,
+                    type="primary" if c.id == selected_id else "secondary",
                 ):
                     st.session_state.selected_chapter = c.id
                     st.rerun()
 
-    # =========================================================
-    # =========================================================
-    # CHAPTER DETAIL PANEL — delegated to learning/learning_render.py
-    # =========================================================
-    from learning.learning_render import render_detail_panel
+    # ── Detail panel ──
     completed = st.session_state.get("completed_chapters", set())
     render_detail_panel(selected_id, ch_list, completed)
 
-# =====================================================================
-# SECTION: JOBS
-# =====================================================================
-elif SECTION == "jobs":
 
-    section_header(
+# ─────────────────────────────────────────────────────────────────────────
+# SECTION: JOBS · mock data + future
+# ─────────────────────────────────────────────────────────────────────────
+def render_jobs() -> None:
+    section_head(
+        "MATCH · SKILL GAPS",
         "Jobs",
         "Joburi AI care se potrivesc cu ce înveți. Skill matching LLM-powered.",
     )
 
-    with st.container(border=True):
-        st.markdown("### 🚧 În construcție")
-        st.markdown(
-            "Live job feed vine în v0.6. Intenția: scrape LinkedIn, Indeed, "
-            "și platforme românești (BestJobs, eJobs); extrage skill-uri cu LLM; "
-            "match-ează cu profilul tău; sugerează capitole din The AI Road "
-            "pentru skill gaps."
-        )
-
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-
-    st.markdown("#### Preview · mock data")
-    st.caption("Demo cu 3 joburi ca să vezi layout-ul final.")
-
-    mock_jobs_full = [
-        {"title": "LLM Engineer", "company": "DRUID AI", "location": "Bucharest", "match": "82%", "skills_gap": "LangChain, Vector DBs"},
-        {"title": "AI Product Manager", "company": "Bitdefender", "location": "Bucharest", "match": "76%", "skills_gap": "Eval, RAG"},
-        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%", "skills_gap": "GPU infrastructure"},
-        {"title": "ML Engineer", "company": "UiPath", "location": "Bucharest", "match": "68%", "skills_gap": "Fine-tuning, RLHF"},
+    mock_jobs = [
+        {"title": "LLM Engineer", "company": "DRUID AI", "location": "București", "match": "82%", "gap": "LangChain, Vector DBs"},
+        {"title": "AI Product Manager", "company": "Bitdefender", "location": "București", "match": "76%", "gap": "Eval, RAG"},
+        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%", "gap": "GPU infrastructure"},
+        {"title": "ML Engineer", "company": "UiPath", "location": "București", "match": "68%", "gap": "Fine-tuning, RLHF"},
     ]
-    for j in mock_jobs_full:
-        with st.container(border=True):
-            cols = st.columns([5, 1])
-            with cols[0]:
-                st.markdown(f"**{j['title']}** · {j['company']}")
-                st.caption(f"📍 {j['location']} · Skills gap: {j['skills_gap']}")
-            with cols[1]:
-                st.markdown(
-                    f'<div style="font-family: Newsreader, serif; font-size: 1.7rem; '
-                    f'color: var(--sage); text-align: right;">{j["match"]}</div>',
-                    unsafe_allow_html=True,
-                )
+
+    # 2-up bento of mock jobs
+    cards_html = ""
+    for j in mock_jobs:
+        cards_html += (
+            '<div class="or-mini" style="min-height:auto;">'
+            f'<div class="or-mini-tag">▸ {esc(j["location"].upper())}</div>'
+            f'<h3 style="font-size:1.15rem;margin-bottom:.35rem;">{esc(j["title"])}</h3>'
+            f'<p class="or-mini-body" style="margin-bottom:.8rem;">{esc(j["company"])} '
+            f'· <span style="color:var(--muted);">skills gap: {esc(j["gap"])}</span></p>'
+            f'<div class="or-mini-foot"><span style="font-family:Newsreader,serif;'
+            f'font-size:1.4rem;color:var(--amber);font-style:italic;">{esc(j["match"])}</span>'
+            f'<span>match</span></div></div>'
+        )
+    st.markdown(
+        f'<div class="or-bento-mini or-reveal" '
+        f'style="grid-template-columns:repeat(2,1fr);">{cards_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Future notice
+    st.markdown('<div style="height:2rem;"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="or-mini or-reveal" style="min-height:auto;">'
+        '<div class="or-mini-tag" style="color:var(--coral);">▸ ROADMAP · V0.6</div>'
+        '<h3>Live job feed — în construcție</h3>'
+        '<p class="or-mini-body">Scrape LinkedIn, Indeed, BestJobs și eJobs. '
+        'Extrage skill-uri cu LLM. Match-ează cu profilul tău. Sugerează '
+        'capitole din Learning pentru skill gaps.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
-# =====================================================================
-# SECTION: PROMPTS — Prompt Bible (1137 prompts × 12 categories)
-# =====================================================================
-elif SECTION == "prompts":
-
+# ─────────────────────────────────────────────────────────────────────────
+# SECTION: PROMPTS · Prompt Bible
+# ─────────────────────────────────────────────────────────────────────────
+def render_prompts() -> None:
     bible = load_prompt_bible()
     n_total = len(bible.prompts)
-    cats = all_categories(bible)
-    diffs = all_difficulties()
+    cats   = all_categories(bible)
+    diffs  = all_difficulties()
     models = all_model_ids(bible)
 
-    # Pre-compute counts so pills show "85" next to "Code"
+    # Pre-compute category counts for the pill labels
     cat_counts = {c["id"]: 0 for c in bible.categories}
     for p in bible.prompts:
         c = p.get("category", "")
         if c in cat_counts:
             cat_counts[c] += 1
 
-    section_header(
+    section_head(
+        f"PROMPT BIBLE · {n_total}",
         "Prompts",
-        f"{n_total} prompturi production-grade. Click pe categorie sau difficulty ca să filtrezi.",
+        "Prompturi production-grade. Filtrează pe categorie, "
+        "difficulty sau model — caută în titlu și conținut.",
     )
 
-    # Search bar — full width, always visible
+    # ── Search ──
     text_q = st.text_input(
-        "search",
+        "Caută",
         placeholder="Caută în titlu, tag-uri, conținut...",
         label_visibility="collapsed",
         key="prompts_search",
     )
 
-    # --- Pill rows: native st.button per option, styled as pills via CSS ---
-    # We use st.button (not st.pills) because HF Space pins Streamlit to
-    # 1.32.0 and st.pills needs >= 1.40.0. Buttons work everywhere; we
-    # just style them as pills.
-
-    # Category pills — laid out in 4-column grid (3 rows for 12 cats)
+    # ── Category pills ──
     st.markdown(
-        '<div class="prompts-pills-label">Categorie</div>',
+        '<p style="margin:1rem 0 .4rem;font-family:JetBrains Mono,monospace;'
+        'font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
+        'Categorie</p>',
         unsafe_allow_html=True,
     )
     selected_cats = list(st.session_state.get("prompts_cats", []))
-    cat_cols_per_row = 4
-    for row_start in range(0, len(cats), cat_cols_per_row):
-        row_cats = cats[row_start:row_start + cat_cols_per_row]
-        c_cols = st.columns(len(row_cats), gap="small")
-        for ci, c in enumerate(row_cats):
-            with c_cols[ci]:
+    cat_per_row = 4
+    for r0 in range(0, len(cats), cat_per_row):
+        row = cats[r0:r0 + cat_per_row]
+        cols = st.columns(len(row), gap="small")
+        for i, c in enumerate(row):
+            with cols[i]:
                 is_sel = c in selected_cats
                 label = f"{category_icon(bible, c)} {category_label(bible, c)} · {cat_counts[c]}"
-                if st.button(
-                    label,
-                    key=f"pill_cat_{c}",
-                    use_container_width=True,
-                    type="primary" if is_sel else "secondary",
-                ):
+                if st.button(label, key=f"pill_cat_{c}", use_container_width=True,
+                             type="primary" if is_sel else "secondary"):
                     if is_sel:
                         selected_cats.remove(c)
                     else:
@@ -927,22 +841,21 @@ elif SECTION == "prompts":
                     st.session_state["prompts_cats"] = selected_cats
                     st.rerun()
 
-    # Difficulty pills — 4 in one row
+    # ── Difficulty pills ──
     st.markdown(
-        '<div class="prompts-pills-label">Difficulty</div>',
+        '<p style="margin:.8rem 0 .4rem;font-family:JetBrains Mono,monospace;'
+        'font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
+        'Difficulty</p>',
         unsafe_allow_html=True,
     )
     selected_diffs = list(st.session_state.get("prompts_diffs", []))
     d_cols = st.columns(len(diffs), gap="small")
-    for di, d in enumerate(diffs):
-        with d_cols[di]:
+    for i, d in enumerate(diffs):
+        with d_cols[i]:
             is_sel = d in selected_diffs
-            if st.button(
-                difficulty_label(d),
-                key=f"pill_diff_{d}",
-                use_container_width=True,
-                type="primary" if is_sel else "secondary",
-            ):
+            if st.button(difficulty_label(d), key=f"pill_diff_{d}",
+                         use_container_width=True,
+                         type="primary" if is_sel else "secondary"):
                 if is_sel:
                     selected_diffs.remove(d)
                 else:
@@ -950,25 +863,24 @@ elif SECTION == "prompts":
                 st.session_state["prompts_diffs"] = selected_diffs
                 st.rerun()
 
-    # Model pills — 8 per row, wraps across 2 rows for 16 models
+    # ── Model pills ──
     st.markdown(
-        '<div class="prompts-pills-label">Modele</div>',
+        '<p style="margin:.8rem 0 .4rem;font-family:JetBrains Mono,monospace;'
+        'font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
+        'Modele</p>',
         unsafe_allow_html=True,
     )
     selected_models = list(st.session_state.get("prompts_models", []))
-    models_per_row = 8
-    for row_start in range(0, len(models), models_per_row):
-        row_models = models[row_start:row_start + models_per_row]
-        m_cols = st.columns(len(row_models), gap="small")
-        for mi, m in enumerate(row_models):
-            with m_cols[mi]:
+    per_row = 8
+    for r0 in range(0, len(models), per_row):
+        row = models[r0:r0 + per_row]
+        cols = st.columns(len(row), gap="small")
+        for i, m in enumerate(row):
+            with cols[i]:
                 is_sel = m in selected_models
-                if st.button(
-                    bible.models.get(m, {}).get("label", m),
-                    key=f"pill_model_{m}",
-                    use_container_width=True,
-                    type="primary" if is_sel else "secondary",
-                ):
+                if st.button(bible.models.get(m, {}).get("label", m),
+                             key=f"pill_model_{m}", use_container_width=True,
+                             type="primary" if is_sel else "secondary"):
                     if is_sel:
                         selected_models.remove(m)
                     else:
@@ -976,180 +888,156 @@ elif SECTION == "prompts":
                     st.session_state["prompts_models"] = selected_models
                     st.rerun()
 
-    # --- Sort + clear ---
-    # vertical_alignment was added in Streamlit 1.41; HF Space pins 1.32
+    # ── Sort + reset ──
     sort_cols = st.columns([3, 1], gap="small")
     with sort_cols[0]:
         sort_label = st.radio(
-            "sort",
-            options=["Default", "A→Z", "Beginner first", "Expert first"],
+            "Sortare",
+            options=["Default", "A→Z", "Beginner → Expert", "Expert → Beginner"],
             horizontal=True,
             label_visibility="collapsed",
             key="prompts_sort",
         )
     with sort_cols[1]:
         any_active = bool(text_q or selected_cats or selected_diffs or selected_models)
-        if any_active:
-            if st.button("✕  Resetează filtre", key="prompts_reset", use_container_width=True):
-                st.session_state["prompts_search"] = ""
-                st.session_state["prompts_cats"] = []
-                st.session_state["prompts_diffs"] = []
-                st.session_state["prompts_models"] = []
-                st.session_state["prompts_sort"] = "Default"
-                st.rerun()
+        if any_active and st.button("✕  Resetează", key="prompts_reset",
+                                     use_container_width=True):
+            st.session_state["prompts_search"] = ""
+            st.session_state["prompts_cats"] = []
+            st.session_state["prompts_diffs"] = []
+            st.session_state["prompts_models"] = []
+            st.session_state["prompts_sort"] = "Default"
+            st.rerun()
 
-    # --- Compute results ---
-    # For text + categories + diffs + models: use filter_prompts for text
-    # and category. For multi-category, multi-difficulty, multi-model we
-    # need a custom filter.
+    # ── Filter ──
     results = []
     needle = text_q.strip().lower()
     for p in bible.prompts:
-        if selected_cats and p.get("category") not in selected_cats:
-            continue
-        if selected_diffs and p.get("difficulty") not in selected_diffs:
-            continue
-        if selected_models and not any(m in p.get("models", []) for m in selected_models):
-            continue
+        if selected_cats   and p.get("category")   not in selected_cats:    continue
+        if selected_diffs  and p.get("difficulty") not in selected_diffs:   continue
+        if selected_models and not any(m in p.get("models", []) for m in selected_models): continue
         if needle:
-            haystack_parts = [
+            hay = " ".join([
                 p.get("title", ""),
                 " ".join(p.get("tags", []) or []),
                 p.get("when", ""),
                 p.get("prompt", ""),
                 " ".join(p.get("notes", []) or []),
-            ]
-            haystack = " ".join(haystack_parts).lower()
-            if needle not in haystack:
-                continue
+            ]).lower()
+            if needle not in hay: continue
         results.append(p)
 
-    # Sort
     if sort_label == "A→Z":
-        results = sorted(results, key=lambda p: p.get("title", "").lower())
-    elif sort_label == "Beginner first":
-        results = sorted(
-            results,
-            key=lambda p: diffs.index(p.get("difficulty", "intermediate")),
-        )
-    elif sort_label == "Expert first":
-        results = sorted(
-            results,
-            key=lambda p: -diffs.index(p.get("difficulty", "intermediate")),
-        )
+        results.sort(key=lambda p: p.get("title", "").lower())
+    elif sort_label == "Beginner → Expert":
+        results.sort(key=lambda p: diffs.index(p.get("difficulty", "intermediate")))
+    elif sort_label == "Expert → Beginner":
+        results.sort(key=lambda p: -diffs.index(p.get("difficulty", "intermediate")))
 
     n = len(results)
     any_filter = bool(text_q or selected_cats or selected_diffs or selected_models)
     st.markdown(
-        f'<div class="prompts-count">'
-        f'<span class="num">{n}</span>'
-        f'<span class="lbl">/{n_total} prompturi'
-        f'{" · filtrat" if any_filter else ""}'
-        f'</span></div>',
+        f'<div style="display:flex;align-items:baseline;gap:.6rem;margin:1.4rem 0 .6rem;'
+        f'font-family:Newsreader,serif;">'
+        f'<span style="font-size:1.8rem;color:var(--text);font-weight:500;">{n}</span>'
+        f'<span style="font-family:JetBrains Mono,monospace;font-size:.7rem;color:var(--muted);'
+        f'text-transform:uppercase;letter-spacing:.08em;">'
+        f'/ {n_total} prompturi'
+        f'{" · filtrat" if any_filter else ""}</span></div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
-
-    # --- Result cards ---
+    # ── Results ──
     if n == 0:
         st.markdown(
-            '<div class="prompts-empty">'
+            '<div style="padding:2rem;text-align:center;color:var(--muted);'
+            'font-style:italic;border:1px dashed var(--border);border-radius:8px;margin:1rem 0;">'
             'Nimic pe filtre. Schimbă text sau categorie.'
             '</div>',
             unsafe_allow_html=True,
         )
-    else:
-        for p in results:
-            cat_id = p.get("category", "")
-            cat_label = category_label(bible, cat_id)
-            cat_color = category_color(bible, cat_id)
-            diff = p.get("difficulty", "intermediate")
-            diff_color = difficulty_color(diff)
+        return
 
-            title = p.get("title", "Untitled")
-            when = p.get("when", "")
-            tags = p.get("tags", []) or []
-            pmodels = p.get("models", []) or []
-            body = p.get("prompt", "")
-            variants = p.get("variants") or {}
-            notes = p.get("notes") or []
-            anti = p.get("antiPatterns") or []
+    for p in results:
+        cat_id = p.get("category", "")
+        cat_lbl = category_label(bible, cat_id)
+        cat_clr = category_color(bible, cat_id)
+        diff    = p.get("difficulty", "intermediate")
+        diff_clr= difficulty_color(diff)
 
-            # Header row: icon + title + badges
-            tags_html = (
-                "".join(
-                    f'<span class="pb-tag">{t}</span>'
-                    for t in tags[:6]
-                )
-            )
-            models_html = (
-                " · ".join(
-                    bible.models.get(m, {}).get("label", m) for m in pmodels
-                )
-            )
-            when_block = (
-                f'<div class="pb-when">{when}</div>' if when else ""
-            )
-            tags_block = (
-                f'<div class="pb-tags">{tags_html}</div>' if tags_html else ""
-            )
-            models_block = (
-                f'<div class="pb-models">{models_html}</div>' if models_html else ""
-            )
+        title = p.get("title", "Untitled")
+        when  = p.get("when", "")
+        tags  = p.get("tags", []) or []
+        pmods = p.get("models", []) or []
+        body  = p.get("prompt", "")
+        variants = p.get("variants") or {}
+        notes    = p.get("notes") or []
+        anti     = p.get("antiPatterns") or []
 
-            st.markdown(
-                f'<div class="pb-card">'
-                f'<div class="pb-card-head">'
-                f'<span class="pb-icon" style="color: {cat_color};">'
-                f'{category_icon(bible, cat_id)}</span>'
-                f'<span class="pb-title">{title}</span>'
-                f'<span class="pb-cat" style="color: {cat_color}; border-color: {cat_color}33;">'
-                f'{cat_label}</span>'
-                f'<span class="pb-diff" style="color: {diff_color}; border-color: {diff_color}33;">'
-                f'{difficulty_label(diff)}</span>'
-                f'</div>'
-                f'{when_block}'
-                f'{tags_block}'
-                f'{models_block}'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+        tags_html = "".join(f'<span class="or-card-meta" style="margin-right:.35rem;">{esc(t)}</span>' for t in tags[:6])
+        models_html = " · ".join(bible.models.get(m, {}).get("label", m) for m in pmods)
+        when_block = f'<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);margin:.4rem 0;font-size:.95rem;">{esc(when)}</p>' if when else ""
 
-            # Variant tabs (one per supported model variant)
-            if variants:
-                tab_labels = ["default"] + list(variants.keys())
-                tabs = st.tabs(tab_labels)
-                with tabs[0]:
-                    st.code(body, language="text")
-                for i, (vname, vbody) in enumerate(variants.items(), start=1):
-                    with tabs[i]:
-                        st.code(vbody, language="text")
-            else:
+        st.markdown(
+            '<div style="padding:.6rem 0 1.1rem;border-bottom:1px solid var(--border);margin-bottom:.4rem;">'
+            '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;flex-wrap:wrap;">'
+            f'<span style="font-family:Newsreader,serif;font-size:1.2rem;color:var(--text);'
+            f'font-weight:500;flex:1;line-height:1.2;">{esc(title)}</span>'
+            f'<span style="font-family:JetBrains Mono,monospace;font-size:.6rem;'
+            f'letter-spacing:.08em;text-transform:uppercase;padding:.15rem .55rem;'
+            f'border:1px solid {cat_clr}55;border-radius:999px;color:{cat_clr};">{esc(cat_lbl)}</span>'
+            f'<span style="font-family:JetBrains Mono,monospace;font-size:.6rem;'
+            f'letter-spacing:.08em;text-transform:uppercase;padding:.15rem .55rem;'
+            f'border:1px solid {diff_clr}55;border-radius:999px;color:{diff_clr};">{esc(difficulty_label(diff))}</span>'
+            '</div>'
+            f'{when_block}'
+            '<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.4rem;">'
+            f'{tags_html}'
+            '</div>'
+            f'<div style="font-family:JetBrains Mono,monospace;font-size:.62rem;color:var(--muted-2);">'
+            f'{esc(models_html)}</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        if variants:
+            tab_labels = ["default"] + list(variants.keys())
+            tabs = st.tabs(tab_labels)
+            with tabs[0]:
                 st.code(body, language="text")
+            for i, (vname, vbody) in enumerate(variants.items(), start=1):
+                with tabs[i]:
+                    st.code(vbody, language="text")
+        else:
+            st.code(body, language="text")
 
-            # Notes + AntiPatterns (collapsible expander)
-            if notes or anti:
-                with st.expander("Why it works · What breaks it", expanded=False):
-                    if notes:
-                        st.markdown("**Why it works**")
-                        for n_line in notes:
-                            st.markdown(f"- {n_line}")
-                    if anti:
-                        st.markdown("")
-                        st.markdown("**What breaks it**")
-                        for a_line in anti:
-                            st.markdown(f"- {a_line}")
-
-            st.markdown("<div style='height: 1.2rem;'></div>", unsafe_allow_html=True)
+        if notes or anti:
+            with st.expander("De ce merge · Ce îl strică"):
+                if notes:
+                    st.markdown("**De ce merge**")
+                    for n_line in notes:
+                        st.markdown(f"- {esc(n_line)}")
+                if anti:
+                    st.markdown("**Ce îl strică**")
+                    for a_line in anti:
+                        st.markdown(f"- {esc(a_line)}")
 
 
-# ===== Footer =====
-st.markdown(
-    '<div style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 4rem; '
-    'font-family: JetBrains Mono, monospace; font-size: 0.7rem; '
-    'color: var(--muted-2); text-align: center; letter-spacing: 0.04em;">'
-    'OpenRadar · v2.1 · pentru ingineri care beau cafeaua cu ochii pe lume'
-    '</div>',
-    unsafe_allow_html=True,
-)
+# ─── Dispatch ───────────────────────────────────────────────────────────
+DISPATCH = {
+    "azi":      render_azi,
+    "news":     render_news,
+    "learning": render_learning,
+    "jobs":     render_jobs,
+    "prompts":  render_prompts,
+}
+
+# Ensure session defaults exist
+if "selected_chapter" not in st.session_state:
+    st.session_state.selected_chapter = "ch1"
+
+# Fallback for unknown section values coming from the URL or stale state
+SECTION = SECTION if SECTION in DISPATCH else "azi"
+
+# Run the chosen renderer
+DISPATCH[SECTION]()
