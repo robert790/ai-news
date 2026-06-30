@@ -2,6 +2,15 @@
 
 5 minutes from this doc to a live URL your friends can open.
 
+> **Truth after the 2026-06-30 takeover (Hermes session)**
+>
+> - **GitHub is canonical.** The source of truth is `https://github.com/robert790/ai-news`. All app changes land there first (PR + CI smoke), before any Hugging Face push.
+> - **Hugging Face is a manual deploy target only.** There is no GitHub Action, webhook, or repo secret that mirrors `main` to HF. The only way the Space updates today is `git push huggingface main` from a machine that has the HF token in its git credential store.
+> - **HF tokens must not be stored in this repo** (no `.env`, no GitHub Actions secret, no CI variable). The HF credential lives only on Robert's workstation.
+> **The current LLM is Groq, not DeepSeek.** `config.py` reads `GROQ_API_KEY` (and optionally `ANTHROPIC_API_KEY`). `DEEPSEEK_API_KEY` is a legacy name from an earlier build and is **ignored by the current code**; you can leave it or remove it from the HF Space's variables/secrets as you prefer — current code does not read it.
+> - **Defer automated deploys.** Until you explicitly want a workflow-driven HF mirror, keep deploys explicit and per-release. The pattern is: green CI on GitHub → manual `git push huggingface main` → ~60s HF rebuild → smoke-check the live URL.
+- **Drift history.** At takeover on 2026-06-30, public probes suggested the live Space was some hours behind GitHub `main` (no auto-mirror was active at that moment). Re-check the Space's `last-modified` after each manual push — if it stays still, the push didn't land.
+
 ## Prerequisites
 
 1. **A Hugging Face account** — free at [huggingface.co/join](https://huggingface.co/join)
@@ -46,20 +55,30 @@ Get the token from [huggingface.co/settings/tokens](https://huggingface.co/setti
 
 If the push succeeds, you'll see HF start building the Space. Watch the build log in the browser at `huggingface.co/spaces/YOUR_USERNAME/ziarul-digital`.
 
-## Step 4 · Add the API key (optional but recommended)
+## Step 4 · Add the API keys (recommended for live summaries)
 
-Without DEEPSEEK_API_KEY the app runs in demo mode (template summaries — still works).
+Without an LLM key the app runs in demo mode (template summaries — still works), but
+real summaries require the Groq key (the current LLM is Groq, not DeepSeek).
 
 To get real LLM summaries:
 
-1. Get a DeepSeek key at [platform.deepseek.com](https://platform.deepseek.com) (free tier gives plenty)
-2. In your Space, go to **Settings** → **Variables and secrets**
-3. Click **+ New secret**
-4. Name: `DEEPSEEK_API_KEY`
-5. Value: paste your key
-6. Save
+1. Get a free Groq key at [console.groq.com/keys](https://console.groq.com/keys)
+2. (Optional, premium tier) get an Anthropic key at [console.anthropic.com](https://console.anthropic.com)
+3. In your Space, go to **Settings** → **Variables and secrets**
+4. Click **+ New secret**
+5. For Groq:
+   - Name: `GROQ_API_KEY`
+   - Value: paste your key
+6. (Optional) repeat for `ANTHROPIC_API_KEY`
+7. Save
 
 The Space restarts automatically.
+
+> **Legacy / stale names** — `DEEPSEEK_API_KEY` was used in an earlier build but is
+> no longer read by `config.py`. If it is still set in the Space's secrets, it does
+> nothing for current code; remove only after confirming no older deployment or
+> runtime still references it (the only paths that read env are `config.py` and the
+> `llm/` package, neither of which names it). Safe to keep or delete.
 
 ## Step 5 · Share
 
@@ -96,7 +115,7 @@ git push huggingface main
 
 **Port issues:** HF Streamlit Spaces run on port 7860 by default. No action needed unless you have a custom Dockerfile (we don't).
 
-**Secrets not working:** the env var name in code (`config.py` reads `DEEPSEEK_API_KEY`) must match exactly what you set in Settings.
+**Secrets not working:** the env var names in code (`config.py` reads `GROQ_API_KEY` and optionally `ANTHROPIC_API_KEY`) must match exactly what you set in Settings.
 
 ## Why Hugging Face (and not Vercel / Render / Railway)?
 
