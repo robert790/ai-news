@@ -448,6 +448,10 @@ def render_detail_panel(
                         f'</div>',
                         unsafe_allow_html=True,
                     )
+                    st.checkbox(
+                        f"Am făcut metoda „{main.name}” azi",
+                        key=f"method_done_{ch.id}_main",
+                    )
                 if alts:
                     st.markdown(
                         f'<div style="margin-top: 0.6rem; '
@@ -457,7 +461,7 @@ def render_detail_panel(
                         f'○ Alte metode (pentru mai târziu)</div>',
                         unsafe_allow_html=True,
                     )
-                    for alt in alts:
+                    for ai, alt in enumerate(alts):
                         with st.expander(
                             f"○ {alt.name}", expanded=False
                         ):
@@ -472,6 +476,10 @@ def render_detail_panel(
                                 f'letter-spacing: 0.04em;">'
                                 f'Când: {alt.when_to_use}</div>',
                                 unsafe_allow_html=True,
+                            )
+                            st.checkbox(
+                                f"Am făcut metoda „{alt.name}” azi",
+                                key=f"method_done_{ch.id}_alt_{ai}",
                             )
 
             # --- Verifiers ---
@@ -536,6 +544,35 @@ def render_detail_panel(
         prev_ch = ch_list[idx - 1] if idx > 0 else None
         next_ch = ch_list[idx + 1] if idx < len(ch_list) - 1 else None
 
+        # --- Următorul capitol · narrative hook ---
+        if next_ch:
+            nxt_main = next((m for m in next_ch.methods if m.recommended), None)
+            teaser_method = f" · {nxt_main.name}" if nxt_main else ""
+            st.markdown(
+                f'<div style="margin-top: 2rem; padding: 1.2rem 1.4rem; '
+                f'background: linear-gradient(135deg, '
+                f'rgba(168,192,174,0.08), rgba(212,165,116,0.04)); '
+                f'border: 1px solid rgba(168,192,174,0.20); '
+                f'border-radius: 10px;">'
+                f'<div style="font-family: JetBrains Mono, monospace; '
+                f'font-size: 0.6rem; color: #a8c0ae; '
+                f'letter-spacing: 0.16em; text-transform: uppercase; '
+                f'margin-bottom: 0.5rem;">▸ Următorul capitol</div>'
+                f'<div style="font-family: Newsreader, serif; '
+                f'font-size: 1.35rem; font-weight: 500; color: #f4ede0; '
+                f'line-height: 1.25; margin-bottom: 0.35rem;">'
+                f'{next_ch.number:02d} · {_html.escape(next_ch.title)}</div>'
+                f'<div style="font-family: Newsreader, serif; '
+                f'font-style: italic; color: #a8c0ae; font-size: 0.95rem; '
+                f'line-height: 1.5; margin-bottom: 0.7rem;">'
+                f'{_html.escape(next_ch.subtitle)}</div>'
+                f'<div style="font-family: JetBrains Mono, monospace; '
+                f'font-size: 0.7rem; color: #d4a574; letter-spacing: 0.04em;">'
+                f'Metoda:{teaser_method}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
         nav_cols = st.columns(2)
         with nav_cols[0]:
             if prev_ch:
@@ -564,6 +601,18 @@ def render_detail_panel(
             done = len(completed)
             total = len(ch_list)
             pct = int(done / total * 100) if total else 0
+            # Count methods ticked across ALL chapters (not just current)
+            methods_done = sum(
+                1
+                for c in ch_list
+                if st.session_state.get(f"method_done_{c.id}_main", False)
+            ) + sum(
+                1
+                for c in ch_list
+                for ai in range(len(c.methods))
+                if not c.methods[ai].recommended
+                and st.session_state.get(f"method_done_{c.id}_alt_{ai}", False)
+            )
             st.markdown(
                 f'<div style="font-family: JetBrains Mono, monospace; '
                 f'font-size: 0.6rem; color: {accent}; '
@@ -584,12 +633,17 @@ def render_detail_panel(
                 f'<div style="font-family: JetBrains Mono, monospace; '
                 f'font-size: 0.6rem; color: {accent}; '
                 f'letter-spacing: 0.1em; text-transform: uppercase;">'
-                f'PROGRES · {done}/{total} ({pct}%)</div>'
+                f'PROGRES · {done}/{total} capitole ({pct}%)</div>'
                 f'<div style="margin-top: 0.4rem; height: 4px; '
                 f'background: #2e2b27; border-radius: 2px; overflow: hidden;">'
                 f'<div style="width: {pct}%; height: 100%; '
                 f'background: {accent}; transition: width 350ms ease;"></div>'
-                f'</div></div>',
+                f'</div>'
+                f'<div style="margin-top: 0.7rem; font-family: JetBrains Mono, '
+                f'monospace; font-size: 0.58rem; color: #d4a574; '
+                f'letter-spacing: 0.08em;">'
+                f'◆ {methods_done} metode bifate</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
 
