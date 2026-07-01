@@ -698,10 +698,11 @@ def render_news() -> None:
 
 # ─────────────────────────────────────────────────────────────────────────
 # SECTION: LEARNING · Hartă AI pe categorii (10 chapters)
+# PR-A: layout v1 — single-column lecture page, calm selector, no timeline.
 # ─────────────────────────────────────────────────────────────────────────
 def render_learning() -> None:
-    from learning.timeline import render_hero_timeline
     from learning.learning_render import render_detail_panel
+    from theme import lecture_css
 
     section_head(
         "HARTĂ AI · 10 CATEGORII",
@@ -709,53 +710,38 @@ def render_learning() -> None:
         "Fiecare capitol = o categorie mare de AI. Basics + un exercițiu.",
     )
 
-    st.markdown(
-        '<p style="font-family:Newsreader,serif;font-style:italic;color:#c4b9a7;'
-        'font-size:1.05rem;margin:0 0 1.4rem;line-height:1.55;max-width:680px;">'
-        'LLMs, prompting, vision, diffusion, speech, RAG, agenți. '
-        '10 capitole, fiecare cu un «Build this» pe care îl faci ACUM. '
-        'Nu citi totul — fă primul exercițiu și treci la următorul.'
-        '</p>',
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(render_hero_timeline(), unsafe_allow_html=True)
-
-    # ── Chapter chip grid ──
-    selected_id = st.session_state.get("selected_chapter", "ch1")
     ch_list = get_all_chapters()
+    # Defensive: if the loader somehow returned 0, fall back to a no-op panel.
+    if not ch_list:
+        return
 
-    st.markdown(
-        '<p style="margin:1.5rem 0 .7rem;font-family:JetBrains Mono,monospace;'
-        'font-size:.65rem;color:var(--muted);letter-spacing:.18em;'
-        'text-transform:uppercase;">'
-        'Capitole · 10 categorii AI, fiecare cu un «Build this»</p>',
-        unsafe_allow_html=True,
+    # ── Calm chapter selector (replaces the 5x2 chip grid) ──
+    selected_id = st.session_state.get("selected_chapter", ch_list[0].id)
+    # Guard against a stale id pointing at a retired or missing chapter.
+    if selected_id not in {c.id for c in ch_list}:
+        selected_id = ch_list[0].id
+        st.session_state.selected_chapter = selected_id
+
+    def _format_chapter(c) -> str:
+        title = c.title if len(c.title) <= 48 else c.title[:46].rstrip() + "…"
+        return f"{c.number:02d} · {title}"
+
+    chosen = st.selectbox(
+        "Capitol",
+        options=ch_list,
+        index=[c.id for c in ch_list].index(selected_id),
+        format_func=_format_chapter,
+        key="learning_chapter_selectbox",
+        label_visibility="collapsed",
     )
+    if chosen.id != selected_id:
+        st.session_state.selected_chapter = chosen.id
+        st.rerun()
+    selected_id = chosen.id
 
-    chip_cols_per_row = 5
-    for row_start in range(0, len(ch_list), chip_cols_per_row):
-        row = ch_list[row_start:row_start + chip_cols_per_row]
-        c_cols = st.columns(len(row), gap="small")
-        for ci, c in enumerate(row):
-            with c_cols[ci]:
-                # Single styled button per chip. The button itself IS the chip;
-                # primary/secondary type carries the selected vs muted state.
-                # The accent color for the selected state is supplied via a
-                # small inline `<style>` per chapter using testid attributes
-                # in 1.50+ fall back to plain pill style below.
-                title = c.title if len(c.title) <= 18 else c.title[:16].rstrip() + "…"
-                if st.button(
-                    f"{c.number:02d}  {title}",
-                    key=f"lrn_chip_{c.id}",
-                    use_container_width=True,
-                    type="primary" if c.id == selected_id else "secondary",
-                ):
-                    st.session_state.selected_chapter = c.id
-                    st.rerun()
-
-    # ── Detail panel ──
+    # ── Single-column lecture page ──
     completed = st.session_state.get("completed_chapters", set())
+    st.markdown(lecture_css(), unsafe_allow_html=True)
     render_detail_panel(selected_id, ch_list, completed)
 
 

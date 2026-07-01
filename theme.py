@@ -87,6 +87,89 @@ MOTION = {
 }
 
 
+# ─── Lecture column (PR-A: Learning layout v1) ───────────────────────────
+LECTURE_MAX_WIDTH_PX = 760  # comfortable reading measure for the Learning tab
+LECTURE_GUTTER_PX = 24      # side gutter on narrow viewports
+
+
+def lecture_css() -> str:
+    """Single-column, max-width lecture page styling for the Learning tab.
+
+    Centered reading column on desktop; full-width with side padding on
+    narrow viewports. Token-driven — uses the CSS custom properties
+    already emitted by ``render_css()``, so this block is a no-op if
+    the global theme CSS hasn't been injected yet.
+    """
+    return f"""<style>
+  .lrn-lecture {{
+    max-width: {LECTURE_MAX_WIDTH_PX}px;
+    margin: 0 auto;
+    padding: 0 {LECTURE_GUTTER_PX}px;
+  }}
+  .lrn-rule {{
+    border: 0;
+    border-top: 1px solid var(--border, #2a2520);
+    margin: 1.6rem 0;
+  }}
+  .lrn-numeral {{
+    font-family: {FONTS['display']};
+    font-size: 4.5rem;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }}
+  .lrn-breadcrumb {{
+    font-family: {FONTS['mono']};
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted, #9a8f7c);
+  }}
+  .lrn-domain-tag {{
+    font-family: {FONTS['mono']};
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }}
+  .lrn-title {{
+    font-family: {FONTS['display']};
+    font-weight: 500;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    margin: 0.4rem 0 0.3rem 0;
+    color: var(--text, #f4ede0);
+  }}
+  .lrn-subtitle {{
+    font-family: {FONTS['display']};
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: var(--muted, #9a8f7c);
+    margin: 0;
+  }}
+  .lrn-footer {{
+    font-family: {FONTS['mono']};
+    font-size: 0.7rem;
+    color: var(--muted, #9a8f7c);
+    letter-spacing: 0.04em;
+  }}
+  .lrn-navlink {{
+    font-family: {FONTS['display']};
+    font-size: 1rem;
+    color: var(--text, #f4ede0);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border-strong, #3a342c);
+  }}
+  .lrn-navlink:hover {{ color: var(--amber, #d4915a); border-bottom-color: var(--amber, #d4915a); }}
+  /* Narrow-viewport tightening — keep reading comfortable on phones. */
+  @media (max-width: 640px) {{
+    .lrn-lecture {{ padding: 0 16px; }}
+    .lrn-numeral {{ font-size: 3.5rem; }}
+    .lrn-title {{ font-size: 1.9rem; }}
+  }}
+</style>"""
+
+
 # ─── CSS ─────────────────────────────────────────────────────────────────
 def render_css() -> str:
     c = COLORS
