@@ -42,6 +42,15 @@ jobs:
           echo "::add-mask::${HF_TOKEN}"
           echo "✓ HF_TOKEN present (value masked from logs)"
 
+      - name: Checkout repository
+        # huggingface/hub-sync expects files on disk in the runner
+        # workdir. Without this step the workdir is empty, the action's
+        # `find "${SRC_DIR}" -type f ...` returns 0, and it exits with
+        # "No files to upload. Check that your repository has files."
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Sync main to Hugging Face Space
         uses: huggingface/hub-sync@v0.1.0
         with:
