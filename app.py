@@ -382,7 +382,7 @@ def render_top_nav() -> str:
             f'{RADAR_MARK}'
             '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
-            '<span class="or-name-kicker">open · ai radar</span>'
+            '<span class="or-name-kicker">ai career · tools radar</span>'
             '</span>'
             '</a>',
             unsafe_allow_html=True,
@@ -511,11 +511,15 @@ def render_groq() -> None:
             for it in load_github()[:3]
         ]
 
-    mock_jobs = [
-        {"title": "LLM Engineer", "company": "DRUID AI", "location": "București", "match": "82%"},
-        {"title": "AI Product Manager", "company": "Bitdefender", "location": "București", "match": "76%"},
-        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%"},
-    ]
+    # PR10 patch: Today landing — static role teaser, no fake match%.
+    # Mirrors the Jobs tab framing (role · company · location · skill tags)
+    # but kept compact for the bento cell. Title is the link to the Jobs tab.
+    static_roles = [
+        {"title": "LLM Engineer",            "company": "DRUID AI",        "location": "București", "skill": "LangChain · Vector DBs"},
+        {"title": "AI Product Manager",      "company": "Bitdefender",     "location": "București", "skill": "Eval · RAG"},
+        {"title": "AI Solutions Consultant", "company": "ClusterPower",    "location": "Iași",      "skill": "GPU · Fine-tuning"},
+        {"title": "ML Engineer",             "company": "UiPath",          "location": "București", "skill": "Fine-tuning · RLHF"},
+    ][:3]  # bento cell = top 3 only
 
     news_body = "".join(
         f'<div class="or-card" style="margin-bottom:.5rem;background:transparent;border-color:var(--border);">'
@@ -543,18 +547,21 @@ def render_groq() -> None:
         f'<div class="or-card" style="margin-bottom:.5rem;background:transparent;border-color:var(--border);">'
         f'<div class="or-card-label sage">▸ {esc(j["location"].upper())}</div>'
         f'<span class="or-card-title">{esc(j["title"])}</span>'
-        f'<p class="or-card-summary" style="margin-bottom:.35rem;">{esc(j["company"])}</p>'
-        f'<div class="or-card-meta"><span class="or-card-score" style="font-size:1rem;">{esc(j["match"])}</span>'
-        f'<span style="text-transform:uppercase;">match</span></div>'
+        f'<p class="or-card-summary" style="margin-bottom:.35rem;">{esc(j["company"])} · '
+        f'<span style="font-family:JetBrains Mono,monospace;font-size:.55rem;color:var(--muted);">'
+        f'{esc(j["skill"])}</span></p>'
+        f'<div class="or-card-meta"><a href="?section=jobs" style="font-family:JetBrains Mono,monospace;'
+        f'font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--sage);">'
+        f'Search paths →</a></div>'
         f'</div>'
-        for j in mock_jobs
+        for j in static_roles
     )
 
     bento_html = (
         bento_open(
-            bento_card("bento",   "News",  len(hn),          COLORS["coral"],  news_body) +
-            bento_card("compass", "Tools", len(repo_dicts),  COLORS["sky"],    tools_body) +
-            bento_card("case",    "Jobs",  len(mock_jobs),   COLORS["sage"],   jobs_body)
+            bento_card("bento",   "Today Signals", len(hn),          COLORS["coral"],  news_body) +
+            bento_card("compass", "Tools",         len(repo_dicts),  COLORS["sky"],    tools_body) +
+            bento_card("case",    "Jobs",          len(static_roles), COLORS["sage"],  jobs_body)
         )
     )
     st.markdown(bento_html, unsafe_allow_html=True)
