@@ -285,7 +285,22 @@ def render_css() -> str:
   section.main > div {{
     padding-top: 2rem;
     padding-bottom: 5rem;
-    max-width: 1080px;
+    /* PR11: HF visual parity — widened the cap from a hard 1080px
+       to a responsive 100%-with-side-margin. On VPS this still hits
+       ~1080px on standard 1280-wide screens, but on HF Spaces (whose
+       iframe wraps with different outer padding) the cap no longer
+       imposes a noticeably narrower centered look. The `data-testid`
+       selector is the modern Streamlit wide-mode container; we keep
+       the legacy `section.main > div` for compatibility with 1.32. */
+    max-width: min(1280px, calc(100% - 32px));
+    margin: 0 auto;
+  }}
+  /* Modern Streamlit wide container (1.50+) — same treatment so the
+     two layouts converge. */
+  [data-testid="stAppViewBlockContainer"],
+  [data-testid="stAppViewMain"] {{
+    max-width: min(1280px, calc(100% - 32px));
+    margin: 0 auto;
   }}
 
   /* Hide Streamlit chrome */
@@ -392,9 +407,16 @@ def render_css() -> str:
   .or-nav-pills::-webkit-scrollbar {{ display: none; }}
 
   /* Each nav button — pill-shaped, hover + selected. Scoped via
-     Streamlit's `class="st-key-nav_*"` on the wrapping element container. */
+     Streamlit's `class="st-key-nav_*"` on the wrapping element container.
+     PR11: HF Spaces runs Streamlit 1.32, local venv runs ≥1.50. The
+     button testid differs between the two — 1.32 emits
+     `data-testid="baseButton-primary|secondary"`, 1.50+ emits
+     `data-testid="stBaseButton-primary|secondary"`. We target both so
+     the pill style survives on every surface. */
   [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"],
-  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"] {{
+  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"],
+  [class*="st-key-nav_"] button[data-testid="baseButton-primary"],
+  [class*="st-key-nav_"] button[data-testid="baseButton-secondary"] {{
     border-radius: 999px !important;
     padding: 0.5rem 0.75rem !important;
     font-family: {f['mono']} !important;
@@ -410,13 +432,15 @@ def render_css() -> str:
       color var(--t-fast) var(--ease),
       border-color var(--t-fast) var(--ease) !important;
   }}
-  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"] {{
+  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"],
+  [class*="st-key-nav_"] button[data-testid="baseButton-secondary"] {{
     background: transparent !important;
     color: var(--muted) !important;
     border: 1px solid transparent !important;
     font-weight: 500 !important;
   }}
-  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"]:hover {{
+  [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"]:hover,
+  [class*="st-key-nav_"] button[data-testid="baseButton-secondary"]:hover {{
     background: rgba(244, 237, 224, 0.025) !important;
     color: var(--text-2) !important;
     border-color: var(--border) !important;
@@ -424,14 +448,16 @@ def render_css() -> str:
   /* Selected — calm sage underline + text-2, no loud gradient. The
      pill container still gives the bar a calm dark frame so the
      active state reads as "this one is in here", not "look at me". */
-  [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"] {{
+  [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"],
+  [class*="st-key-nav_"] button[data-testid="baseButton-primary"] {{
     background: rgba(168, 192, 174, 0.10) !important;
     color: var(--text) !important;
     border-color: rgba(168, 192, 174, 0.35) !important;
     font-weight: 600 !important;
     box-shadow: none !important;
   }}
-  [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"]:hover {{
+  [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"]:hover,
+  [class*="st-key-nav_"] button[data-testid="baseButton-primary"]:hover {{
     background: rgba(168, 192, 174, 0.14) !important;
     color: var(--text) !important;
   }}
