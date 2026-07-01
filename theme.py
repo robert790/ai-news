@@ -161,6 +161,66 @@ def lecture_css() -> str:
     border-bottom: 1px dashed var(--border-strong, #3a342c);
   }}
   .lrn-navlink:hover {{ color: var(--amber, #d4915a); border-bottom-color: var(--amber, #d4915a); }}
+
+  /* PR-A follow-up: method card + completion state.
+     (Takeaway cards replaced by native st.checkbox in the render path
+     — no custom CSS needed.) */
+
+  .lrn-method {{
+    border: 1px solid var(--border, #2a2520);
+    border-left: 3px solid var(--sage, #8ba888);
+    background: rgba(244, 237, 224, 0.018);
+    border-radius: 0 10px 10px 0;
+    padding: 1.1rem 1.25rem;
+  }}
+  .lrn-method-name {{
+    font-family: {FONTS['display']};
+    font-size: 1.28rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #f4ede0;
+    margin: 0.25rem 0 0.55rem;
+  }}
+  .lrn-method-summary {{
+    font-family: {FONTS['display']};
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #cdc4b1;
+  }}
+  .lrn-method-why {{
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed rgba(244, 237, 224, 0.08);
+    font-family: {FONTS['display']};
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: #a8c0ae;
+  }}
+  .lrn-completion {{
+    margin-top: 1.4rem;
+    padding: 1.1rem 1.2rem 1.15rem;
+    border-top: 1px solid #a8c0ae;
+    border-radius: 6px;
+    background: rgba(168, 192, 174, 0.05);
+    text-align: center;
+  }}
+  .lrn-completion-msg {{
+    font-family: {FONTS['display']};
+    font-style: italic;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: #f4ede0;
+  }}
+  .lrn-completion-sub {{
+    margin-top: 0.4rem;
+    font-family: {FONTS['mono']};
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a8c0ae;
+  }}
+
   /* Narrow-viewport tightening — keep reading comfortable on phones. */
   @media (max-width: 640px) {{
     .lrn-lecture {{ padding: 0 16px; }}

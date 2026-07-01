@@ -324,29 +324,51 @@ def render_detail_panel(
             unsafe_allow_html=True,
         )
 
-    # ── Verifiers · 3 checkboxes; auto-complete when all ticked ──
+    # ── Key takeaways · "idei de reținut" ──
+    # One visible control per takeaway: a native Streamlit checkbox
+    # whose label IS the takeaway text. The checkbox writes directly
+    # to the same verifier_<ch.id>_<i> key that the ?p=... token
+    # already round-trips, so persistence stays intact and the
+    # completion auto-write below keeps working.
     if ch.verifiers:
         st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
         st.markdown(
             f'<div class="lrn-domain-tag" style="color:{accent};">'
-            f'⌘ Ai înțeles?</div>',
+            f'◌ Idei de reținut</div>',
             unsafe_allow_html=True,
         )
-        for vi, v in enumerate(ch.verifiers):
-            st.checkbox(v, key=f"verifier_{ch.id}_{vi}")
-
-        all_ticked = all(
-            st.session_state.get(f"verifier_{ch.id}_{vi}", False)
-            for vi in range(len(ch.verifiers))
+        st.markdown(
+            '<p style="font-family: Newsreader, serif; font-style: italic; '
+            'color: #9a8f7c; font-size: 1.02rem; line-height: 1.55; '
+            'margin: 0.3rem 0 0.5rem;">'
+            'Dacă pleci cu doar 3 lucruri din lecția asta, acestea sunt.'
+            '</p>',
+            unsafe_allow_html=True,
         )
+        all_ticked = True
+        for vi, v in enumerate(ch.verifiers):
+            key = f"verifier_{ch.id}_{vi}"
+            ticked = bool(st.session_state.get(key, False))
+            if not ticked:
+                all_ticked = False
+            st.checkbox(v, key=key)
+
         if all_ticked:
             # Auto-complete (no button gate) — write directly to session_state.
             if ch.id not in completed:
                 completed = set(completed) | {ch.id}
                 st.session_state.completed_chapters = completed
+            # Softer celebration card. No "treci la următorul" instruction —
+            # the footer progress strip below already shows the next chapter.
             st.markdown(
-                '<span class="lrn-footer" style="color:#a8c0ae;">'
-                '✓ Capitol complet · treci la următorul</span>',
+                '<div class="lrn-completion">'
+                '<div class="lrn-completion-msg">'
+                'Foarte bine. Lecția asta e a ta.'
+                '</div>'
+                '<div class="lrn-completion-sub">'
+                'idei bifate · capitol încheiat'
+                '</div>'
+                '</div>',
                 unsafe_allow_html=True,
             )
 
@@ -361,26 +383,23 @@ def render_detail_panel(
                 f'◆ Metoda recomandată</div>',
                 unsafe_allow_html=True,
             )
+            # Method card — single bordered surface with a left accent
+            # rule. Hierarchy: tag · name · summary · "de ce funcționează".
             st.markdown(
-                f'<div style="font-family: Newsreader, serif; font-size: 1.18rem; '
-                f'font-weight: 500; color: #f4ede0; line-height: 1.3; margin: 0.3rem 0 0.4rem;">'
-                f'{_html.escape(main.name)}</div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f'<div style="font-family: Newsreader, serif; font-size: 1rem; '
-                f'color: #cdc4b1; line-height: 1.6;">'
-                f'{_html.escape(main.summary)}</div>',
-                unsafe_allow_html=True,
-            )
-            if main.when_to_use:
-                st.markdown(
-                    f'<div class="lrn-footer" style="margin-top: 0.5rem;">'
-                    f'Când: {_html.escape(main.when_to_use)}</div>',
-                    unsafe_allow_html=True,
+                f'<div class="lrn-method">'
+                f'<div class="lrn-method-name">{_html.escape(main.name)}</div>'
+                f'<div class="lrn-method-summary">{_html.escape(main.summary)}</div>'
+                + (
+                    f'<div class="lrn-method-why">'
+                    f'De ce funcționează: {_html.escape(main.when_to_use)}'
+                    f'</div>'
+                    if main.when_to_use else ''
                 )
+                + f'</div>',
+                unsafe_allow_html=True,
+            )
             st.checkbox(
-                f"Am făcut metoda „{main.name}” azi",
+                f"Am aplicat „{main.name}”",
                 key=f"method_done_{ch.id}_main",
             )
         # Alts · quiet one-line disclosure instead of full expanders
