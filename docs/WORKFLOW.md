@@ -89,6 +89,51 @@ bound to 8780. Never touches Hermes (9119) or unrelated listeners.
   GitHub Actions, zero new failure modes. We add automation only
   when the friction is real and the design is settled.
 
+## HF auto-deploy (post-PR #8)
+
+`.github/workflows/deploy-hf.yml` mirrors GitHub `main` to the
+Hugging Face Space (`vrobert94/ai-news`) on every push to `main`.
+Trigger is also exposed via `workflow_dispatch` for manual re-runs.
+
+**Required repo secret:** `HF_TOKEN` — an HF fine-grained write
+token scoped to the Space. Set it in
+**Settings → Secrets and variables → Actions → New repository
+secret**. Never store the token in this repo, in `.env`, on the
+VPS, or in any other workflow step that could echo it.
+
+**Flow after a merge to `main`:**
+
+```
+merge to main
+   ↓
+ci.yml smoke (informational)
+   ↓
+deploy-hf.yml job: sync to HF Space (requires HF_TOKEN)
+   ↓
+HF Space rebuilds in ~60s
+   ↓
+Robert checks Space URL → done
+```
+
+**Manual fallback** (if the workflow is broken or paused):
+
+```bash
+# On Robert's workstation, with the HF token in his git credential store:
+git push huggingface main
+```
+
+See `DEPLOY.md` for the historical full-throw instructions.
+
+**Why this shape:**
+
+- One secret (HF_TOKEN), stored on GitHub's side, never on the VPS.
+- Workflow never runs on `pull_request` — PR CI lives in `ci.yml`
+  and doesn't burn HF quota on every PR push.
+- Workflow never writes the token to stdout (masked via
+  `::add-mask::` and sourced only from `secrets.HF_TOKEN`).
+- Manual Mac push remains the documented fallback — same HF token,
+  no new failure modes.
+
 ## Future (not yet shipped)
 
 These are the planned next steps, parked until the workflow above
@@ -98,10 +143,6 @@ is the daily routine:
   runtime) with the live commit SHA + branch + PR number, rendered
   top-right of every page so Robert always sees which commit is on
   screen.
-- **HF auto-sync** — HF Space "Sync with GitHub" on a 5-minute
-  schedule (no GH Actions, no secrets, credential lives on HF's
-  side). Drift bounded at 5 minutes instead of "whenever Robert
-  remembers".
 - **Branch protection** — `Require CI / smoke to pass before
   merge` set in the GitHub UI. Configured by Robert, not from this
   repo.
