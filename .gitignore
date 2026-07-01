@@ -9,4 +9,5 @@ data/chroma/
 .env
 .idea/
 .vscode/
+preview.log
 
