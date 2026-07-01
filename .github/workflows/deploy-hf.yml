@@ -43,7 +43,7 @@ jobs:
           echo "✓ HF_TOKEN present (value masked from logs)"
 
       - name: Sync main to Hugging Face Space
-        uses: huggingface/hub-sync@1.0.0
+        uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
           huggingface_repo_id: vrobert94/ai-news
