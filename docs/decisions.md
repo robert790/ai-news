@@ -2,6 +2,20 @@
 
 Living log of the "why" behind big choices. Newest on top.
 
+## 2026-07-01 · Product repositioning — AI Career + Tools Radar (PR #10)
+
+**Was:** Romanian-first AI news + learning + jobs aggregator.
+**Now:** AI Career + Tools Radar. Five tabs: **Today / Tools / Learn / Jobs / Prompt Kits.**
+Target user: people who want to learn AI, use better AI tools, and find AI-related work.
+
+- **Internal section key `news` was deliberately kept** for the new Tools tab to preserve every existing `?section=news` deep-link. Renaming the key to `tools` is a separate, focused PR. Tracked as follow-up debt in app.py, README.md, and the PR body.
+- **Prompt Kits is the primary product surface** on the Prompts tab. The full Prompt Bible (1,137 prompts + filters) is demoted to a labeled secondary "power-user" layer below the kits row.
+- **Jobs stays static** (role + skill map + outbound search paths). No fake live job feed was introduced.
+- **Tools is reorganized into 4 curated use-case buckets** (Build / Ship / Write & Decide / Discover), capped at 4 cards per bucket — explicitly **not** a directory dump.
+- **Learn** relabeled, copy nudge to "paths not course". Content unchanged.
+
+Scope deliberately excludes: APIs, DB, auth, payments, GPS, scraping, live job feeds, full redesign, deploy workflow changes.
+
 ## 2026-06-27 · Product refocus
 
 **Original scope:** AI news + premium tier + NFC card physical access.
