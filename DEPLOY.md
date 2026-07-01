@@ -2,14 +2,14 @@
 
 5 minutes from this doc to a live URL your friends can open.
 
-> **Truth after the 2026-06-30 takeover (Hermes session)**
+> **Truth after the 2026-06-30 takeover (Hermes session) — updated 2026-07-01 (PR #8)**
 >
 > - **GitHub is canonical.** The source of truth is `https://github.com/robert790/ai-news`. All app changes land there first (PR + CI smoke), before any Hugging Face push.
-> - **Hugging Face is a manual deploy target only.** There is no GitHub Action, webhook, or repo secret that mirrors `main` to HF. The only way the Space updates today is `git push huggingface main` from a machine that has the HF token in its git credential store.
-> - **HF tokens must not be stored in this repo** (no `.env`, no GitHub Actions secret, no CI variable). The HF credential lives only on Robert's workstation.
+> - **Hugging Face deploy is automated.** After PR #8 lands, `.github/workflows/deploy-hf.yml` mirrors `main` to the HF Space on every push. Required repo secret: `HF_TOKEN` (HF fine-grained write token, scoped to the Space). Set in repo Settings → Secrets and variables → Actions. Never stored in this repo or on the VPS.
+> - **Mac `git push huggingface main` is now an emergency fallback only.** Use it only if the auto-sync workflow is broken or paused. See `docs/WORKFLOW.md` for the current automation contract.
 > **The current LLM is Groq, not DeepSeek.** `config.py` reads `GROQ_API_KEY` (and optionally `ANTHROPIC_API_KEY`). `DEEPSEEK_API_KEY` is a legacy name from an earlier build and is **ignored by the current code**; you can leave it or remove it from the HF Space's variables/secrets as you prefer — current code does not read it.
-> - **Defer automated deploys.** Until you explicitly want a workflow-driven HF mirror, keep deploys explicit and per-release. The pattern is: green CI on GitHub → manual `git push huggingface main` → ~60s HF rebuild → smoke-check the live URL.
-- **Drift history.** At takeover on 2026-06-30, public probes suggested the live Space was some hours behind GitHub `main` (no auto-mirror was active at that moment). Re-check the Space's `last-modified` after each manual push — if it stays still, the push didn't land.
+> - **Auto-sync cadence.** After a merge to `main`, GH Actions runs within ~30s, HF rebuild begins, ~60s rebuild wall time. Worst-case drift: a few minutes, not hours.
+>- **Drift history.** At takeover on 2026-06-30, public probes suggested the live Space was some hours behind GitHub `main` (no auto-mirror was active at that moment). After PR #8 the auto-sync closes that gap; manual `git push huggingface main` remains a documented fallback.
 
 ## Prerequisites
 

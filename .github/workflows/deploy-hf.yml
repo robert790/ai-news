@@ -1,0 +1,55 @@
+name: Deploy to Hugging Face Space
+
+# Auto-sync GitHub `main` to the Hugging Face Space after every merge.
+# Source of truth is GitHub. This workflow mirrors `main` → HF.
+#
+# Required repo secret: HF_TOKEN
+#   - HF fine-grained write token, scoped to the Space only
+#   - Set in repo Settings → Secrets and variables → Actions
+#   - Never printed, never stored in this repo or on the VPS
+#
+# Manual `git push huggingface main` from Robert's workstation
+# remains an emergency fallback — see DEPLOY.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-hf:
+    name: Sync main to HF Space
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Never run on pull_request — pushes to main only. PR CI lives
+    # in ci.yml. This separation keeps the HF deploy from racing PR
+    # checks and avoids burning HF quota on every PR push.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Verify HF_TOKEN secret is present
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [[ -z "${HF_TOKEN}" ]]; then
+            echo "::error::HF_TOKEN secret is not set. Add it in repo Settings → Secrets and variables → Actions before merging." >&2
+            exit 1
+          fi
+          # Mask the token so it never appears in logs even on error.
+          echo "::add-mask::${HF_TOKEN}"
+          echo "✓ HF_TOKEN present (value masked from logs)"
+
+      - name: Sync main to Hugging Face Space
+        uses: huggingface/hub-sync@1.0.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: vrobert94/ai-news
+          hf_token: ${{ secrets.HF_TOKEN }}
+        env:
+          # Belt-and-braces: even if the action logs the input, the
+          # token is sourced only from secrets (never from a literal
+          # in the workflow file) and masked via the step above.
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
