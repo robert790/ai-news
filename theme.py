@@ -342,19 +342,35 @@ def render_css() -> str:
     color: inherit !important;
   }}
   .or-topnav-brand .or-mark {{
-    width: 22px; height: 22px;
+    width: 26px; height: 26px;
     color: var(--amber);
     flex-shrink: 0;
   }}
+  /* Name + small mono kicker stacked under it — gives the brand a
+     "product identity" hierarchy rather than a tiny logo-and-text. */
+  .or-name-stack {{
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1;
+    gap: 0.22rem;
+  }}
   .or-topnav-brand .or-name {{
     font-family: {f['display']};
-    font-size: 1.25rem;
+    font-size: 1.45rem;
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     line-height: 1;
     color: var(--text);
   }}
-  .or-topnav-brand:hover .or-name {{ color: var(--amber); }}
+  .or-topnav-brand .or-name-kicker {{
+    font-family: {f['mono']};
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+    line-height: 1;
+  }}
+  .or-topnav-brand:hover .or-mark {{ color: var(--amber); }}
 
   /* ── Top nav pills (5 buttons inside `.or-nav-pills`) ──────── */
 
@@ -380,13 +396,13 @@ def render_css() -> str:
   [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"],
   [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"] {{
     border-radius: 999px !important;
-    padding: 0.42rem 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
     font-family: {f['mono']} !important;
     font-size: 0.7rem !important;
     letter-spacing: 0.14em !important;
     text-transform: uppercase !important;
-    min-height: 32px !important;
-    height: 32px !important;
+    min-height: 34px !important;
+    height: 34px !important;
     line-height: 1 !important;
     white-space: nowrap !important;
     transition:
@@ -401,21 +417,23 @@ def render_css() -> str:
     font-weight: 500 !important;
   }}
   [class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"]:hover {{
-    background: rgba(212, 145, 90, 0.08) !important;
+    background: rgba(244, 237, 224, 0.025) !important;
     color: var(--text-2) !important;
     border-color: var(--border) !important;
   }}
-  /* Selected = primary state, amber-gradient */
+  /* Selected — calm sage underline + text-2, no loud gradient. The
+     pill container still gives the bar a calm dark frame so the
+     active state reads as "this one is in here", not "look at me". */
   [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"] {{
-    background: linear-gradient(180deg, rgba(212, 145, 90, 0.95) 0%, rgba(212, 145, 90, 0.78) 100%) !important;
-    color: #1a1410 !important;
-    border-color: var(--amber) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 14px -4px rgba(212, 145, 90, 0.5) !important;
+    background: rgba(168, 192, 174, 0.10) !important;
+    color: var(--text) !important;
+    border-color: rgba(168, 192, 174, 0.35) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
   }}
   [class*="st-key-nav_"] button[data-testid="stBaseButton-primary"]:hover {{
-    background: linear-gradient(180deg, rgba(224, 165, 110, 1) 0%, rgba(212, 145, 90, 0.9) 100%) !important;
-    color: #1a1410 !important;
+    background: rgba(168, 192, 174, 0.14) !important;
+    color: var(--text) !important;
   }}
 
   /* Status cluster — right column. Inline-rendered, no card frame. */
@@ -480,8 +498,11 @@ def render_css() -> str:
       display: flex !important;
       justify-content: flex-end !important;
     }}
-    /* Brand font slightly smaller */
-    .or-topnav-brand .or-name {{ font-size: 1.05rem; }}
+    /* Brand font slightly smaller on narrow; drop the kicker so the
+     stack doesn't compete with the pills for horizontal space. */
+    .or-topnav-brand .or-name {{ font-size: 1.2rem; }}
+    .or-topnav-brand .or-name-kicker {{ display: none; }}
+    .or-topnav-brand .or-mark {{ width: 22px; height: 22px; }}
     .or-topnav-status .or-tag-desktop {{ display: none; }}
     .or-topnav-status .or-live-pill {{ font-size: 0.55rem; padding: 0.22rem 0.5rem; }}
   }}
