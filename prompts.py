@@ -170,3 +170,84 @@ def all_categories(bible: PromptBible) -> list:
 def iter_examples(bible: PromptBible, limit: int = 3) -> Iterable[dict]:
     """First `limit` prompts, useful for the Azi landing-page slot."""
     return bible.prompts[:limit]
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# PR10 · Prompt Kits (outcome-grouped prompt bundles)
+# ─────────────────────────────────────────────────────────────────────────
+# A "kit" is a curated subset of prompts pulled from the bible and
+# framed around an outcome ("ship a feature this morning", "review a
+# PR", "decide between two options"). KITS is pure data — its keys are
+# stable ids; the actual prompt payloads are pulled at render time via
+# `kits_for(bible)` so the kits always reflect current bible contents
+# and we don't fork the data into a second file.
+#
+#   id           — URL-safe stable kit identifier (used in ?section=prompts&kit=…)
+#   title        — user-facing kit name (one short line)
+#   outcome      — one-line description of the outcome this kit serves
+#   category     — bible category to pull prompts from
+#   max_prompts  — cap on the bundle size (5–8 keeps the card readable)
+#
+# Adding a kit = appending one dict. No schema change to the bible.
+
+KITS: list[dict] = [
+    {
+        "id":          "ship-feature",
+        "title":       "Ship a feature this morning",
+        "outcome":     "From a vague ticket to merged code: plan it, write it, test it, review it.",
+        "category":    "code",
+        "max_prompts": 6,
+    },
+    {
+        "id":          "decide",
+        "title":       "Decide between two options",
+        "outcome":     "Stack-ranked tradeoffs, not opinions. Use when the team can't agree.",
+        "category":    "decide",
+        "max_prompts": 5,
+    },
+    {
+        "id":          "long-to-brief",
+        "title":       "Turn a long doc into a brief",
+        "outcome":     "Drop a long input, get a 1-page summary with the decisions that matter.",
+        "category":    "write",
+        "max_prompts": 6,
+    },
+    {
+        "id":          "explain-simply",
+        "title":       "Explain it like I'm twelve",
+        "outcome":     "Force-grade clarity — best test for whether you actually understood something.",
+        "category":    "write",
+        "max_prompts": 5,
+    },
+    {
+        "id":          "research-fast",
+        "title":       "Research a topic fast",
+        "outcome":     "Multi-source sweep, sources cited, contradictions flagged. Read in 10 minutes.",
+        "category":    "research",
+        "max_prompts": 6,
+    },
+]
+
+
+def kits_for(bible: PromptBible) -> list[dict]:
+    """Materialize kits against the currently loaded bible.
+
+    Returns one dict per kit in `KITS` with an extra `prompts` key —
+    a list of prompt dicts from that kit's category, capped at the
+    kit's `max_prompts`. Order: bible order (which is curated upstream).
+
+    The bible is the source of truth — adding/removing kit rows here
+    changes the product surface, but the prompts themselves live in
+    `prompts_data/prompts.json` as always.
+    """
+    out: list[dict] = []
+    for k in KITS:
+        cap = k.get("max_prompts", 5)
+        prompts_in_cat = [p for p in bible.prompts
+                          if p.get("category") == k.get("category")]
+        # Defensive: if a kit's category is unknown or empty, fall back
+        # to the first N prompts so the kit still renders something.
+        if not prompts_in_cat:
+            prompts_in_cat = bible.prompts[:cap]
+        out.append({**k, "prompts": prompts_in_cat[:cap]})
+    return out

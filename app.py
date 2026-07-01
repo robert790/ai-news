@@ -73,6 +73,8 @@ from prompts import (
     all_categories,
     all_difficulties,
     all_model_ids,
+    KITS,           # PR10 — outcome-grouped prompt bundles
+    kits_for,       # PR10 — build the kit list from the loaded bible
 )
 
 
@@ -391,13 +393,17 @@ def render_top_nav() -> str:
     # Display labels are user-facing; internal section keys stay the
     # same so `?section=groq` deep-links and the DISPATCH dict keep
     # working without rename risk.
+    #
+    # PR10 positioning labels: Today / Tools / Learn / Jobs / Prompt Kits.
+    # NOTE — internal key `news` is temporarily retained for the Tools tab
+    # to avoid a risky deep-link rename. Tracked as follow-up debt.
     with cols[1]:
         section_labels = [
-            ("groq",     "☀  Signals"),
-            ("news",     "◌  News"),
-            ("learning", "❡  Learning"),
+            ("groq",     "☀  Today"),
+            ("news",     "◌  Tools"),
+            ("learning", "❡  Learn"),
             ("jobs",     "◆  Jobs"),
-            ("prompts",  "✦  Prompts"),
+            ("prompts",  "✦  Prompt Kits"),
         ]
         st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
         btn_cols = st.columns(5, gap="small")
@@ -450,7 +456,9 @@ if SECTION not in {"groq", "news", "learning", "jobs", "prompts"}:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: AZI · daily brief landing
+# SECTION: AZI · today landing
+# PR10 positioning: "Today" — daily brief for an AI Career + Tools Radar.
+# Bento trio is News / Tools / Jobs (top 3 each) + lesson + prompt.
 # ─────────────────────────────────────────────────────────────────────────
 def render_groq() -> None:
     """The default landing: cinematic hero, then a 3-card bento of
@@ -464,10 +472,10 @@ def render_groq() -> None:
             + "</span>"
         ),
         headline_html=(
-            'Today, in <span class="or-accent">signals</span>.'
+            'Your <span class="or-accent">AI career</span> &amp; tools radar.'
         ),
-        sub="Bei cafeaua, scanezi lumea, pleci la treaba. "
-            "Top 3 din fiecare · lecția zilei · un prompt de încercat.",
+        sub="O dată pe zi, cinci semnale: ce e nou azi, un tool pe care să-l încerci, "
+            "o lecție scurtă și un kit de prompturi pentru mâine.",
     )
 
     tips_strip(n=4)
@@ -593,127 +601,148 @@ def render_groq() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: NEWS · full feed from 6 sources
+# SECTION: TOOLS · curated by use case (internal key still `news`)
+# PR10: Tools replaces the old News feed. Reorganized into 4 outcome-
+# keyed buckets (Build / Ship / Write-Decide / Discover), each capped
+# at 4 cards. Function name `render_news` retained to avoid touching
+# DISPATCH; the user-facing label in the top nav is now "Tools".
+# See decision log for rationale.
 # ─────────────────────────────────────────────────────────────────────────
 def render_news() -> None:
     section_head(
-        "FEED · ȘASE SURSE",
-        "News",
-        "Deep dive pe 6 surse: cercetare, comunitate, trenduri, analiză.",
+        "CURATED · BY USE CASE",
+        "Tools",
+        "Patru grupări de lucru — Build / Ship / Write &amp; Decide / Discover. "
+        "Patru carduri per grupare, nu un dump. Folosește ca să alegi un tool pentru "
+        "ce vrei să faci azi.",
     )
 
-    # 1. Research (HF papers)
+    # 1. Build software — repos trending on 7-day growth + GitHub today
     st.markdown(
         '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
         'letter-spacing:.18em;text-transform:uppercase;color:var(--sky);'
-        'margin:0 0 1rem;">▸ Cercetare</p>',
+        'margin:1.5rem 0 .8rem;">▸ Build software</p>'
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);'
+        'font-size:.9rem;margin:-.4rem 0 1rem;">Repos trending on growth. '
+        'Pick one to read, fork, or integrate.</p>',
         unsafe_allow_html=True,
     )
-    for p in summarize_batch(load_hf()[:5]):
-        or_card(
-            label="HF Papers",
-            label_color="sky",
-            title=p.title,
-            title_url=p.url,
-            summary=p.summary,
-            meta=f"⬆ {p.score} · 👤 {esc(p.author or 'anon')}",
+    repos = list(load_repos()[:2]) + list(load_github()[:2])
+    if not repos:
+        st.markdown(
+            '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">'
+            'Feed offline. Încearcă din nou.</div>',
+            unsafe_allow_html=True,
         )
-
-    # 2. Community — HN + Lobsters side-by-side
-    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
-    st.markdown(
-        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
-        'letter-spacing:.18em;text-transform:uppercase;color:var(--coral);'
-        'margin:0 0 1rem;">▸ Comunitate</p>',
-        unsafe_allow_html=True,
-    )
-    col_hn, col_lob = st.columns(2, gap="medium")
-    with col_hn:
-        st.caption("HackerNews")
-        for item in summarize_batch(load_hn()[:5]):
+    for r in repos:
+        if hasattr(r, "full_name"):  # TrendingRepo dataclass from findarepo
             or_card(
-                label="HN",
-                label_color="coral",
-                title=item.title,
-                title_url=item.url,
-                summary=item.summary,
-                meta=f"⬆ {item.score} · {fmt_date(item.published_at)}",
-            )
-    with col_lob:
-        st.caption("Lobsters")
-        for item in summarize_batch(load_lobsters()[:5]):
-            or_card(
-                label="Lobsters",
-                label_color="coral",
-                title=item.title,
-                title_url=item.url,
-                summary=item.summary,
-                meta=f"⬆ {item.score} · {fmt_date(item.published_at)}",
-            )
-
-    # 3. Trends
-    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
-    st.markdown(
-        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
-        'letter-spacing:.18em;text-transform:uppercase;color:var(--lavender);'
-        'margin:0 0 1rem;">▸ Trenduri GitHub</p>',
-        unsafe_allow_html=True,
-    )
-    col_fr, col_gh = st.columns(2, gap="medium")
-    with col_fr:
-        st.caption("findarepo · 7-day growth")
-        for r in load_repos()[:5]:
-            or_card(
-                label="findarepo",
+                label="findarepo · build",
                 label_color="sky",
                 title=r.full_name,
                 title_url=r.url,
                 summary=r.description,
                 meta=f"★ {r.stars} · ↗ +{r.growth}/7d · {esc(r.language or '—')}",
             )
-    with col_gh:
-        st.caption("GitHub Trending · today")
-        for it in load_github()[:5]:
-            tags = "/".join(t for t in it.tags if t not in ("github", "repo", "trending")) or "—"
+        else:  # NewsItem from github_trending
+            tags = "/".join(t for t in r.tags if t not in ("github", "repo", "trending")) or "—"
             or_card(
-                label="GitHub",
+                label="GitHub · build",
                 label_color="sky",
-                title=it.title,
-                title_url=it.url,
-                meta=f"⬆ {it.score} stars · {esc(tags)}",
+                title=r.title,
+                title_url=r.url,
+                meta=f"⬆ {r.score} stars · {esc(tags)}",
             )
 
-    # 4. Weekly analysis
-    st.markdown('<div style="height:1.8rem;"></div>', unsafe_allow_html=True)
+    # 2. Ship faster — research + community signal on what's deployable now
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--lavender);'
+        'margin:1.5rem 0 .8rem;">▸ Ship faster</p>'
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);'
+        'font-size:.9rem;margin:-.4rem 0 1rem;">Research + community signal — '
+        'what is deployable today vs what is still in the lab.</p>',
+        unsafe_allow_html=True,
+    )
+    for p in summarize_batch(load_hf()[:2] + load_hn()[:2]):
+        or_card(
+            label=f"{'HF Papers' if p.url and 'arxiv' in p.url else 'HN'} · ship",
+            label_color="lavender" if "arxiv" in (p.url or "") else "coral",
+            title=p.title,
+            title_url=p.url,
+            summary=p.summary,
+            meta=f"⬆ {p.score} · {fmt_date(p.published_at)}",
+        )
+
+    # 3. Write &amp; decide — opinion + analysis
     st.markdown(
         '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
         'letter-spacing:.18em;text-transform:uppercase;color:var(--coral);'
-        'margin:0 0 1rem;">▸ Analiză săptămânală</p>',
+        'margin:1.5rem 0 .8rem;">▸ Write &amp; decide</p>'
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);'
+        'font-size:.9rem;margin:-.4rem 0 1rem;">Opinion + analysis — long-form '
+        'pieces that change how you frame a decision.</p>',
         unsafe_allow_html=True,
     )
-    for it in summarize_batch(load_importai()[:3]):
+    combined = list(load_lobsters()[:2]) + list(load_importai()[:2])
+    if not combined:
+        st.markdown(
+            '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">'
+            'Opinion feed offline. Încearcă din nou.</div>',
+            unsafe_allow_html=True,
+        )
+    for it in summarize_batch(combined):
         or_card(
-            label="Import AI",
-            label_color="lavender",
+            label="Lobsters" if "lobste.rs" in (it.url or "") else "Import AI",
+            label_color="coral",
             title=it.title,
             title_url=it.url,
             summary=it.summary,
-            meta=f"📝 {esc(it.author or '')} · {fmt_date(it.published_at)}",
+            meta=f"⬆ {it.score} · {fmt_date(it.published_at)}",
+        )
+
+    # 4. Discover this week — fresh + emerging
+    st.markdown(
+        '<p style="font-family:JetBrains Mono,monospace;font-size:.7rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--amber);'
+        'margin:1.5rem 0 .8rem;">▸ Discover this week</p>'
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);'
+        'font-size:.9rem;margin:-.4rem 0 1rem;">Fresh, weird, worth a 30-second '
+        'skim — rising fast, niche today, possibly inevitable next quarter.</p>',
+        unsafe_allow_html=True,
+    )
+    emerging = list(load_hn()[:2]) + list(load_lobsters()[:2])
+    if not emerging:
+        st.markdown(
+            '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">'
+            'Discover feed offline.</div>',
+            unsafe_allow_html=True,
+        )
+    for it in summarize_batch(emerging):
+        or_card(
+            label="Discover",
+            label_color="amber",
+            title=it.title,
+            title_url=it.url,
+            summary=it.summary,
+            meta=f"⬆ {it.score} · {fmt_date(it.published_at)}",
         )
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: LEARNING · Hartă AI pe categorii (10 chapters)
-# PR-A: layout v1 — single-column lecture page, calm selector, no timeline.
+# SECTION: LEARN · Practical short paths (10 chapters)
+# PR10: copy nudge — frames the 10 chapters as practical short paths,
+# not a generic course catalog. Content itself is unchanged.
 # ─────────────────────────────────────────────────────────────────────────
 def render_learning() -> None:
     from learning.learning_render import render_detail_panel
     from theme import lecture_css
 
     section_head(
-        "HARTĂ AI · 10 CATEGORII",
-        "Learning",
-        "Fiecare capitol = o categorie mare de AI. Basics + un exercițiu.",
+        "PATHS · 10 CHAPTERS",
+        "Learn",
+        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de "
+        "făcut — nu curs generic.",
     )
 
     ch_list = get_all_chapters()
@@ -752,34 +781,122 @@ def render_learning() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: JOBS · mock data + future
+# SECTION: JOBS · static role + skill search-path map
+# PR10: This is intentionally NOT a live job board. Each entry is a
+# role + skill anchor with outbound search paths (LinkedIn / BestJobs /
+# eJobs / Indeed RO) so the user can leave the app and actually search.
+# Skill gaps point back into the Learn chapters. Live aggregation is a
+# later milestone — see roadmap note at the bottom of this section.
 # ─────────────────────────────────────────────────────────────────────────
 def render_jobs() -> None:
     section_head(
-        "MATCH · SKILL GAPS",
+        "ROLE MAP · SEARCH PATHS",
         "Jobs",
-        "Joburi AI care se potrivesc cu ce înveți. Skill matching LLM-powered.",
+        "Patru roluri AI care angajează activ în RO. Pentru fiecare: abilități, "
+        "capitol de învățat, și link-uri de căutare pe platformele care contează. "
+        "Nu e job board — e hartă.",
     )
 
-    mock_jobs = [
-        {"title": "LLM Engineer", "company": "DRUID AI", "location": "București", "match": "82%", "gap": "LangChain, Vector DBs"},
-        {"title": "AI Product Manager", "company": "Bitdefender", "location": "București", "match": "76%", "gap": "Eval, RAG"},
-        {"title": "AI Solutions Consultant", "company": "ClusterPower", "location": "Iași", "match": "71%", "gap": "GPU infrastructure"},
-        {"title": "ML Engineer", "company": "UiPath", "location": "București", "match": "68%", "gap": "Fine-tuning, RLHF"},
+    st.markdown(
+        '<div class="or-mini or-reveal" style="min-height:auto;margin:0 0 1.4rem;">'
+        '<div class="or-mini-tag" style="color:var(--sky);">▸ HOW THIS WORKS</div>'
+        '<p class="or-mini-body" style="margin-bottom:0;">'
+        'Alege un rol · citește gap-ul · mergi la capitolul recomandat · aplică '
+        'prin link-urile de search de mai jos. Board-ul live e pe roadmap; pentru '
+        'acum, platformele reale sunt mai bune decât orice scraper.'
+        '</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Role + skill + search-path cards. Static content.
+    # Each role: title, company, location, skills_needed (tags),
+    # related_chapter (from content/chapters.jsonl), search_paths
+    # (outbound links to real job platforms).
+    roles = [
+        {
+            "title": "LLM Engineer",
+            "company": "DRUID AI",
+            "location": "București",
+            "skills": ["Python", "LangChain", "Vector DBs", "RAG"],
+            "chapter_id": "ch5",   # building with LLMs
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=LLM%20Engineer%20DRUID"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=LLM%20Engineer"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=LLM%20Engineer"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=LLM+Engineer"),
+            ],
+        },
+        {
+            "title": "AI Product Manager",
+            "company": "Bitdefender",
+            "location": "București",
+            "skills": ["Eval design", "RAG strategy", "Stakeholder demos"],
+            "chapter_id": "ch7",   # product/apply chapter
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=AI%20Product%20Manager%20Bitdefender"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=AI%20Product%20Manager"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=AI%20Product%20Manager"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=AI+Product+Manager"),
+            ],
+        },
+        {
+            "title": "AI Solutions Consultant",
+            "company": "ClusterPower",
+            "location": "Iași",
+            "skills": ["GPU infra", "Fine-tuning", "On-prem LLM"],
+            "chapter_id": "ch6",   # infra / RAG chapter
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=AI%20Solutions%20Consultant"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=AI%20Consultant"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=AI%20Consultant"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=AI+Solutions"),
+            ],
+        },
+        {
+            "title": "ML Engineer",
+            "company": "UiPath",
+            "location": "București",
+            "skills": ["Fine-tuning", "RLHF", "Eval pipelines"],
+            "chapter_id": "ch8",   # applied/build chapter
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=ML%20Engineer%20UiPath"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=ML%20Engineer"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=ML%20Engineer"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=ML+Engineer"),
+            ],
+        },
     ]
 
-    # 2-up bento of mock jobs
+    # 2-up bento of role cards
     cards_html = ""
-    for j in mock_jobs:
+    for r in roles:
+        skills_html = "".join(
+            f'<span style="font-family:JetBrains Mono,monospace;font-size:.6rem;'
+            f'letter-spacing:.06em;text-transform:uppercase;padding:.15rem .5rem;'
+            f'border:1px solid var(--border);border-radius:999px;color:var(--muted);'
+            f'margin-right:.3rem;">{esc(s)}</span>'
+            for s in r["skills"]
+        )
+        paths_html = "".join(
+            f'<a href="{esc(url)}" target="_blank" rel="noopener" '
+            f'style="font-family:JetBrains Mono,monospace;font-size:.62rem;'
+            f'letter-spacing:.08em;text-transform:uppercase;color:var(--sky);'
+            f'margin-right:.6rem;">{esc(name)} ↗</a>'
+            for name, url in r["search"]
+        )
+        chapter_url = f"?section=learning&ch={r['chapter_id']}"
         cards_html += (
             '<div class="or-mini" style="min-height:auto;">'
-            f'<div class="or-mini-tag">▸ {esc(j["location"].upper())}</div>'
-            f'<h3 style="font-size:1.15rem;margin-bottom:.35rem;">{esc(j["title"])}</h3>'
-            f'<p class="or-mini-body" style="margin-bottom:.8rem;">{esc(j["company"])} '
-            f'· <span style="color:var(--muted);">skills gap: {esc(j["gap"])}</span></p>'
-            f'<div class="or-mini-foot"><span style="font-family:Newsreader,serif;'
-            f'font-size:1.4rem;color:var(--amber);font-style:italic;">{esc(j["match"])}</span>'
-            f'<span>match</span></div></div>'
+            f'<div class="or-mini-tag">▸ {esc(r["location"].upper())} · {esc(r["company"].upper())}</div>'
+            f'<h3 style="font-size:1.15rem;margin-bottom:.5rem;">{esc(r["title"])}</h3>'
+            f'<div style="margin-bottom:.7rem;">{skills_html}</div>'
+            f'<div class="or-mini-foot" style="flex-direction:column;align-items:flex-start;gap:.5rem;">'
+            f'<div>{paths_html}</div>'
+            f'<a href="{esc(chapter_url)}" style="font-family:Newsreader,serif;font-style:italic;'
+            f'font-size:.85rem;color:var(--amber);">→ Capitolul pentru gap-ul ăsta</a>'
+            f'</div>'
+            f'</div>'
         )
     st.markdown(
         f'<div class="or-bento-mini or-reveal" '
@@ -787,22 +904,29 @@ def render_jobs() -> None:
         unsafe_allow_html=True,
     )
 
-    # Future notice
+    # Roadmap note — explicit, no fake live feed promise
     st.markdown('<div style="height:2rem;"></div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="or-mini or-reveal" style="min-height:auto;">'
-        '<div class="or-mini-tag" style="color:var(--coral);">▸ ROADMAP · V0.6</div>'
-        '<h3>Live job feed — în construcție</h3>'
-        '<p class="or-mini-body">Scrape LinkedIn, Indeed, BestJobs și eJobs. '
-        'Extrage skill-uri cu LLM. Match-ează cu profilul tău. Sugerează '
-        'capitole din Learning pentru skill gaps.</p>'
+        '<div class="or-mini-tag" style="color:var(--coral);">▸ ROADMAP</div>'
+        '<h3>Live job feed — nu azi</h3>'
+        '<p class="or-mini-body">'
+        'Scraping live de pe LinkedIn / Indeed / BestJobs / eJobs este pe lista '
+        'de <em>later</em>. Până atunci, folosește link-urile de search de mai '
+        'sus — sunt reale, indexate, și au filtre pe care orice job board le '
+        'poate doar copia. Când adăugăm live, facem explicit (badge-ul va '
+        'spune «LIVE FEED» și va fi etichetat ca atare).'
+        '</p>'
         '</div>',
         unsafe_allow_html=True,
     )
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# SECTION: PROMPTS · Prompt Bible
+# SECTION: PROMPT KITS · outcome-grouped bundles (primary layer)
+# PR10: Prompt Kits is the primary product surface on this tab. Below
+# the kits row, the full Prompt Bible (1,137 prompts + filters) is kept
+# as a secondary power-user/search layer. Internal key still `prompts`.
 # ─────────────────────────────────────────────────────────────────────────
 def render_prompts() -> None:
     bible = load_prompt_bible()
@@ -819,10 +943,63 @@ def render_prompts() -> None:
             cat_counts[c] += 1
 
     section_head(
-        f"PROMPT BIBLE · {n_total}",
-        "Prompts",
-        "Prompturi production-grade. Filtrează pe categorie, "
-        "difficulty sau model — caută în titlu și conținut.",
+        "KITS · BY OUTCOME",
+        "Prompt Kits",
+        "Cinci kit-uri pentru o treabă specifică — un kit pentru azi, restul "
+        "când ai nevoie. Colecția completă (1.137 prompturi) e mai jos, cu filtre.",
+    )
+
+    # ── Primary layer: Kits (outcome-grouped prompt bundles) ──
+    bundles = kits_for(bible)
+
+    kit_cells = ""
+    for i, kit in enumerate(bundles):
+        cid = kit.get("category", "code")
+        clr = category_color(bible, cid)
+        lbl = category_label(bible, cid)
+        ico = category_icon(bible, cid)
+        sample = kit.get("prompts", [])[:5]
+        sample_html = "".join(
+            f'<a href="?section=prompts&amp;kit={esc(kit["id"])}" '
+            f'style="font-family:Newsreader,serif;font-size:.92rem;color:var(--text);'
+            f'line-height:1.35;display:block;margin-bottom:.35rem;text-decoration:none;">'
+            f'<span style="color:{esc(clr)};">▸</span> {esc(p.get("title",""))}</a>'
+            for p in sample
+        )
+        anchor = "?section=prompts&kit=" + kit["id"]
+        more = max(0, len(kit.get("prompts", [])) - len(sample))
+        more_html = (
+            f'<a href="{esc(anchor)}" style="font-family:JetBrains Mono,monospace;'
+            f'font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;'
+            f'color:var(--amber);">+ {more} more in this kit →</a>'
+            if more else ""
+        )
+        kit_cells += (
+            '<div class="or-mini" style="min-height:auto;">'
+            f'<div class="or-mini-tag" style="color:{esc(clr)};">▸ KIT {i+1} OF {len(bundles)}</div>'
+            f'<h3 style="font-size:1.15rem;margin-bottom:.3rem;">{esc(ico)} {esc(kit["title"])}</h3>'
+            f'<p class="or-mini-body" style="margin-bottom:.8rem;font-style:italic;color:var(--muted);">'
+            f'{esc(kit.get("outcome",""))}</p>'
+            f'<div style="margin-bottom:.7rem;">{sample_html}</div>'
+            f'{more_html}'
+            f'</div>'
+        )
+    st.markdown(
+        f'<div class="or-bento-mini or-reveal" '
+        f'style="grid-template-columns:repeat(2,1fr);margin-bottom:2rem;">{kit_cells}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Secondary layer divider ──
+    st.markdown(
+        '<div style="margin:2rem 0 1rem;display:flex;align-items:center;gap:1rem;">'
+        '<span style="flex:1;height:1px;background:var(--border);"></span>'
+        '<span style="font-family:JetBrains Mono,monospace;font-size:.65rem;'
+        'letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
+        'FULL BIBLE · 1,137 PROMPTS · POWER-USER FILTERS BELOW</span>'
+        '<span style="flex:1;height:1px;background:var(--border);"></span>'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
     # ── Search ──
