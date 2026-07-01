@@ -148,7 +148,7 @@ def icon(name: str, cls: str = "nav-ico") -> str:
 # width/height so the SVG can't fall back to browser-default 300x150px
 # when the surrounding CSS hasn't been applied yet.
 RADAR_MARK = (
-    '<svg width="22" height="22" viewBox="0 0 32 32" fill="none" '
+    '<svg width="26" height="26" viewBox="0 0 32 32" fill="none" '
     'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" '
     'class="or-mark">'
     '<circle cx="16" cy="16" r="13"/>'
@@ -373,21 +373,27 @@ def render_top_nav() -> str:
 
     cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
-    # Brand
+    # Brand — icon + name + small mono kicker for hierarchy.
     with cols[0]:
         st.markdown(
             '<a class="or-topnav-brand" href="?section=groq">'
             f'{RADAR_MARK}'
+            '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
+            '<span class="or-name-kicker">open · ai radar</span>'
+            '</span>'
             '</a>',
             unsafe_allow_html=True,
         )
 
     # 5 nav buttons — each renders as a Streamlit `st.button` in its
     # own column. CSS handles the pill styling via [class*="st-key-nav_"].
+    # Display labels are user-facing; internal section keys stay the
+    # same so `?section=groq` deep-links and the DISPATCH dict keep
+    # working without rename risk.
     with cols[1]:
         section_labels = [
-            ("groq",     "☀  Groq"),
+            ("groq",     "☀  Signals"),
             ("news",     "◌  News"),
             ("learning", "❡  Learning"),
             ("jobs",     "◆  Jobs"),
