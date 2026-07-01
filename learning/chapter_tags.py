@@ -1,6 +1,18 @@
 """Chapter tags — keywords used to match each chapter against live
 feeds (News / GitHub Trending / Prompts / Jobs).
 
+Active chapter ids: ``ch1..ch10``. The legacy entries ``ch11..ch15``
+were retired in PR2 (June 2026) when the chapter surface was moved
+to ``content/chapters.jsonl``. Their static content still lives in
+``learning/content/chN.{html,json}`` for archive purposes; see
+``content/retired_chapters.json`` for the full retirement note.
+
+``tags_for(retired_id)`` returns ``[]`` so cross-ref scoring treats
+retired ids as silent no-ops. A future PR may revive some of these
+chapters; the JSONL id convention is ``chN`` so a revived chapter
+can be added by appending a JSONL row and re-introducing the tag
+entry here.
+
 Hand-curated, NOT generated. Quality > automation here: if the tags
 don't feel like the chapter, cross-refs feel random and the moat
 breaks.
@@ -29,16 +41,30 @@ CHAPTER_TAGS: dict[str, list[str | tuple[str, float]]] = {
             "hpc", "compute"],
     "ch9": ["romania", "startup", "company", "ecosystem", "team"],
     "ch10": ["opportunity", "gap", "niche", "market", ("positioning", 2.0)],
-    "ch11": ["role", "job", "career", "engineer", "researcher", "applied"],
-    "ch12": ["portfolio", "project", "build", ("github", 2.0), "demo"],
-    "ch13": ["certification", "course", "learning", "credential", "exam"],
-    "ch14": ["tool", "stack", "ide", "vscode", "cursor", "cli", ("agent", 2.0)],
-    "ch15": ["newsletter", "podcast", "follow", "account", "stay current"],
 }
+
+# Retired chapter ids — present in the chapter_tags surface for
+# backward-compat only. Live UI uses ch1..ch10; legacy ch11..ch15
+# prose exists only as static HTML/JSON in learning/content/ and is
+# not reachable from the active UI.
+RETIRED_CHAPTER_IDS: frozenset[str] = frozenset({
+    "ch11",  # role/job/career (legacy)
+    "ch12",  # portfolio/project/build (legacy)
+    "ch13",  # certification/course (legacy)
+    "ch14",  # tool/stack/IDE (legacy)
+    "ch15",  # newsletter/podcast/follow (legacy)
+})
 
 
 def tags_for(chapter_id: str) -> list[tuple[str, float]]:
-    """Return [(tag, weight), ...] for a chapter."""
+    """Return ``[(tag, weight), ...]`` for a chapter.
+
+    Retired chapter ids (see ``RETIRED_CHAPTER_IDS``) return an empty
+    list — the cross-ref scorer treats them as silent no-ops so a
+    stale ``chapter_id`` does not pollute the live news cross-refs.
+    """
+    if chapter_id in RETIRED_CHAPTER_IDS:
+        return []
     raw = CHAPTER_TAGS.get(chapter_id, [])
     out: list[tuple[str, float]] = []
     for t in raw:
