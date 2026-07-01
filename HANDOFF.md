@@ -4,6 +4,11 @@
 > Last updated: 2026-06-30 · Streamlit 1.50 local / 1.32 on HF Spaces.
 > Takeover update: 2026-06-30 — see §15.
 
+> **PR review QA · read this first:** [docs/WORKFLOW.md](docs/WORKFLOW.md) —
+> VPS PR preview runs on port 8780 via `bash scripts/preview.sh`; Mac
+> tunnels to it. HF live is separate; HF deploy remains manual until
+> automation is approved.
+
 ---
 
 ## 1. What this is
