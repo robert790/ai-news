@@ -221,439 +221,324 @@ def _load_cross_refs(chapter_id: str) -> dict:
 # Main render · the only public entry point
 # ====================================================================
 
+# ====================================================================
+# Lecture-page body CSS (kept local — body typography is content-tuned
+# and we don't want to spread it across multiple files).
+# ====================================================================
+_BODY_CSS = """
+.lrn-body { font-family: Newsreader, serif; font-size: 1.08rem; line-height: 1.75; color: #f4ede0; }
+.lrn-body h3 { font-family: Newsreader, serif; font-weight: 500; color: #f4ede0;
+               font-size: 1.28rem; margin: 1.6rem 0 0.5rem; line-height: 1.3; }
+.lrn-body p  { margin: 0 0 1rem 0; color: #d4cebf; }
+.lrn-body strong { color: #f4ede0; font-weight: 600; }
+.lrn-body em     { color: #d4a574; font-style: italic; }
+.lrn-body code { font-family: JetBrains Mono, monospace; background: #1f1d1a;
+                padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.88em;
+                color: #e8a598; }
+.lrn-body pre { background: #1f1d1a; border: 1px solid #3a3530; border-radius: 8px;
+                padding: 1rem; overflow-x: auto; font-family: JetBrains Mono, monospace;
+                font-size: 0.82rem; line-height: 1.55; margin: 0 0 1.2rem; }
+.lrn-body pre code { background: transparent; padding: 0; color: #f4ede0; }
+.lrn-body ul { padding-left: 1.2rem; margin: 0 0 1rem 0; }
+.lrn-body li { margin: 0.4rem 0; color: #d4cebf; }
+.lrn-body table { border-collapse: collapse; margin: 1rem 0; width: 100%;
+                  font-size: 0.92rem; font-family: Newsreader, serif; }
+.lrn-body th { font-family: JetBrains Mono, monospace; font-size: 0.6rem;
+               text-align: left; color: #8a8478; text-transform: uppercase;
+               letter-spacing: 0.08em; padding: 0.6rem 0.5rem;
+               border-bottom: 1px solid #3a3530; }
+.lrn-body td { padding: 0.6rem 0.5rem; color: #d4cebf; border-bottom: 1px solid #2e2b27; }
+.lrn-body tr:last-child td { border-bottom: none; }
+"""
+
+
 def render_detail_panel(
     selected_id: str,
     ch_list: list,
     completed: set,
 ) -> None:
+    """Lecture-page renderer · PR-A layout v1.
+
+    Single column, calm reading measure, body early. The previous
+    implementation used a 3:1 two-column layout with a heavy sidebar
+    counter; that chrome has been demoted into a quiet footer strip.
+    The body markdown, cross-ref data fetch, verifiers, methods, and
+    Ask Groq helper are kept — only their position and presentation
+    have changed.
+    """
     ch = get_chapter(selected_id)
     accent = domain_color(ch.domain)
+    idx = next((i for i, c in enumerate(ch_list) if c.id == ch.id), 0)
+    prev_ch = ch_list[idx - 1] if idx > 0 else None
+    next_ch = ch_list[idx + 1] if idx < len(ch_list) - 1 else None
+    total = len(ch_list)
 
-    # =====================
-    # Header strip
-    # =====================
+    # ── Open the lecture column ──
+    st.markdown('<div class="lrn-lecture">', unsafe_allow_html=True)
+
+    # ── Lecture header ──
     st.markdown(
-        f'<a id="chapter-detail"></a>',
+        f'<div class="lrn-breadcrumb">❡ Learning · Capitol</div>',
         unsafe_allow_html=True,
     )
-    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
-
     st.markdown(
-        f'<div style="display: flex; align-items: center; gap: 0.85rem; '
-        f'flex-wrap: wrap; margin-bottom: 0.5rem;">'
-        f'<span style="font-family: Newsreader, serif; font-size: 3rem; '
-        f'color: {accent}; line-height: 1; font-weight: 300;">'
-        f'{ch.number:02d}</span>'
-        f'<div>'
-        f'<div style="font-family: JetBrains Mono, monospace; font-size: 0.65rem; '
-        f'color: {accent}; letter-spacing: 0.1em; text-transform: uppercase;">'
-        f'{_html.escape(ch.domain)}</div>'
-        f'<div style="font-family: JetBrains Mono, monospace; font-size: 0.55rem; '
-        f'color: #6a6458; letter-spacing: 0.08em; margin-top: 0.15rem;">'
-        f'ERA {_html.escape(ch.era)}</div>'
-        f'</div>'
-        f'</div>'
-        f'<h2 style="margin: 0; font-family: Newsreader, serif; '
-        f'font-weight: 500; line-height: 1.15;">'
-        f'{_html.escape(ch.title)}</h2>'
-        f'<p style="font-family: Newsreader, serif; font-style: italic; '
-        f'color: #c4b9a7; font-size: 1.05rem; margin: 0.4rem 0 0 0; '
-        f'line-height: 1.5;">'
-        f'{_html.escape(ch.subtitle)}</p>',
+        f'<div class="lrn-numeral" style="color:{accent};">{ch.number:02d}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="lrn-domain-tag" style="color:{accent};">'
+        f'{_html.escape(ch.domain)}'
+        f'&nbsp;&nbsp;<span style="color:#6a6458;">era {_html.escape(ch.era)}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<h1 class="lrn-title">{_html.escape(ch.title)}</h1>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<p class="lrn-subtitle">{_html.escape(ch.subtitle)}</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+
+    # ── Lecture body (the main experience) ──
+    body_html = _render_body_md(ch.body_md)
+    st.markdown(
+        f'<div class="lrn-body">{body_html}</div>'
+        f'<style>{_BODY_CSS}</style>',
         unsafe_allow_html=True,
     )
 
-    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+    # ── Build this · one calm amber callout under the body ──
+    if ch.build_this:
+        st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="lrn-domain-tag" style="color:{accent};">⚡ Fă asta ACUM</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div style="font-family: Newsreader, serif; font-size: 1.1rem; '
+            f'line-height: 1.65; color: #f4ede0; margin-top: 0.4rem;">'
+            f'{_html.escape(ch.build_this)}</div>',
+            unsafe_allow_html=True,
+        )
 
-    cols = st.columns([3, 1])
+    # ── Key takeaways · "idei de reținut" ──
+    # One visible control per takeaway: a native Streamlit checkbox
+    # whose label IS the takeaway text. The checkbox writes directly
+    # to the same verifier_<ch.id>_<i> key that the ?p=... token
+    # already round-trips, so persistence stays intact and the
+    # completion auto-write below keeps working.
+    if ch.verifiers:
+        st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="lrn-domain-tag" style="color:{accent};">'
+            f'◌ Idei de reținut</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<p style="font-family: Newsreader, serif; font-style: italic; '
+            'color: #9a8f7c; font-size: 1.02rem; line-height: 1.55; '
+            'margin: 0.3rem 0 0.5rem;">'
+            'Dacă pleci cu doar 3 lucruri din lecția asta, acestea sunt.'
+            '</p>',
+            unsafe_allow_html=True,
+        )
+        all_ticked = True
+        for vi, v in enumerate(ch.verifiers):
+            key = f"verifier_{ch.id}_{vi}"
+            ticked = bool(st.session_state.get(key, False))
+            if not ticked:
+                all_ticked = False
+            st.checkbox(v, key=key)
 
-    # =====================
-    # LEFT · body + cross-refs + Ask Groq + verifiers + build this
-    # =====================
-    with cols[0]:
-        with st.container(border=True):
-            # --- Body markdown (rendered via our own parser, NOT
-            #     st.markdown, so our h3/code/table styling wins) ---
-            body_html = _render_body_md(ch.body_md)
+        if all_ticked:
+            # Auto-complete (no button gate) — write directly to session_state.
+            if ch.id not in completed:
+                completed = set(completed) | {ch.id}
+                st.session_state.completed_chapters = completed
+            # Softer celebration card. No "treci la următorul" instruction —
+            # the footer progress strip below already shows the next chapter.
             st.markdown(
-                f'<div class="lrn-body">'
-                f'{body_html}'
-                f'</div>'
-                f'<style>'
-                f'.lrn-body {{ font-family: Newsreader, serif; '
-                f'font-size: 1.05rem; line-height: 1.7; color: #f4ede0; }}'
-                f'.lrn-body h3 {{ font-family: Newsreader, serif; '
-                f'font-weight: 500; color: #f4ede0; font-size: 1.22rem; '
-                f'margin: 1.5rem 0 0.5rem; line-height: 1.3; }}'
-                f'.lrn-body p {{ margin: 0 0 1rem 0; color: #d4cebf; }}'
-                f'.lrn-body strong {{ color: #f4ede0; font-weight: 600; }}'
-                f'.lrn-body em {{ color: #d4a574; font-style: italic; }}'
-                f'.lrn-body code {{ font-family: JetBrains Mono, monospace; '
-                f'background: #1f1d1a; padding: 0.1rem 0.4rem; '
-                f'border-radius: 4px; font-size: 0.88em; color: #e8a598; }}'
-                f'.lrn-body pre {{ background: #1f1d1a; '
-                f'border: 1px solid #3a3530; border-radius: 8px; '
-                f'padding: 1rem; overflow-x: auto; '
-                f'font-family: JetBrains Mono, monospace; font-size: 0.82rem; '
-                f'line-height: 1.55; margin: 0 0 1.2rem; }}'
-                f'.lrn-body pre code {{ background: transparent; '
-                f'padding: 0; color: #f4ede0; }}'
-                f'.lrn-body ul {{ padding-left: 1.2rem; margin: 0 0 1rem 0; }}'
-                f'.lrn-body li {{ margin: 0.4rem 0; color: #d4cebf; }}'
-                f'.lrn-body table {{ border-collapse: collapse; margin: 1rem 0; '
-                f'width: 100%; font-size: 0.92rem; font-family: Newsreader, serif; }}'
-                f'.lrn-body th {{ font-family: JetBrains Mono, monospace; '
-                f'font-size: 0.6rem; text-align: left; color: #8a8478; '
-                f'text-transform: uppercase; letter-spacing: 0.08em; '
-                f'padding: 0.6rem 0.5rem; border-bottom: 1px solid #3a3530; }}'
-                f'.lrn-body td {{ padding: 0.6rem 0.5rem; color: #d4cebf; '
-                f'border-bottom: 1px solid #2e2b27; }}'
-                f'.lrn-body tr:last-child td {{ border-bottom: none; }}'
-                f'</style>',
+                '<div class="lrn-completion">'
+                '<div class="lrn-completion-msg">'
+                'Foarte bine. Lecția asta e a ta.'
+                '</div>'
+                '<div class="lrn-completion-sub">'
+                'idei bifate · capitol încheiat'
+                '</div>'
+                '</div>',
                 unsafe_allow_html=True,
             )
 
-            # --- Cross-refs (real, no AI gen) ---
-            cr = _load_cross_refs(ch.id)
-            has_any = cr["news"] or cr["repos"] or cr["prompts"]
-            if has_any:
-                st.markdown(
-                    f'<div style="margin-top: 1.5rem; padding-top: 1.2rem; '
-                    f'border-top: 1px solid #2e2b27;">'
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.65rem; color: {accent}; '
-                    f'letter-spacing: 0.1em; text-transform: uppercase; '
-                    f'margin-bottom: 0.7rem;">'
-                    f'▸ Din fluxul nostru · legat de acest capitol</div>',
-                    unsafe_allow_html=True,
+    # ── Main method card · lifted out of the body flow ──
+    if ch.methods:
+        main = next((m for m in ch.methods if m.recommended), None)
+        alts = [m for m in ch.methods if not m.recommended]
+        if main:
+            st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="lrn-domain-tag" style="color:{accent};">'
+                f'◆ Metoda recomandată</div>',
+                unsafe_allow_html=True,
+            )
+            # Method card — single bordered surface with a left accent
+            # rule. Hierarchy: tag · name · summary · "de ce funcționează".
+            st.markdown(
+                f'<div class="lrn-method">'
+                f'<div class="lrn-method-name">{_html.escape(main.name)}</div>'
+                f'<div class="lrn-method-summary">{_html.escape(main.summary)}</div>'
+                + (
+                    f'<div class="lrn-method-why">'
+                    f'De ce funcționează: {_html.escape(main.when_to_use)}'
+                    f'</div>'
+                    if main.when_to_use else ''
                 )
-                for n in cr["news"]:
+                + f'</div>',
+                unsafe_allow_html=True,
+            )
+            st.checkbox(
+                f"Am aplicat „{main.name}”",
+                key=f"method_done_{ch.id}_main",
+            )
+        # Alts · quiet one-line disclosure instead of full expanders
+        if alts:
+            with st.expander(f"○ Abordări alternative ({len(alts)})", expanded=False):
+                for ai, alt in enumerate(alts):
                     st.markdown(
-                        f'<div style="padding: 0.5rem 0.7rem; '
-                        f'background: rgba(168, 192, 174, 0.04); '
-                        f'border-radius: 5px; margin-bottom: 0.4rem; '
-                        f'border-left: 2px solid #a8c0ae38;">'
-                        f'<span style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.55rem; color: #a8c0ae; '
-                        f'margin-right: 0.5rem;">'
-                        f'NEWS · {_html.escape(n["src"].upper().replace("_", " "))}</span>'
-                        f'<a href="{_html.escape(n["url"])}" target="_blank" '
-                        f'style="font-family: Newsreader, serif; color: #f4ede0; '
-                        f'font-size: 0.92rem; text-decoration: none; '
-                        f'border-bottom: 1px dashed rgba(168,192,174,0.4);">'
-                        f'{_html.escape(n["title"][:90])}</a>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                for r in cr["repos"]:
-                    st.markdown(
-                        f'<div style="padding: 0.5rem 0.7rem; '
-                        f'background: rgba(232, 165, 152, 0.04); '
-                        f'border-radius: 5px; margin-bottom: 0.4rem; '
-                        f'border-left: 2px solid #e8a59838;">'
-                        f'<span style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.55rem; color: #e8a598; '
-                        f'margin-right: 0.5rem;">'
-                        f'TOOL</span>'
-                        f'<a href="{_html.escape(r["url"])}" target="_blank" '
-                        f'style="font-family: Newsreader, serif; color: #f4ede0; '
-                        f'font-size: 0.92rem; text-decoration: none; '
-                        f'border-bottom: 1px dashed rgba(232,165,152,0.4);">'
-                        f'{_html.escape(r["title"])}</a>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                for p in cr["prompts"]:
-                    st.markdown(
-                        f'<div style="padding: 0.5rem 0.7rem; '
-                        f'background: rgba(212, 165, 116, 0.04); '
-                        f'border-radius: 5px; margin-bottom: 0.4rem; '
-                        f'border-left: 2px solid #d4a57438;">'
-                        f'<span style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.55rem; color: #d4a574; '
-                        f'margin-right: 0.5rem;">'
-                        f'PROMPT BIBLE · {_html.escape((p["category"] or "?").upper())} · '
-                        f'{_html.escape((p["difficulty"] or "?").upper())}</span>'
-                        f'<span style="font-family: Newsreader, serif; '
-                        f'color: #f4ede0; font-size: 0.92rem;">'
-                        f'{_html.escape(p["title"][:90])}</span>'
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.55rem; color: #6a6458; margin-top: 0.25rem;">'
-                        f'→ deschide tab-ul Prompts</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                st.markdown("</div>", unsafe_allow_html=True)
-
-            # --- Ask Groq · the ONLY place Groq is used in Learning ---
-            with st.expander("💬 Întreabă-l pe Groq · despre acest capitol", expanded=False):
-                st.caption(
-                    "Groq e asistentul tău AI pe OpenRadar. Llama 3.1 8B "
-                    "răspunde live la întrebări despre AI în general și "
-                    "despre capitolul ăsta."
-                )
-                ask_key = f"ask_in_{ch.id}"
-                ask_q = st.text_input(
-                    "Întrebare",
-                    key=ask_key,
-                    placeholder="Ex: cum fac routing fără OpenRouter?",
-                    label_visibility="collapsed",
-                )
-                if ask_q and ask_q.strip():
-                    with st.spinner("Groq gândește..."):
-                        answer, ask_src = ask_groq(ask_q, ch.id)
-                    if answer:
-                        src_label = "GROQ · LIVE" if ask_src == "groq" else "DEMO"
-                        st.markdown(
-                            f'<div style="font-family: Newsreader, serif; '
-                            f'font-size: 1rem; line-height: 1.6; color: #f4ede0; '
-                            f'margin-top: 0.6rem; padding: 0.8rem 1rem; '
-                            f'background: rgba(244, 237, 224, 0.03); '
-                            f'border-radius: 6px; border-left: 2px solid {accent};">'
-                            f'<span style="color: {accent}; margin-right: 0.5rem; '
-                            f'font-family: JetBrains Mono, monospace; font-size: 0.7rem;">'
-                            f'AZI · {src_label}</span>'
-                            f'{_html.escape(answer)}'
-                            f'</div>',
-                            unsafe_allow_html=True,
-                        )
-
-            # --- Methods (◆ MAIN + ○ alternatives) ---
-            if ch.methods:
-                main = next((m for m in ch.methods if m.recommended), None)
-                alts = [m for m in ch.methods if not m.recommended]
-                if main:
-                    st.markdown(
-                        f'<div style="margin-top: 1.5rem; padding: 1.1rem 1.2rem; '
-                        f'background: linear-gradient(180deg, rgba(212,145,90,0.10), '
-                        f'rgba(212,145,90,0.04)); '
-                        f'border-left: 3px solid #d4915a; border-radius: 6px;">'
-                        f'<div style="font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.62rem; color: #d4915a; '
-                        f'letter-spacing: 0.16em; text-transform: uppercase; '
-                        f'margin-bottom: 0.55rem;">'
-                        f'◆ Metoda recomandată</div>'
                         f'<div style="font-family: Newsreader, serif; '
-                        f'font-size: 1.18rem; font-weight: 500; color: #f4ede0; '
-                        f'line-height: 1.3; margin-bottom: 0.55rem;">'
-                        f'{main.name}</div>'
-                        f'<div style="font-family: Newsreader, serif; '
-                        f'font-size: 0.95rem; color: #cdc4b1; line-height: 1.55;">'
-                        f'{main.summary}</div>'
-                        f'<div style="margin-top: 0.7rem; padding-top: 0.55rem; '
-                        f'border-top: 1px dashed rgba(212,145,90,0.25); '
-                        f'font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.68rem; color: #9a8f7c; letter-spacing: 0.04em;">'
-                        f'Când: {main.when_to_use}</div>'
-                        f'</div>',
+                        f'font-size: 0.98rem; color: #cdc4b1; line-height: 1.6; '
+                        f'margin: 0.2rem 0 0.6rem;">'
+                        f'<strong>{_html.escape(alt.name)}</strong>'
+                        f'&nbsp;· {_html.escape(alt.summary)}</div>',
                         unsafe_allow_html=True,
                     )
                     st.checkbox(
-                        f"Am făcut metoda „{main.name}” azi",
-                        key=f"method_done_{ch.id}_main",
+                        f"Am încercat „{alt.name}”",
+                        key=f"method_done_{ch.id}_alt_{ai}",
                     )
-                if alts:
-                    st.markdown(
-                        f'<div style="margin-top: 0.6rem; '
-                        f'font-family: JetBrains Mono, monospace; '
-                        f'font-size: 0.6rem; color: #6a6058; '
-                        f'letter-spacing: 0.14em; text-transform: uppercase;">'
-                        f'○ Alte metode (pentru mai târziu)</div>',
-                        unsafe_allow_html=True,
-                    )
-                    for ai, alt in enumerate(alts):
-                        with st.expander(
-                            f"○ {alt.name}", expanded=False
-                        ):
-                            st.markdown(
-                                f'<div style="font-family: Newsreader, serif; '
-                                f'font-size: 0.95rem; color: #cdc4b1; '
-                                f'line-height: 1.55;">'
-                                f'{alt.summary}</div>'
-                                f'<div style="margin-top: 0.6rem; '
-                                f'font-family: JetBrains Mono, monospace; '
-                                f'font-size: 0.66rem; color: #6a6058; '
-                                f'letter-spacing: 0.04em;">'
-                                f'Când: {alt.when_to_use}</div>',
-                                unsafe_allow_html=True,
-                            )
-                            st.checkbox(
-                                f"Am făcut metoda „{alt.name}” azi",
-                                key=f"method_done_{ch.id}_alt_{ai}",
-                            )
 
-            # --- Verifiers ---
-            if ch.verifiers:
-                st.markdown(
-                    f'<div style="margin-top: 1.5rem; padding-top: 1.2rem; '
-                    f'border-top: 1px solid #2e2b27;">'
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.65rem; color: #a8c0ae; '
-                    f'letter-spacing: 0.1em; text-transform: uppercase; '
-                    f'margin-bottom: 0.6rem;">'
-                    f'▸ Ai înțeles? bifează tot</div>',
-                    unsafe_allow_html=True,
-                )
-                for vi, v in enumerate(ch.verifiers):
-                    k = f"verifier_{ch.id}_{vi}"
-                    st.checkbox(v, key=k)
-                all_ticked = all(
-                    st.session_state.get(f"verifier_{ch.id}_{vi}", False)
-                    for vi in range(len(ch.verifiers))
-                )
-                if all_ticked:
-                    already = ch.id in completed
-                    if not already:
-                        if st.button(
-                            "✓ Marchează capitolul complet",
-                            key=f"complete_{ch.id}",
-                            type="primary",
-                            use_container_width=True,
-                        ):
-                            st.session_state.completed_chapters = completed | {ch.id}
-                            st.rerun()
-                    else:
-                        st.markdown(
-                            '<span style="font-family: JetBrains Mono, monospace; '
-                            'font-size: 0.65rem; color: #a8c0ae;">'
-                            '✓ Capitol complet · treci la următorul</span>',
-                            unsafe_allow_html=True,
-                        )
-                st.markdown("</div>", unsafe_allow_html=True)
+    # ── Cross-refs · moved below the body (footer area) ──
+    cr = _load_cross_refs(ch.id)
+    has_any = cr["news"] or cr["repos"] or cr["prompts"]
+    if has_any:
+        st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="lrn-domain-tag" style="color:{accent};">'
+            f'▸ De pe fluxul nostru</div>',
+            unsafe_allow_html=True,
+        )
+        for n in cr["news"]:
+            st.markdown(
+                f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                f'<span class="lrn-footer" style="margin-right: 0.5rem;">NEWS</span>'
+                f'<a href="{_html.escape(n["url"])}" target="_blank" '
+                f'style="font-family: Newsreader, serif; color: #f4ede0; '
+                f'text-decoration: none; border-bottom: 1px dashed #3a342c;">'
+                f'{_html.escape(n["title"][:90])}</a></div>',
+                unsafe_allow_html=True,
+            )
+        for r in cr["repos"]:
+            st.markdown(
+                f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                f'<span class="lrn-footer" style="margin-right: 0.5rem;">TOOL</span>'
+                f'<a href="{_html.escape(r["url"])}" target="_blank" '
+                f'style="font-family: Newsreader, serif; color: #f4ede0; '
+                f'text-decoration: none; border-bottom: 1px dashed #3a342c;">'
+                f'{_html.escape(r["title"])}</a></div>',
+                unsafe_allow_html=True,
+            )
+        for p in cr["prompts"]:
+            cat = (p.get("category") or "?").upper()
+            diff = (p.get("difficulty") or "?").upper()
+            st.markdown(
+                f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                f'<span class="lrn-footer" style="margin-right: 0.5rem;">'
+                f'PROMPT · {cat} · {diff}</span>'
+                f'<span style="font-family: Newsreader, serif; color: #f4ede0;">'
+                f'{_html.escape(p["title"][:90])}</span></div>',
+                unsafe_allow_html=True,
+            )
 
-            # --- Build this ---
-            if ch.build_this:
+    # ── Ask Groq · quietly below the body (footer area) ──
+    st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+    with st.expander(
+        f"💬 Întreabă-l pe Groq · despre acest capitol",
+        expanded=False,
+    ):
+        st.caption(
+            "Asistent AI pe OpenRadar — rulează când Groq e configurat. "
+            "Fără cheie, UI-ul nu se strică, dar nu primești răspuns."
+        )
+        ask_q = st.text_input(
+            "Întrebare",
+            key=f"ask_in_{ch.id}",
+            placeholder="Ex: cum fac routing fără OpenRouter?",
+            label_visibility="collapsed",
+        )
+        if ask_q and ask_q.strip():
+            with st.spinner("Groq gândește..."):
+                answer, ask_src = ask_groq(ask_q, ch.id)
+            if answer:
+                src_label = "GROQ · LIVE" if ask_src == "groq" else "DEMO"
                 st.markdown(
-                    f'<div style="margin-top: 1.5rem; padding: 1rem 1.2rem; '
-                    f'background: rgba(212, 165, 116, 0.06); '
-                    f'border-left: 2px solid #d4a574; '
-                    f'border-radius: 0 8px 8px 0;">'
-                    f'<div style="font-family: JetBrains Mono, monospace; '
-                    f'font-size: 0.62rem; color: #d4a574; '
-                    f'letter-spacing: 0.1em; text-transform: uppercase; '
-                    f'margin-bottom: 0.5rem;">⚡ Fă asta ACUM</div>'
-                    f'<div style="font-family: Newsreader, serif; '
-                    f'font-size: 1.02rem; line-height: 1.6; color: #f4ede0;">'
-                    f'{_html.escape(ch.build_this)}</div>'
-                    f'</div>',
+                    f'<div style="font-family: Newsreader, serif; font-size: 1rem; '
+                    f'line-height: 1.6; color: #f4ede0; margin-top: 0.6rem;">'
+                    f'<span class="lrn-footer" style="margin-right: 0.5rem;">'
+                    f'{src_label}</span>'
+                    f'{_html.escape(answer)}</div>',
                     unsafe_allow_html=True,
                 )
 
-        # --- Prev / Next ---
-        idx = next((i for i, c in enumerate(ch_list) if c.id == ch.id), 0)
-        prev_ch = ch_list[idx - 1] if idx > 0 else None
-        next_ch = ch_list[idx + 1] if idx < len(ch_list) - 1 else None
+    # ── Next chapter · quiet one-line nudge ──
+    if next_ch:
+        st.markdown(
+            f'<div style="margin-top: 1.6rem; padding-top: 0.8rem;">'
+            f'<span class="lrn-footer">următorul ▸</span>'
+            f'&nbsp;<a href="#" class="lrn-navlink" '
+            f'data-next="{_html.escape(next_ch.id)}">'
+            f'{next_ch.number:02d} · {_html.escape(next_ch.title)}</a></div>',
+            unsafe_allow_html=True,
+        )
 
-        # --- Următorul capitol · narrative hook ---
+    # ── Footer strip · one quiet progress line (was sidebar) ──
+    done = len(completed)
+    pct = int(done / total * 100) if total else 0
+    next_label = (
+        f"{next_ch.number:02d} · {next_ch.title}"
+        if next_ch else "ultimul capitol"
+    )
+    st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="lrn-footer">'
+        f'{ch.number:02d} / {total:02d}&nbsp;&nbsp;·&nbsp;&nbsp;'
+        f'{pct}% complet&nbsp;&nbsp;·&nbsp;&nbsp;'
+        f'următorul: {_html.escape(next_label)}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Prev / Next inline nav (Streamlit buttons for state mutation) ──
+    nav_cols = st.columns(2)
+    with nav_cols[0]:
+        if prev_ch:
+            if st.button(
+                f"◀ {prev_ch.title[:30]}",
+                key=f"prev-{ch.id}",
+                use_container_width=True,
+            ):
+                st.session_state.selected_chapter = prev_ch.id
+                st.rerun()
+    with nav_cols[1]:
         if next_ch:
-            nxt_main = next((m for m in next_ch.methods if m.recommended), None)
-            teaser_method = f" · {nxt_main.name}" if nxt_main else ""
-            st.markdown(
-                f'<div style="margin-top: 2rem; padding: 1.2rem 1.4rem; '
-                f'background: linear-gradient(135deg, '
-                f'rgba(168,192,174,0.08), rgba(212,165,116,0.04)); '
-                f'border: 1px solid rgba(168,192,174,0.20); '
-                f'border-radius: 10px;">'
-                f'<div style="font-family: JetBrains Mono, monospace; '
-                f'font-size: 0.6rem; color: #a8c0ae; '
-                f'letter-spacing: 0.16em; text-transform: uppercase; '
-                f'margin-bottom: 0.5rem;">▸ Următorul capitol</div>'
-                f'<div style="font-family: Newsreader, serif; '
-                f'font-size: 1.35rem; font-weight: 500; color: #f4ede0; '
-                f'line-height: 1.25; margin-bottom: 0.35rem;">'
-                f'{next_ch.number:02d} · {_html.escape(next_ch.title)}</div>'
-                f'<div style="font-family: Newsreader, serif; '
-                f'font-style: italic; color: #a8c0ae; font-size: 0.95rem; '
-                f'line-height: 1.5; margin-bottom: 0.7rem;">'
-                f'{_html.escape(next_ch.subtitle)}</div>'
-                f'<div style="font-family: JetBrains Mono, monospace; '
-                f'font-size: 0.7rem; color: #d4a574; letter-spacing: 0.04em;">'
-                f'Metoda:{teaser_method}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+            if st.button(
+                f"{next_ch.title[:30]} ▶",
+                key=f"next-{ch.id}",
+                use_container_width=True,
+            ):
+                st.session_state.selected_chapter = next_ch.id
+                st.rerun()
 
-        nav_cols = st.columns(2)
-        with nav_cols[0]:
-            if prev_ch:
-                if st.button(
-                    f"← {prev_ch.title[:22]}",
-                    key=f"prev-{ch.id}",
-                    use_container_width=True,
-                ):
-                    st.session_state.selected_chapter = prev_ch.id
-                    st.rerun()
-        with nav_cols[1]:
-            if next_ch:
-                if st.button(
-                    f"{next_ch.title[:22]} →",
-                    key=f"next-{ch.id}",
-                    use_container_width=True,
-                ):
-                    st.session_state.selected_chapter = next_ch.id
-                    st.rerun()
-
-    # =====================
-    # RIGHT · sidebar meta
-    # =====================
-    with cols[1]:
-        with st.container(border=True):
-            done = len(completed)
-            total = len(ch_list)
-            pct = int(done / total * 100) if total else 0
-            # Count methods ticked across ALL chapters (not just current)
-            methods_done = sum(
-                1
-                for c in ch_list
-                if st.session_state.get(f"method_done_{c.id}_main", False)
-            ) + sum(
-                1
-                for c in ch_list
-                for ai in range(len(c.methods))
-                if not c.methods[ai].recommended
-                and st.session_state.get(f"method_done_{c.id}_alt_{ai}", False)
-            )
-            st.markdown(
-                f'<div style="font-family: JetBrains Mono, monospace; '
-                f'font-size: 0.6rem; color: {accent}; '
-                f'letter-spacing: 0.1em; text-transform: uppercase; '
-                f'margin-bottom: 0.5rem;">'
-                f'▸ Capitolul {ch.number:02d} din {total}</div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f'<div style="font-family: Newsreader, serif; '
-                f'font-size: 0.95rem; color: #c4b9a7; line-height: 1.55;">'
-                f'{total - ch.number} capitole rămase până la final.</div>',
-                unsafe_allow_html=True,
-            )
-            st.markdown(
-                f'<div style="margin-top: 1rem; padding-top: 0.8rem; '
-                f'border-top: 1px solid #2e2b27;">'
-                f'<div style="font-family: JetBrains Mono, monospace; '
-                f'font-size: 0.6rem; color: {accent}; '
-                f'letter-spacing: 0.1em; text-transform: uppercase;">'
-                f'PROGRES · {done}/{total} capitole ({pct}%)</div>'
-                f'<div style="margin-top: 0.4rem; height: 4px; '
-                f'background: #2e2b27; border-radius: 2px; overflow: hidden;">'
-                f'<div style="width: {pct}%; height: 100%; '
-                f'background: {accent}; transition: width 350ms ease;"></div>'
-                f'</div>'
-                f'<div style="margin-top: 0.7rem; font-family: JetBrains Mono, '
-                f'monospace; font-size: 0.58rem; color: #d4a574; '
-                f'letter-spacing: 0.08em;">'
-                f'◆ {methods_done} metode bifate</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
-            # Cozy closed-state message
-            if ch.id == ch_list[0].id:
-                st.markdown(
-                    '<p style="font-family: Newsreader, serif; font-style: italic; '
-                    'color: #8a8478; font-size: 0.85rem; margin-top: 1rem; '
-                    'line-height: 1.5;">'
-                    'Începe cu capitolul 1. Nu citi totul — fă primul '
-                    '«Build this» și treci la 02.</p>',
-                    unsafe_allow_html=True,
-                )
+    # ── Close the lecture column ──
+    st.markdown('</div>', unsafe_allow_html=True)
