@@ -1,0 +1,39 @@
+{
+  "$schema_note": "Retired chapter ids for OpenRadar (PR2, June 2026). These ids are no longer part of the live chapter surface (ch1..ch10 in content/chapters.jsonl is the active set) but their static content files remain in learning/content/ as archive material. They are intentionally not deleted in PR2; revivable by appending JSONL rows + re-introducing tag entries in learning/chapter_tags.py.",
+  "retired_ids": [
+    {
+      "id": "ch11",
+      "title_topic": "AI career roles & first job (researcher / applied / MLOps)",
+      "static_location": "learning/content/ch11.html + ch11.json",
+      "ui_route": "none (no live Python Chapter source; not rendered)"
+    },
+    {
+      "id": "ch12",
+      "title_topic": "Portfolio & project demos (GitHub README shape)",
+      "static_location": "learning/content/ch12.html + ch12.json",
+      "ui_route": "none"
+    },
+    {
+      "id": "ch13",
+      "title_topic": "Certifications & courses (credential landscape)",
+      "static_location": "learning/content/ch13.html + ch13.json",
+      "ui_route": "none"
+    },
+    {
+      "id": "ch14",
+      "title_topic": "Tool stack & IDEs (Cursor / Claude Code / CLI agents)",
+      "static_location": "learning/content/ch14.html + ch14.json",
+      "ui_route": "none"
+    },
+    {
+      "id": "ch15",
+      "title_topic": "Stay current (newsletters / podcasts / accounts)",
+      "static_location": "learning/content/ch15.html + ch15.json",
+      "ui_route": "none"
+    }
+  ],
+  "rationale": "Live curriculum moved to ch1..ch10 (10 categories, no persona arc) in the v1.1 redesign. The five legacy chapters were part of a longer 15-chapter outline that was retired; their content is preserved for archival continuity and as a seed for future revival, but no live code path consumes them. See learning/chapter_tags.py:RETIRED_CHAPTER_IDS for the runtime sentinel that prevents cross-ref noise.",
+  "revivable": true,
+  "revival_recipe": "Append a JSONL row to content/chapters.jsonl with id='ch11' (or any retired id), populate fields, and re-introduce the corresponding entry in learning/chapter_tags.py:CHAPTER_TAGS. The loader will pick the row up automatically; cross-refs and the chapter chip grid will respect the new id without further wiring.",
+  "deletion_plan": "If a future PR decides the retired static files are no longer wanted, remove them via `git rm learning/content/ch{11..15}.{html,json}` together with this notes file. The live surface (ch1..ch10) does not depend on them."
+}

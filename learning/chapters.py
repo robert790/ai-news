@@ -1,5 +1,18 @@
 """Learning chapters · OpenRadar · Hartă AI pe categorii.
 
+.. deprecated::
+    The preferred editable source of chapter content is
+    ``content/chapters.jsonl`` (managed by ``learning.export_chapters``).
+    This module remains as a fallback for environments without the JSONL
+    file. :func:`learning.loader.load_chapters` reads the JSONL on
+    disk when present and falls back to ``CHAPTERS`` below only when the
+    file is missing.
+
+    **Do not edit chapter prose in this module without regenerating the
+    JSONL via** ``python -m learning.export_chapters`` **first.** Future
+    PRs may remove this fallback entirely once the JSONL is the proven
+    source of truth across all environments.
+
 CURRICULUM: 10 capitole, fiecare capitol acoperă **o categorie mare
 de AI** cu basics + un exercițiu hands-on. Nu e o poveste personală
 — e un manual scurt care te pune în temă cu ce există.
