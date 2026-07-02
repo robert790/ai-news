@@ -441,16 +441,28 @@ _STATIC_TOOLS = [
      "Coding assistants",
      "Repo-aware help for edits, tests, refactors, and review.",
      {
-        "what": "Assistants that read your repository and respond to edits, "
-                "tests, refactors, and code review with project context.",
-        "when": "Use when you write or modify code daily and want fewer "
-                "context switches between editor and assistant.",
+        "what": "Editors and chat tools that read your repository, follow "
+                "your project rules, and respond with code that fits your "
+                "stack and style.",
+        "best_for": "Day-to-day coding work: writing functions, debugging, "
+                    "writing tests, refactors, code review, and reading "
+                    "unfamiliar code with explanations.",
+        "when": "Use when you write or modify code most days and want fewer "
+                "context switches between your editor and a separate chat.",
+        "when_not": "Avoid for high-stakes production changes that touch "
+                    "auth, billing, or shared infra without a human review "
+                    "step. The assistant helps you move faster; it does not "
+                    "replace code review.",
         "checklist": [
             "Pick one assistant that supports your editor and language stack.",
-            "Wire project memory / rules so the assistant knows your style.",
-            "Start every task with a short scope note (files, goals, risks).",
+            "Wire project memory or rules so the assistant knows your style.",
+            "Start every task with a short scope note: files, goals, risks.",
             "Run the assistant's diff through your own review before merge.",
+            "Treat generated tests as a draft, not a guarantee.",
         ],
+        "compare": "Editor integration, repo context size, supported "
+                   "languages, pricing model, and whether it can run tests "
+                   "in-place. Pick the one you can leave open all day.",
         "related": "Related signals below — repos, papers, and discussions.",
      }),
     ("research",
@@ -458,16 +470,28 @@ _STATIC_TOOLS = [
      "Research tools",
      "Turn many sources into a clearer decision.",
      {
-        "what": "Readers and summarizers that turn long sources (papers, "
-                "articles, threads, transcripts) into clearer signal.",
-        "when": "Use when you have to make a decision and the input is "
-                "longer than you have time to read.",
+        "what": "Readers and summarizers that turn long sources — papers, "
+                "articles, threads, transcripts, docs — into a short list "
+                "of points you can act on.",
+        "best_for": "Decisions where the input is bigger than your time "
+                    "to read it: vendor selection, market scan, "
+                    "literature review, internal-doc summarization.",
+        "when": "Use when you have at least three sources to compare, or "
+                "when one source is more than ~10 pages and the question "
+                "is specific.",
+        "when_not": "Avoid for anything where one wrong claim causes real "
+                    "harm (legal, medical, financial). Treat the output as "
+                    "a pointer to the source, not the source itself.",
         "checklist": [
-            "List the 2–3 questions you actually need answered.",
-            "Pick sources that disagree — single-feed reading is not research.",
+            "Write down the 2–3 questions you actually need answered.",
+            "Pick sources that disagree — a single feed is not research.",
             "Force a written summary per source before comparing them.",
+            "Capture exact quotes for any claim you intend to repeat.",
             "End with a one-paragraph decision and the evidence behind it.",
         ],
+        "compare": "Input formats accepted, citation behavior, freshness "
+                   "of the index, privacy of uploaded docs, and how it "
+                   "handles conflicting sources.",
         "related": "Related signals below — papers, threads, and analysis.",
      }),
     ("media",
@@ -475,16 +499,29 @@ _STATIC_TOOLS = [
      "Image/video tools",
      "Generate, edit, storyboard, or repurpose visual material.",
      {
-        "what": "Tools for generating, editing, storyboarding, and "
-                "repurposing images and video using AI.",
-        "when": "Use when a project needs visual assets faster than a "
-                "designer can hand-draft them.",
+        "what": "Tools that generate, edit, restyle, storyboard, or "
+                "repurpose images and short videos from a written brief "
+                "or an existing asset.",
+        "best_for": "Visual assets that are needed faster than a designer "
+                    "can hand-draft them: blog hero images, social "
+                    "thumbnails, product mockups, rough storyboards, "
+                    "format-conversion edits.",
+        "when": "Use when the project can tolerate 'good enough now, "
+                "polish later', or when you need 5–10 variants to compare.",
+        "when_not": "Avoid for final legal-grade assets, anything with "
+                    "named people or trademarked brands without review, "
+                    "and any image that needs precise type or layout.",
         "checklist": [
-            "Start from a written brief, not a vibe.",
+            "Start from a written brief: subject, mood, constraints, "
+            "must-not-include list.",
             "Generate 3–5 variants and pick the strongest direction.",
-            "Always run final output through your brand / accessibility check.",
-            "Reuse a small set of prompts; rotate them when quality drifts.",
+            "Run final output through your brand and accessibility check.",
+            "Reuse a small set of prompts; rotate when quality drifts.",
+            "Keep the source files (seeds, masks) so edits stay reproducible.",
         ],
+        "compare": "Style consistency across runs, editability of the "
+                   "output (layers, masks, raw seeds), license terms for "
+                   "generated assets, and cost per asset.",
         "related": "Related signals below — fresh media tools worth scanning.",
      }),
     ("agents",
@@ -493,15 +530,28 @@ _STATIC_TOOLS = [
      "Automate inboxes, docs, spreadsheets, meetings, and repetitive admin.",
      {
         "what": "Agents that connect to inboxes, documents, calendars, "
-                "spreadsheets, and meeting tools to do small jobs on their own.",
-        "when": "Use when a task is repetitive, low-risk, and you can describe "
-                "what 'done' looks like in one sentence.",
+                "spreadsheets, ticketing, and meeting tools to do small "
+                "jobs end-to-end with some autonomy.",
+        "best_for": "Repetitive, low-risk tasks you can describe in one "
+                    "sentence: 'move emails matching X into folder Y', "
+                    "'summarize this thread into a doc', 'fill this "
+                    "spreadsheet from these PDFs'.",
+        "when": "Use when the task is small enough that a wrong answer "
+                "costs less than the time you save. Keep humans in the "
+                "loop for anything with side effects.",
+        "when_not": "Avoid for first-touch actions on accounts, anything "
+                    "that sends money, and anything where the failure mode "
+                    "is silent (no log, no notification).",
         "checklist": [
             "Start with read-only access — never write on day one.",
             "Define a clear done-condition and a stop rule.",
             "Log every action the agent took; review the log weekly.",
             "Promote to write access only after two clean weeks.",
+            "Keep a kill switch: a way to revoke access in one step.",
         ],
+        "compare": "Which apps it can connect to, how it surfaces "
+                   "uncertainty, audit log quality, and what happens when "
+                   "a step fails halfway through a multi-step run.",
         "related": "Related signals below — workflow and agent picks.",
      }),
 ]
@@ -515,13 +565,25 @@ _STATIC_PROMPTS = [
         "use_case": "Reduce the failure modes when shipping a non-trivial "
                     "change. Forces scope, risk, and rollback to be decided "
                     "before any code is written.",
-        "starter": "I'm about to change <scope>. List (1) files this change "
-                   "must touch, (2) risks I should pre-empt, (3) tests I "
-                   "must add or update, and (4) a one-line rollback plan. "
-                   "Ask me anything before writing code.",
+        "inputs": "Feature name or ticket id, the user-visible behavior "
+                  "you are changing, and any system it touches.",
+        "starter": "I'm about to change <scope>. Before writing code, "
+                   "list: (1) the files this change must touch, (2) the "
+                   "risks I should pre-empt, (3) the tests I must add or "
+                   "update, and (4) a one-line rollback plan. Ask me "
+                   "anything that is unclear before you start.",
         "when": "Use at the start of any feature branch that touches more "
-                "than two files or any shared system.",
-        "next": "Run the AI's output as a checklist; do not skip the rollback line.",
+                "than two files, any shared system, or anything that "
+                "changes a contract.",
+        "when_not": "Skip for tiny one-line fixes and obvious typo "
+                    "corrections; the checklist overhead is larger than "
+                    "the risk.",
+        "quality": "A good run ends with four numbered lists, no "
+                   "ambiguity in 'done', and an explicit rollback line "
+                   "(feature flag off, revert commit, or safe migration).",
+        "next": "Treat the AI's output as a checklist; do not skip the "
+                "rollback line. Paste the four lists into the PR "
+                "description so the reviewer can scan them.",
      }),
     ("compare",
      "Decide",
@@ -530,41 +592,89 @@ _STATIC_PROMPTS = [
      {
         "use_case": "Pick between two or more AI tools when there is no "
                     "obvious default and the decision will be revisited "
-                    "later.",
-        "starter": "Compare <tool A> and <tool B> for <use case>. Score each "
-                   "on fit, cost, latency, output quality, risk, and switching "
-                   "cost. End with one recommendation and the top 3 reasons.",
-        "when": "Use when the team asks 'should we switch?' and the answer "
-                "is not yet obvious from the docs.",
-        "next": "Treat the scorecard as the next quarter's review input.",
+                    "in the next quarter.",
+        "inputs": "The 2–4 candidate tools, the specific use case, "
+                  "the team size that will use it, and any existing "
+                  "tools it must integrate with.",
+        "starter": "Compare <tool A> and <tool B> for <use case>. Score "
+                   "each on: fit, cost per month, output quality, "
+                   "latency, integration effort, data privacy, and "
+                   "switching cost. End with one recommendation and "
+                   "the top three reasons. Flag any assumption you "
+                   "made.",
+        "when": "Use when the team is asking 'should we switch?' and "
+                "the answer is not yet obvious from the marketing "
+                "pages.",
+        "when_not": "Skip for tools you will touch once. The scorecard "
+                    "overhead is only worth it for repeated use.",
+        "quality": "A good run produces numeric or at least ordered "
+                   "scores per criterion, makes its assumptions explicit, "
+                   "and names the single criterion that drove the "
+                   "decision.",
+        "next": "Save the scorecard in a shared doc. Re-run it in "
+                "three months — most 'switch' decisions are easier "
+                "to defend the second time.",
      }),
     ("learn",
      "Learn",
      "Learn a concept",
      "Explain with examples, checks for understanding, and practice tasks.",
      {
-        "use_case": "Learn a new AI concept fast and verify the explanation "
-                    "with a concrete check, not just by reading.",
-        "starter": "Explain <concept> as if I am a senior engineer who has "
-                   "never worked on AI. Give one worked example, one common "
-                   "misconception, and one 10-minute practice task.",
-        "when": "Use before a meeting, interview, or decision that touches "
-                "a topic you have only heard about.",
-        "next": "Do the practice task before declaring the concept 'known'.",
+        "use_case": "Pick up a new AI concept fast and verify the "
+                    "explanation with a concrete check, not just by "
+                    "reading.",
+        "inputs": "The concept name, your current level (beginner / "
+                  "intermediate / applied), and the problem you are "
+                  "trying to solve.",
+        "starter": "Explain <concept> as if I am a senior engineer who "
+                   "has never worked on AI. Give one worked example, "
+                   "one common misconception, and one 10-minute "
+                   "practice task. Then ask me one question to check "
+                   "I understood.",
+        "when": "Use before a meeting, interview, or decision that "
+                "touches a topic you have only heard about.",
+        "when_not": "Skip for foundational concepts you can already "
+                    "explain in one sentence — you'll get a textbook "
+                    "answer instead of a useful one.",
+        "quality": "A good run ends with: one concrete example (not "
+                   "abstract), one specific misconception (not 'there "
+                   "are some edge cases'), and a practice task that "
+                   "fits in 10 minutes.",
+        "next": "Do the practice task before declaring the concept "
+                "'known'. If you cannot do it, ask for a second example.",
      }),
     ("outreach",
      "Write",
      "Write outreach",
      "Draft a specific message with context, value, proof, and a low-friction ask.",
      {
-        "use_case": "Send cold or warm messages that actually get a reply. "
-                    "Avoids generic 'just checking in' patterns.",
-        "starter": "Draft a 90-word message to <name> at <company> about "
-                   "<specific topic>. Include (1) one line of context, "
-                   "(2) one concrete value we offer, (3) one piece of proof, "
-                   "(4) a low-friction ask.",
-        "when": "Use whenever the recipient is busy and the ask matters.",
-        "next": "Send 3 versions, pick the shortest that still says the right thing.",
+        "use_case": "Send cold or warm messages that actually get a "
+                    "reply, instead of generic 'just checking in' "
+                    "patterns that get archived.",
+        "inputs": "Recipient name and role, what you know about them or "
+                  "their company, the value you can offer, and the "
+                  "specific ask (a 15-min call, a reply, an intro).",
+        "starter": "Draft a 90-word message to <name> at <company> "
+                   "about <specific topic>. Include: (1) one line of "
+                   "context that shows you read their work, (2) one "
+                   "concrete value you can offer, (3) one piece of "
+                   "proof (a number, a customer, a public artifact), "
+                   "(4) a low-friction ask. Keep the subject line "
+                   "under 50 characters.",
+        "when": "Use whenever the recipient is busy and the ask "
+                "matters — first cold email, a re-engagement, a "
+                "warm intro request.",
+        "when_not": "Skip for transactional messages (meeting invite, "
+                    "status update). The format is overhead when the "
+                    "ask is mechanical.",
+        "quality": "A good run names a specific thing the recipient "
+                   "wrote or shipped, gives a concrete number or "
+                   "artifact as proof, and offers a single ask — not "
+                   "three.",
+        "next": "Send 3 versions, pick the shortest that still says "
+                "the right thing. If no reply in 5 business days, "
+                "send one follow-up that adds new context, not a "
+                "'bumping this up' nudge.",
      }),
 ]
 
@@ -575,13 +685,23 @@ _STATIC_LEARN = [
      "Models, context, tokens, strengths, limits, and responsible use.",
      {
         "understand": "How modern language and multimodal models actually "
-                      "work, what context and tokens mean in practice, and "
-                      "where the model is reliable versus brittle.",
-        "exercise": "Pick one task you do weekly. Write a 5-bullet brief: "
-                    "what context the model would need, what a good output "
-                    "looks like, and what a bad one looks like.",
+                      "work, what context and tokens mean in practice, "
+                      "and where the model is reliable versus brittle.",
+        "why": "Most user-facing mistakes come from assuming the model "
+               "thinks like a person. Understanding tokens and context "
+               "is what unlocks every other AI topic on this site.",
+        "exercise": "Open any assistant and ask the same question "
+                    "twice: once with 50 words of context and once "
+                    "with 500. Note where the answer changed. That's "
+                    "context in action.",
+        "mistake": "Treating the model as a search engine. It generates "
+                   "the most likely next token; it does not look up "
+                   "facts unless you give it a tool to do so.",
         "next_chapter": "Chapter 2 — token economics and cost.",
-        "next": "Save the brief as a template you can reuse for new tasks.",
+        "next": "Pick one task you do weekly. Write a 5-bullet brief "
+                "(what context the model needs, what a good answer "
+                "looks like, what a bad one looks like). Save the "
+                "brief as a template.",
      }),
     ("prompting",
      "Craft",
@@ -590,40 +710,71 @@ _STATIC_LEARN = [
      {
         "understand": "How to design prompts that produce verifiable, "
                       "repeatable outputs instead of lucky one-shots.",
-        "exercise": "Take a prompt you already use. Add (1) one explicit "
-                    "constraint, (2) one worked example, and (3) one "
-                    "verification step. Compare before / after on 3 tasks.",
+        "why": "The same prompt that gives a great result today can "
+               "give a different one tomorrow. Prompting is the "
+               "discipline of making the output predictable.",
+        "exercise": "Take a prompt you already use. Add (1) one "
+                    "explicit constraint, (2) one worked example, "
+                    "(3) one verification step. Run the new and old "
+                    "versions on three tasks and compare.",
+        "mistake": "Adding more words until it works. Each extra "
+                   "instruction adds noise; if the model is ignoring "
+                   "a rule, isolate it and restate it more concretely.",
         "next_chapter": "Chapter 4 — verification and self-critique.",
-        "next": "Keep a personal prompt log with the changes that mattered.",
+        "next": "Keep a small prompt log: before, after, what changed, "
+                "what got better. Patterns from 5 logs beat advice "
+                "from 50 blog posts.",
      }),
     ("rag",
      "Grounding",
      "RAG basics",
      "Retrieval, chunking, citations, evaluation, and failure modes.",
      {
-        "understand": "How retrieval-augmented generation works end-to-end "
-                      "and the failure modes (bad chunks, missing citations, "
-                      "silent hallucination) that hurt trust.",
-        "exercise": "Build a tiny RAG over a folder of your own notes. Log "
-                    "every question where the answer looked right but the "
-                    "citation was missing or wrong.",
+        "understand": "How retrieval-augmented generation works end-to-end: "
+                      "a question is matched against chunks of your own "
+                      "documents, the top chunks are stuffed into the "
+                      "model's context, and the model answers using them.",
+        "why": "RAG is the difference between an assistant that knows "
+               "your team and one that just sounds confident. The "
+               "failure modes (bad chunks, missing citations, silent "
+               "hallucination) are also where user trust breaks.",
+        "exercise": "Pick a folder of your own notes or docs (30+ "
+                    "files). Build a tiny RAG over them with any "
+                    "off-the-shelf library. Log every question where "
+                    "the answer looked right but the citation was "
+                    "missing or wrong.",
+        "mistake": "Trusting the answer without checking the cited "
+                   "chunk. Bad citations are silent — the model "
+                   "paraphrases confidently.",
         "next_chapter": "Chapter 6 — RAG evaluation basics.",
-        "next": "Make the citation-log the input to your next RAG iteration.",
+        "next": "Use the citation log as your next iteration input. "
+                "Most RAG bugs are chunking bugs, not model bugs.",
      }),
     ("agents",
      "Systems",
      "Agent workflows",
      "Break tasks into tools, state, checks, handoffs, and recovery paths.",
      {
-        "understand": "How to break a real task into a workflow an AI agent "
-                      "can run reliably, with explicit checks and recovery "
-                      "rules.",
-        "exercise": "Pick a task you do weekly that has at least 4 steps. "
-                    "Write the steps as (tool, input, check, failure path) "
-                    "tuples. Hand one tuple to an AI and see if it can "
-                    "execute the step on its own.",
+        "understand": "How to break a real task into a workflow an AI "
+                      "agent can run reliably, with explicit checks, "
+                      "handoffs between steps, and a recovery rule for "
+                      "each step.",
+        "why": "A single-shot prompt is fine for 'summarize this'. A "
+               "multi-step task with side effects (fetch, transform, "
+               "write, notify) needs an agent workflow — and most "
+               "agent failures come from missing recovery paths, not "
+               "from bad models.",
+        "exercise": "Pick a task you do weekly with at least 4 steps. "
+                    "Write the steps as (tool, input, check, failure "
+                    "path) tuples. Hand one tuple to an AI and see if "
+                    "it can execute the step on its own.",
+        "mistake": "Skipping the failure path. Every step needs an "
+                   "explicit answer to 'what do we do if this "
+                   "fails?' — retry, skip, escalate, or abort.",
         "next_chapter": "Chapter 8 — agent workflows in practice.",
-        "next": "Treat the tuple list as the source of truth for any new agent.",
+        "next": "Treat the tuple list as the source of truth. Any "
+                "new agent that wants to do part of the workflow "
+                "inherits the same check and failure path.",
      }),
 ]
 
@@ -634,25 +785,40 @@ _STATIC_JOBS = [
      "Turn models and workflows into reliable business outcomes.",
      {
         "does": "Owns the translation from model capability to a shipped "
-                "workflow that a team uses daily. Drives rollout, "
-                "evaluation, and adoption.",
+                "workflow that a real team uses every week. Drives "
+                "rollout, evaluation, and adoption — not the model "
+                "training itself.",
         "skills": ["Workflow design", "Evaluation basics", "Stakeholder demos", "Adoption metrics"],
         "proof": "Run a 30-day pilot with one team: define the workflow, "
-                 "ship the assistant, measure usage and quality weekly.",
+                 "ship the assistant, measure usage and quality weekly, "
+                 "and write up what worked, what didn't, and what you "
+                 "shipped next.",
         "search_terms": ["AI product operator", "AI workflow lead", "AI solutions"],
+        "warning": "Job postings that ask for 'prompt engineering plus "
+                   "product' are often this role in disguise, but some "
+                   "are 'build me a wrapper around a model and call it "
+                   "a product'. Ask what shipped to users last quarter.",
      }),
     ("automation",
      "Automation",
      "AI automation specialist",
      "Connect tools, documents, workflows, and repetitive operations.",
      {
-        "does": "Builds and maintains the connections between AI tools and "
-                "the rest of the operations stack (docs, sheets, ticketing, "
-                "CRM).",
+        "does": "Builds and maintains the connections between AI tools "
+                "and the rest of the operations stack (docs, sheets, "
+                "ticketing, CRM, internal databases). Usually the "
+                "person who turns a one-off prompt into a workflow "
+                "that runs every Monday morning.",
         "skills": ["Scripting", "API integration", "Workflow design", "Ops hygiene"],
-        "proof": "Replace one recurring multi-tool task with an automated "
-                 "flow and document the before / after in a short Loom.",
+        "proof": "Replace one recurring multi-tool task (e.g., weekly "
+                 "report assembly, lead routing, ticket triage) with "
+                 "an automated flow. Document the before / after "
+                 "with a short Loom or doc.",
         "search_terms": ["AI automation specialist", "automation engineer", "workflow engineer"],
+        "warning": "Roles that are really 'prompt monkey for a SaaS "
+                   "tool' will not develop the engineering skills you "
+                   "want. Ask how much of the work is wiring vs. "
+                   "typing into a chat box.",
      }),
     ("designer",
      "Design",
@@ -660,12 +826,18 @@ _STATIC_JOBS = [
      "Build reusable instructions, evaluations, and process templates.",
      {
         "does": "Packages repeatable procedures that other people can "
-                "reuse safely. Owns the prompt library and the process "
-                "templates that go with it.",
+                "reuse safely. Owns the prompt library, the evaluation "
+                "templates, and the process docs that go with them. "
+                "Bridges engineering and the rest of the business.",
         "skills": ["Prompt design", "Evaluation design", "Documentation", "Review"],
         "proof": "Publish one prompt + evaluation template that two "
-                 "different teams adopted without changes.",
+                 "different teams adopted without changes. Adoption, "
+                 "not creation, is the proof.",
         "search_terms": ["prompt designer", "prompt engineer", "AI workflow designer"],
+        "warning": "The 'prompt engineer' job title peaked in 2023 and "
+                   "is now used loosely. Look for roles that mention "
+                   "evaluation, internal documentation, or process "
+                   "design — those are the real signal.",
      }),
     ("support",
      "Support",
@@ -673,12 +845,19 @@ _STATIC_JOBS = [
      "Help teams adopt coding assistants, agents, and model tooling.",
      {
         "does": "Helps engineering teams adopt coding assistants and "
-                "agent tooling, debug integration issues, and roll out "
-                "best practices.",
+                "agent tooling, debug integration issues, run "
+                "enablement sessions, and turn field feedback into "
+                "concrete improvements.",
         "skills": ["Developer tools", "Coding assistants", "Debugging", "Enablement"],
-        "proof": "Run an internal enablement program for one team: workshop, "
-                 "shared rules, weekly office hour, measured adoption.",
+        "proof": "Run an internal enablement program for one team: "
+                 "workshop, shared rules, weekly office hour, measured "
+                 "adoption. The artifact is a written playbook "
+                 "someone else can run.",
         "search_terms": ["developer relations", "developer tools support", "AI enablement"],
+        "warning": "Roles that are pure customer-support ticket "
+                   "queues won't develop the depth you want. Look for "
+                   "titles that pair 'developer' with 'advocate', "
+                   "'experience', or 'adoption'.",
      }),
 ]
 
@@ -688,19 +867,19 @@ _STATIC_JOBS = [
 _TODAY_PICKS = [
     ("Tool of the day",
      "Cursor rules / project memory",
-     "Turn repeated standards into a compact checklist your AI assistant can reuse.",
+     "Drop your team's coding standards into a small rules file the assistant reads on every request. Less repetition, fewer style debates.",
      "news", "Open Tools"),
     ("Prompt kit to try",
      "Ship a feature safely",
-     "Scope the change, list risks, write tests, and run a second-pass review.",
+     "Before any code, force four lists: files to touch, risks, tests, and a one-line rollback. Cheap to run, catches most preventable rollbacks.",
      "prompts", "Open Prompt Kits"),
     ("Skill to learn",
      "RAG evaluation basics",
-     "Check retrieval quality, answer faithfulness, citations, and user trust.",
+     "Most RAG bugs are silent — the answer looks right but the citation is missing. Learn the four checks that catch them before users do.",
      "learning", "Open Learn"),
     ("Career signal",
      "AI product operator",
-     "Teams need people who convert model capability into reliable workflows.",
+     "Teams need people who turn a model into a workflow a real team uses weekly. It's the role hiring managers keep asking about, with no clear default candidate.",
      "jobs", "Open Jobs"),
 ]
 
@@ -963,18 +1142,30 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
         if "what" in detail:
             st.markdown("**What it helps with**")
             st.markdown(detail["what"])
+        if "best_for" in detail:
+            st.markdown("**Best for**")
+            st.markdown(detail["best_for"])
         if "use_case" in detail:
             st.markdown("**Use case**")
             st.markdown(detail["use_case"])
         if "understand" in detail:
             st.markdown("**What you will understand**")
             st.markdown(detail["understand"])
+        if "why" in detail:
+            st.markdown("**Why it matters**")
+            st.markdown(detail["why"])
         if "does" in detail:
             st.markdown("**What the role does**")
             st.markdown(detail["does"])
         if "when" in detail:
             st.markdown("**When to use**")
             st.markdown(detail["when"])
+        if "when_not" in detail:
+            st.markdown("**When not to use**")
+            st.markdown(detail["when_not"])
+        if "inputs" in detail:
+            st.markdown("**Inputs to gather**")
+            st.markdown(detail["inputs"])
         if "starter" in detail:
             st.markdown("**Starter prompt**")
             st.markdown(
@@ -984,13 +1175,22 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
                 "margin:0.25rem 0 0.5rem 0;'>" + esc(detail["starter"]) + "</div>",
                 unsafe_allow_html=True,
             )
+        if "quality" in detail:
+            st.markdown("**Quality check**")
+            st.markdown(detail["quality"])
         if "checklist" in detail:
             st.markdown("**Starter checklist**")
             for step in detail["checklist"]:
                 st.markdown(f"- {esc(step)}")
+        if "compare" in detail:
+            st.markdown("**What to compare before choosing**")
+            st.markdown(detail["compare"])
         if "exercise" in detail:
             st.markdown("**One practical exercise**")
             st.markdown(detail["exercise"])
+        if "mistake" in detail:
+            st.markdown("**Common mistake**")
+            st.markdown(detail["mistake"])
         if "skills" in detail:
             st.markdown("**Skills to learn**")
             for s in detail["skills"]:
@@ -1006,6 +1206,9 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
         if "search_terms" in detail:
             st.markdown("**Search terms**")
             st.markdown(", ".join(f"`{esc(t)}`" for t in detail["search_terms"]))
+        if "warning" in detail:
+            st.markdown("**Watch out**")
+            st.markdown(detail["warning"])
         if "related" in detail:
             st.markdown(
                 f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
