@@ -683,6 +683,7 @@ _STATIC_LEARN = [
      "Foundation",
      "AI basics",
      "Models, context, tokens, strengths, limits, and responsible use.",
+     "ch2",   # jump-start chapter
      {
         "understand": "How modern language and multimodal models actually "
                       "work, what context and tokens mean in practice, "
@@ -707,6 +708,7 @@ _STATIC_LEARN = [
      "Craft",
      "Prompting fundamentals",
      "Inputs, constraints, examples, verification, and iteration.",
+     "ch3",
      {
         "understand": "How to design prompts that produce verifiable, "
                       "repeatable outputs instead of lucky one-shots.",
@@ -729,6 +731,7 @@ _STATIC_LEARN = [
      "Grounding",
      "RAG basics",
      "Retrieval, chunking, citations, evaluation, and failure modes.",
+     "ch7",
      {
         "understand": "How retrieval-augmented generation works end-to-end: "
                       "a question is matched against chunks of your own "
@@ -754,6 +757,7 @@ _STATIC_LEARN = [
      "Systems",
      "Agent workflows",
      "Break tasks into tools, state, checks, handoffs, and recovery paths.",
+     "ch8",
      {
         "understand": "How to break a real task into a workflow an AI "
                       "agent can run reliably, with explicit checks, "
@@ -862,6 +866,234 @@ _STATIC_JOBS = [
 ]
 
 
+# PR19: English surface layer for the 10-chapter Learn guide.
+# Per the spec, at minimum we translate:
+# - chapter titles
+# - subtitles
+# - intro paragraphs
+# - verifier labels
+# - method names + summaries
+# - "build this" exercise lines
+# - cross-ref labels
+# - button labels (already English: Mark complete / Previous / Next)
+# Body_md is intentionally NOT rendered in the English-first guide.
+# Source of truth stays in `learning/learning_render._render_body_md`
+# and `content/chapters.jsonl` — we just skip emitting it here so the
+# visible Learn UI is 100% English. See the "Looking for more?"
+# placeholder in `_render_english_chapter` for the user-facing note.
+_LOCALIZE = {
+    "ch1": {
+        "title": "Why AI matters now",
+        "subtitle": "From hand-written rules to models that simulate thinking. The seven eras.",
+        "intro": "Before we touch a keyboard, take a step back — not to "
+                 "become a historian, but to understand why the AI "
+                 "world looks the way it does today.",
+        "verifiers": [
+            "I know modern AI means deep neural networks (deep learning).",
+            "I know what the 2017 Transformer paper did and why it matters.",
+            "I know that today's LLMs use the Transformer architecture.",
+        ],
+        "build_this": "Draw a timeline on paper with the seven eras. "
+                      "Next to each, write a one-word keyword: rules, ML, "
+                      "DL, Transformer, LLM, restrictions, fusion.",
+        "method_name": "Timeline on the fridge",
+        "method_summary": "Draw the timeline on A3 paper, each era as a "
+                          "colored circle with a one-word keyword. Tape "
+                          "it where you see it every day — fridge, monitor, door.",
+        "method_when": "When you want context for tech news without searching.",
+    },
+    "ch2": {
+        "title": "How an LLM thinks",
+        "subtitle": "Patterns on 500 GB of text. It doesn't think — it predicts. And that's enough to sound like it does.",
+        "intro": "An LLM doesn't think. It walks text by statistics. But it's "
+                 "good enough to sound like it does. Here's how.",
+        "verifiers": [
+            "I know what a token is and how it's formed.",
+            "I know what a context window is and why it matters.",
+            "I know LLMs can 'hallucinate' and that I should verify the source.",
+        ],
+        "build_this": "Open any chat AI. Send: \"How many tokens does this "
+                      "message have?\" Then send the same message with "
+                      "temperature 0 vs 0.9. Note the difference.",
+        "method_name": "Token detective",
+        "method_summary": "Take 10 sentences from your own life (emails, "
+                          "messages, notes). Run them through a tokenizer "
+                          "(platform.openai.com/tokenizer). Count tokens per sentence.",
+        "method_when": "When you want to understand why one prompt costs more than another.",
+    },
+    "ch3": {
+        "title": "Prompting fundamentals",
+        "subtitle": "Talk to the AI like a manager with a new colleague: clear, structured, with examples.",
+        "intro": "The difference between a bad prompt and a good one is a "
+                 "few hours of work saved per day. Prompting isn't mysterious "
+                 "art. It's clear communication with a literal colleague.",
+        "verifiers": [
+            "I know how to give the AI a role in a prompt.",
+            "I know how to specify the exact output format.",
+            "I know how to use negative constraints.",
+        ],
+        "build_this": "Pick a real task from your work. Write 3 prompt "
+                      "versions: bad, with role, with example. Test them "
+                      "in a chat AI. Keep the one that works.",
+        "method_name": "3-prompt test",
+        "method_summary": "Pick a real task from work. Write 3 variants: bad "
+                          "(no context), with role (who the AI is), with "
+                          "example (show what you want). Test them.",
+        "method_when": "When your prompt gives weak results and you don't know why.",
+    },
+    "ch4": {
+        "title": "Vision and multimodal AI",
+        "subtitle": "Classification, detection, OCR, segmentation. The second-largest AI category by economic impact.",
+        "intro": "Computer Vision (CV) is the AI category that works with "
+                 "images and video: recognizes objects, reads text, tracks "
+                 "motion, generates new images. Second only to LLMs in economic impact.",
+        "verifiers": [
+            "I know the difference between classification, detection, and segmentation.",
+            "I can use a hosted vision API to label an image in under 5 minutes.",
+            "I can describe when to use a cloud vision API vs. a local model.",
+        ],
+        "build_this": "Download 20 photos of cats and 20 of dogs. Upload "
+                      "them to Google Cloud Vision (or Roboflow free "
+                      "tier). Compare the labels to your own.",
+        "method_name": "20 photos, 1 tool",
+        "method_summary": "Take 20 personal photos (cats, food, documents). "
+                          "Upload them to Google Cloud Vision. Compare "
+                          "the AI labels to what you know is in the image.",
+        "method_when": "When you need to label, crop, or extract text from images at scale.",
+    },
+    "ch5": {
+        "title": "Text, writing, and summarization",
+        "subtitle": "Where LLMs actually win day-to-day: drafting, summarizing, rewriting, translating.",
+        "intro": "Image and video generation is impressive, but the "
+                 "everyday LLM win is text: drafting, summarizing, "
+                 "rewriting, and translating — the work your team does "
+                 "every day, made 3–5× faster.",
+        "verifiers": [
+            "I can write a prompt that produces a consistent tone over 10 outputs.",
+            "I can summarize a 5-page document into a one-paragraph brief.",
+            "I can rewrite a paragraph in 3 different registers (formal, casual, technical).",
+        ],
+        "build_this": "Pick a long document you wrote this month (a "
+                      "report, an email thread, a doc). Write 3 prompts: "
+                      "summarize in 3 sentences, extract action items, "
+                      "rewrite for a different audience.",
+        "method_name": "One doc, three prompts",
+        "method_summary": "Take any long text. Write 3 prompts: summarize "
+                          "in 3 sentences, extract action items, rewrite "
+                          "for a different audience. Compare to your own "
+                          "first attempt.",
+        "method_when": "When you have a long text to process and want a quick, reusable approach.",
+    },
+    "ch6": {
+        "title": "AI tools and workflows",
+        "subtitle": "Coding assistants, research tools, image tools, productivity agents. Choose by job, not by hype.",
+        "intro": "There are now thousands of AI tools. The trap is "
+                 "collecting them. The skill is picking the right one for "
+                 "the job — coding, research, image, or workflow — and "
+                 "sticking with it long enough to learn its quirks.",
+        "verifiers": [
+            "I can name one tool per category (coding / research / image / agents) and what it's good at.",
+            "I have a default AI coding assistant set up with project memory.",
+            "I can write a workflow spec for a small agent (input, check, failure path).",
+        ],
+        "build_this": "Pick one task you do every week. Find the AI tool "
+                      "that category recommends. Use it for two weeks "
+                      "before judging. Write 3 lines: what worked, what "
+                      "didn't, what you'd try next.",
+        "method_name": "Two-week tool trial",
+        "method_summary": "Pick one weekly task, pick the recommended tool "
+                          "for that category, use it for two weeks before "
+                          "forming an opinion. Write a 3-line retro: what "
+                          "worked, what didn't, what's next.",
+        "method_when": "When a new AI tool launches and you're tempted to switch on day one.",
+    },
+    "ch7": {
+        "title": "Embeddings and RAG basics",
+        "subtitle": "How to give the AI context from your own data. Vector DB + retrieval.",
+        "intro": "LLMs know a lot, but they know nothing specific about you "
+                 "or your company. That's a fundamental limit. The solution: "
+                 "RAG (Retrieval-Augmented Generation) — add context from "
+                 "your own documents before the model answers.",
+        "verifiers": [
+            "I know what an embedding is and how similarity is computed.",
+            "I can stand up a small vector DB (Chroma or similar) on my own files.",
+            "I can read a citation and tell if the cited chunk actually supports the answer.",
+        ],
+        "build_this": "Take 10 of your own documents (articles, wiki "
+                      "pages, notes). Load them into Chroma (local, free). "
+                      "Ask 5 questions. Verify: did the cited chunk actually "
+                      "support the answer?",
+        "method_name": "10 docs, 1 question",
+        "method_summary": "Take 10 of your own files. Load into Chroma. "
+                          "Ask 5 questions. For each, check the cited "
+                          "chunk — most RAG bugs are silent, not loud.",
+        "method_when": "When you're tempted to fine-tune. Try RAG first; it's 10× cheaper and faster.",
+    },
+    "ch8": {
+        "title": "Agents and automation",
+        "subtitle": "LLM + tools + loop. From chat to automation. MCP as USB-C for AI.",
+        "intro": "An LLM alone answers questions. An agent makes decisions, "
+                 "calls tools, and iterates. The difference is between a "
+                 "calculator and an operator.",
+        "verifiers": [
+            "I know what an agent is and how it differs from a simple tool call.",
+            "I can write (tool, input, check, failure path) tuples for a real task.",
+            "I can spot a workflow that has no recovery path and call it out.",
+        ],
+        "build_this": "Use Claude Code or Cursor on a small project. Give "
+                      "it a simple task: \"add tests for function X\". "
+                      "Watch how it plans, calls tools, and recovers from "
+                      "failures. Take notes.",
+        "method_name": "Agent on a small project",
+        "method_summary": "Use Claude Code or Cursor on a small project "
+                          "(100–200 lines). Give it one task. Watch the "
+                          "trace: which tools it called, which calls failed, "
+                          "how it recovered. Take notes.",
+        "method_when": "When you have a multi-step task that always comes back the next week.",
+    },
+    "ch9": {
+        "title": "Evaluation and trust",
+        "subtitle": "How do you know the AI is right? Eval is the difference between a demo and a product.",
+        "intro": "Chat = for you. SDK = for your program. Ollama = local. "
+                 "OpenRouter = 50+ models. But none of that matters if you "
+                 "can't tell when the model is wrong.",
+        "verifiers": [
+            "I can define a 5-example test set for any task I care about.",
+            "I can spot the difference between a vibe check and an eval set.",
+            "I know when to trust a model and when to keep a human in the loop.",
+        ],
+        "build_this": "Pick a task you do weekly. Write 5 example "
+                      "input/output pairs. Save them as your eval set. "
+                      "Run any new model or prompt through them before "
+                      "shipping it. Score pass / fail.",
+        "method_name": "5-input eval set",
+        "method_summary": "Pick a weekly task. Write 5 example input/output "
+                          "pairs. Run any new model or prompt through them "
+                          "before shipping. Score pass / fail. Re-run when "
+                          "anything changes.",
+        "method_when": "Before you ship any AI feature that ships to a real user.",
+    },
+    "ch10": {
+        "title": "Building your own AI workflow",
+        "subtitle": "You have the projects. Apply to 3 roles today. We are all in this.",
+        "intro": "You learned. Now you have to earn. The difference between "
+                 "\"I know AI\" and \"I have the projects\" is the salary. "
+                 "Pick three roles you could apply to today and apply.",
+        "verifiers": [
+            "I have picked a target role (AI engineer / ML engineer / MLOps / etc.).",
+            "I have one project I can show in 2 minutes.",
+            "I can describe in one sentence why my last project is interesting.",
+        ],
+        "build_this": "Pick 3 job listings on LinkedIn for your target role. "
+                      "Apply to one NOW. The other two tomorrow morning. "
+                      "Save the link to each application so you can follow up.",
+        "method_name": "Apply today",
+        "method_summary": "Pick 3 LinkedIn listings. Apply to one right now. "
+                          "The other two tomorrow morning. Save the link to "
+                          "each so you can follow up next week.",
+        "method_when": "Right now. Don't wait until you feel ready.",
+    },
+}
 # Each Today pick: (label, title, body, target_section, action_label).
 # target_section is the internal DISPATCH key the button routes to.
 _TODAY_PICKS = [
@@ -1055,6 +1287,156 @@ div.or-static-action .or-static-body {
   line-height: 1.4;
   margin: 0 0 0.6rem 0;
 }
+
+/* PR19 · Learn guided-course chrome — scoped to or-learn-* classes. */
+section.or-learn-hero {
+  margin: 0.4rem 0 0.8rem 0;
+  padding: 0;
+}
+section.or-learn-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.05rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0.2rem 0 0.45rem 0;
+  color: var(--text);
+}
+section.or-learn-hero p {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 720px;
+}
+.or-learn-eyebrow {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.35rem 0;
+}
+.or-learn-progress-num {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.or-learn-progress-num strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-right: 0.15rem;
+}
+.or-learn-progress-num span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+@media (max-width: 720px) {
+  /* On narrow screens, stack the progress number above the bar. */
+  .or-learn-progress-num { margin-bottom: 0.3rem; }
+}
+
+/* PR19 · Mobile layout — scoped overrides, no desktop regression.
+   - <920px : Learn two columns collapse to single column.
+   - <720px : Learn hero shorter, path cards 2-up, chapter nav shorter,
+              prev/next/toggle stack vertically, hero/title smaller.
+   - <560px : Tighter padding, smaller chapter numerals. */
+@media (max-width: 920px) {
+  /* Two-column guide -> single column. Chapter list on top so users
+     see the path of chapters before the reading panel. */
+  [data-testid="stHorizontalBlock"]:has(.or-learn-guide) {
+    flex-wrap: wrap !important;
+  }
+  [data-testid="stHorizontalBlock"]:has(.or-learn-guide) > [data-testid="stColumn"] {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  /* Path quick-links (4-up) -> 2-up on tablet. */
+  [data-testid="stHorizontalBlock"]:has(.or-static-action) {
+    flex-wrap: wrap !important;
+  }
+  [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {
+    flex: 1 0 calc(50% - 0.25rem) !important;
+    max-width: calc(50% - 0.25rem) !important;
+  }
+  /* Bottom nav (Previous / Mark complete / Next) -> 3-up stays 3-up
+     on tablet — buttons are short enough. */
+}
+@media (max-width: 720px) {
+  /* Learn hero: shorter on mobile. */
+  section.or-learn-hero { margin: 0.2rem 0 0.55rem 0; }
+  section.or-learn-hero h1 {
+    font-size: clamp(1.2rem, 5.2vw, 1.65rem);
+    margin: 0.1rem 0 0.3rem 0;
+  }
+  section.or-learn-hero p { font-size: 0.86rem; line-height: 1.4; }
+  /* Path quick-links: keep 2-up. */
+  [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {
+    flex: 1 0 calc(50% - 0.25rem) !important;
+    max-width: calc(50% - 0.25rem) !important;
+  }
+  /* Chapter nav: tighter button labels on small screens. The button
+     labels include the chapter number + title which can be long; rely
+     on Streamlit's default text-wrap and let the button grow. */
+  [data-testid="stHorizontalBlock"]:has(.or-learn-chapter-list) > [data-testid="stColumn"] {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  /* Bottom nav (Previous / Mark complete / Next) -> stack vertically. */
+  [data-testid="stHorizontalBlock"]:has(.or-learn-bottom-nav) {
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+  }
+  [data-testid="stHorizontalBlock"]:has(.or-learn-bottom-nav) > [data-testid="stColumn"] {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  /* Top nav: hide the narrow refresh column on mobile (the nav is the
+     primary navigation; refresh is a dev affordance, not a user one).
+     Brand keeps its single column; nav buttons get a full row. */
+  [data-testid="stHorizontalBlock"]:has(.st-key-nav_refresh) {
+    display: none !important;
+  }
+  /* Make the brand + nav columns stack as full-width rows. */
+  [data-testid="stHorizontalBlock"]:has(.or-topnav-brand) {
+    flex-wrap: wrap !important;
+    row-gap: 0.55rem !important;
+  }
+  [data-testid="stHorizontalBlock"]:has(.or-topnav-brand) > [data-testid="stColumn"] {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  /* Nav buttons: full width on mobile. */
+  [data-testid="stHorizontalBlock"]:has(.or-nav-shell) > [data-testid="stColumn"] {
+    flex: 1 0 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+  /* Hide the brand subtitle on mobile — keep just "OpenRadar" so the
+     brand line is single-line and not cramped. */
+  .or-topnav-brand .or-name-kicker { display: none !important; }
+  /* The workbench hero (Home) also shortens on mobile. */
+  section.or-workbench-hero { margin: 0.1rem 0 0.4rem 0; }
+  section.or-workbench-hero h1 { font-size: clamp(1.2rem, 5.5vw, 1.7rem); }
+  section.or-workbench-hero p { font-size: 0.86rem; }
+}
+@media (max-width: 560px) {
+  /* Tighter padding on very small screens. */
+  section.main > div { padding-top: 0.25rem !important; }
+  section.or-learn-hero { margin: 0.1rem 0 0.4rem 0; }
+  /* Chapter numeral — slightly smaller. */
+  .lrn-numeral { font-size: 3.5rem !important; }
+  /* All action card text a touch smaller. */
+  div.or-static-action .or-static-title { font-size: 0.9rem !important; }
+  div.or-static-action .or-static-body { font-size: 0.78rem !important; }
+}
 </style>"""
 
 
@@ -1073,11 +1455,22 @@ def _render_action_cards(items: list, state_key: str, action_label: str = "Open"
     Each card has separated label/title/body + an `st.button` that sets
     `st.session_state[state_key]` and `?state_key=...` to the card's key,
     then reruns so the selected detail panel updates immediately.
+
+    Cards in `_STATIC_LEARN` carry an extra `chapter` field (a chapter
+    id string). When a Learn path-card is clicked, the card also sets
+    `st.session_state["selected_chapter"]` so the guided Learn view
+    jumps to that chapter.
     """
     st.markdown(_STATIC_CSS, unsafe_allow_html=True)
     cols = st.columns(len(items), gap="small")
     for col, item in zip(cols, items):
-        key, label, title, body, _detail = item
+        # Item shape is either 5-tuple (key, label, title, body, detail)
+        # or 6-tuple (key, label, title, body, chapter_id, detail).
+        if len(item) == 6:
+            key, label, title, body, chapter_id, _detail = item
+        else:
+            key, label, title, body, _detail = item
+            chapter_id = None
         with col:
             with st.container(border=True):
                 st.markdown(
@@ -1095,6 +1488,9 @@ def _render_action_cards(items: list, state_key: str, action_label: str = "Open"
                 ):
                     st.session_state[state_key] = key
                     st.query_params[state_key] = key
+                    if chapter_id:
+                        st.session_state["selected_chapter"] = chapter_id
+                        st.query_params["learn_chapter"] = chapter_id
                     st.rerun()
 
 
@@ -1124,7 +1520,11 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
         st.rerun()
         return
 
-    key, label, title, body, detail = match
+    # _STATIC_LEARN items are 6-tuples (key, label, title, body, chapter_id,
+    # detail); all other section items are 5-tuples (key, label, title, body,
+    # detail). Take the first 5 fields explicitly so both shapes unpack
+    # cleanly and the detail dict always lives in slot 5.
+    key, label, title, body, detail = match[0], match[1], match[2], match[3], match[5] if len(match) > 5 else match[4]
     with st.container(border=True):
         st.markdown(
             f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
@@ -1226,15 +1626,218 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
             st.rerun()
 
 
-def _render_today_picks() -> None:
-    """Today picks as Streamlit-native bordered cards with functional action buttons.
+def _render_english_chapter(selected_id: str, ch_list: list, completed: set) -> None:
+    """PR19 English surface layer for the Learn guide.
 
-    Renders a 4-up grid using st.container(border=True) + st.columns so each
-    card has separated label/title/body/action widgets (no glued text, no
-    fragile inline HTML). Clicking the action button routes to the card's
-    target section via the same st.session_state.section mechanism used by
-    the top nav.
+    Wraps the existing rich lecture content (Romanian body, verifiers,
+    methods, cross-refs) with English surface labels. The Romanian
+    body_md is NOT rendered — a "Looking for more?" placeholder sits
+    in its place so the page rhythm is preserved. Falls back gracefully
+    to the original renderer if no English localization is available.
     """
+    from learning.learning_render import render_detail_panel
+    ch = next((c for c in ch_list if c.id == selected_id), None)
+    if ch is None:
+        return
+    loc = _LOCALIZE.get(ch.id)
+    if not loc:
+        # No localization for this chapter — fall back to the rich
+        # renderer so we never lose content.
+        render_detail_panel(selected_id, ch_list, completed)
+        return
+
+    # ── English header (numeral / title / subtitle) ────────────────
+    accent = domain_color(ch.domain)
+    idx = next((i for i, c in enumerate(ch_list) if c.id == ch.id), 0)
+    st.markdown(
+        '<div class="lrn-breadcrumb">❡ Learn · Chapter</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="lrn-numeral" style="color:{accent};">{ch.number:02d}</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="lrn-domain-tag" style="color:{accent};">'
+        f'{esc(ch.domain)}'
+        f'&nbsp;&nbsp;<span style="color:#6a6458;">era {esc(ch.era)}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<h1 class="lrn-title">{esc(loc["title"])}</h1>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<p class="lrn-subtitle">{esc(loc["subtitle"])}</p>',
+        unsafe_allow_html=True,
+    )
+
+    # ── English intro paragraph (visible chapter intro text) ─────
+    st.markdown(
+        f'<div class="lrn-body">{esc(loc["intro"])}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── English checklist (Build this) ───────────────────────────
+    st.markdown(
+        f'<div class="lrn-domain-tag" style="color:{accent};">'
+        f'▸ Build this (20 minutes)</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="lrn-body">{esc(loc["build_this"])}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── English verifiers (auto-complete when all ticked) ─────────
+    if loc.get("verifiers"):
+        st.markdown(
+            f'<div class="lrn-domain-tag" style="color:{accent};">'
+            f'✓ Self-check (tick all to mark complete)</div>',
+            unsafe_allow_html=True,
+        )
+        all_ticked = True
+        for vi, v in enumerate(loc["verifiers"]):
+            key = f"verifier_{ch.id}_{vi}"
+            ticked = bool(st.session_state.get(key, False))
+            if not ticked:
+                all_ticked = False
+            st.checkbox(v, key=key)
+
+        if all_ticked:
+            if ch.id not in completed:
+                completed = set(completed) | {ch.id}
+                st.session_state.completed_chapters = completed
+            st.markdown(
+                '<div class="lrn-completion">'
+                '<div class="lrn-completion-msg">'
+                'All checks ticked — this chapter is done.'
+                '</div>'
+                '<div class="lrn-completion-sub">'
+                'self-check complete · chapter complete'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True,
+            )
+
+    # ── English recommended method ──────────────────────────────
+    if loc.get("method_name"):
+        st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="lrn-domain-tag" style="color:{accent};">'
+            f'◆ Recommended method</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f'<div class="lrn-method">'
+            f'<div class="lrn-method-name">{esc(loc["method_name"])}</div>'
+            f'<div class="lrn-method-summary">{esc(loc["method_summary"])}</div>'
+            f'<div class="lrn-method-why">'
+            f'When to use: {esc(loc["method_when"])}'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        st.checkbox(
+            f"I tried \"{loc['method_name']}\"",
+            key=f"method_done_{ch.id}_main",
+        )
+
+    # ── Detailed notes section ─────────────────────────────────────
+    # Original Romanian body_md intentionally not rendered in
+    # English-first guide until full translation lands. The source
+    # content stays in `learning/learning_render._render_body_md` and
+    # `content/chapters.jsonl` for future translation work; we just
+    # skip emitting it here so the visible Learn UI is 100% English.
+    # A short "Looking for more?" placeholder keeps the page rhythm
+    # honest without reintroducing the Romanian copy.
+    st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="lrn-domain-tag" style="color:{accent};">'
+        f'▸ Looking for more?</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="lrn-body" style="color: var(--text-2); '
+        'font-size: 0.9rem;">'
+        'Detailed chapter notes are still being translated from the '
+        'original Romanian drafts. The structure above (intro, '
+        'self-check, recommended method, cross-references) covers '
+        'the core of every chapter.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Cross-refs (NEWS / TOOL / PROMPT links from the loader) ───
+    import html as _html
+    try:
+        from learning.learning_render import _load_cross_refs
+        cr = _load_cross_refs(ch.id)
+        has_any = cr["news"] or cr["repos"] or cr["prompts"]
+        if has_any:
+            st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="lrn-domain-tag" style="color:{accent};">'
+                f'▸ From our feed</div>',
+                unsafe_allow_html=True,
+            )
+            for n in cr["news"]:
+                st.markdown(
+                    f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                    f'<span class="lrn-footer" style="margin-right: 0.5rem;">NEWS</span>'
+                    f'<a href="{_html.escape(n["url"])}" target="_blank" '
+                    f'style="color: #f4ede0; text-decoration: none; '
+                    f'border-bottom: 1px dashed #3a342c;">'
+                    f'{_html.escape(n["title"][:90])}</a></div>',
+                    unsafe_allow_html=True,
+                )
+            for r in cr["repos"]:
+                st.markdown(
+                    f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                    f'<span class="lrn-footer" style="margin-right: 0.5rem;">TOOL</span>'
+                    f'<a href="{_html.escape(r["url"])}" target="_blank" '
+                    f'style="color: #f4ede0; text-decoration: none; '
+                    f'border-bottom: 1px dashed #3a342c;">'
+                    f'{_html.escape(r["title"])}</a></div>',
+                    unsafe_allow_html=True,
+                )
+            for p in cr["prompts"]:
+                cat = (p.get("category") or "?").upper()
+                diff = (p.get("difficulty") or "?").upper()
+                st.markdown(
+                    f'<div style="margin: 0.4rem 0; font-size: 0.95rem;">'
+                    f'<span class="lrn-footer" style="margin-right: 0.5rem;">'
+                    f'PROMPT · {cat} · {diff}</span>'
+                    f'<span style="color: #f4ede0;">'
+                    f'{_html.escape(p["title"][:90])}</span></div>',
+                    unsafe_allow_html=True,
+                )
+    except Exception:
+        # Cross-refs are best-effort. If the loader raises, skip them.
+        pass
+
+    # ── Footer progress strip ─────────────────────────────────────
+    total = len(ch_list)
+    done = sum(1 for c in ch_list if c.id in completed)
+    pct = int(done / total * 100) if total else 0
+    next_ch = ch_list[idx + 1] if idx < total - 1 else None
+    next_label = (
+        f"{next_ch.number:02d} · {next_ch.title}"
+        if next_ch else "last chapter"
+    )
+    st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="lrn-footer">'
+        f'{ch.number:02d} / {total:02d}&nbsp;&nbsp;·&nbsp;&nbsp;'
+        f'{pct}% complete&nbsp;&nbsp;·&nbsp;&nbsp;'
+        f'next: {_html.escape(next_label)}'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_today_picks() -> None:
     cols = st.columns(4, gap="small")
     for col, pick in zip(cols, _TODAY_PICKS):
         label, title, body, target, action = pick
@@ -1564,64 +2167,187 @@ def render_news() -> None:
 # SECTION: LEARN · Practical short paths (10 chapters)
 # PR10: copy nudge — frames the 10 chapters as practical short paths,
 # not a generic course catalog. Content itself is unchanged.
+# PR19: replaces the static-card + selectbox layout with a guided course:
+# left column = chapter list with status marks, right column = the
+# existing rich lecture renderer (PR-A detail panel from
+# learning.learning_render). State stays in session_state + ?learn_chapter=...
+# PR1 `_progress` machinery is untouched (it mirrors session_state to ?p=...).
 # ─────────────────────────────────────────────────────────────────────────
 def render_learning() -> None:
     from learning.learning_render import render_detail_panel
     from theme import lecture_css
 
-    section_head(
-        "PATHS · 10 CHAPTERS",
-        "Learn",
-        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de "
-        "făcut — nu curs generic.",
+    # Header + subheadline (intro line the user sees first).
+    st.markdown(
+        '<section class="or-learn-hero">'
+        '<div class="or-learn-eyebrow">LEARN · GUIDED COURSE</div>'
+        '<h1>Learn AI by building useful workflows.</h1>'
+        '<p>Pick a path, read one short chapter, do a 20-minute '
+        'exercise, mark it complete. No quiz, no certificate — just '
+        'practical AI you can actually use at work.</p>'
+        '</section>',
+        unsafe_allow_html=True,
     )
 
-    section_head(
-        "LEARN · FOUR CORE AREAS",
-        "Learn",
-        "Four core areas that take you from beginner to useful — pick one to start.",
-    )
-    _render_action_cards(_STATIC_LEARN, state_key="learn_focus", action_label="Open")
-    _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
-                            panel_heading="SELECTED LEARN PATH")
-    section_head(
-        "CHAPTERS · DEEP PATHS",
-        "10 chapters",
-        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de făcut.",
-    )
+    # ── Load chapter list ────────────────────────────────────────────
     ch_list = get_all_chapters()
-    # Defensive: if the loader somehow returned 0, fall back to a no-op panel.
     if not ch_list:
+        st.markdown(
+            '<div style="padding:1rem;color:var(--muted);">'
+            'No chapters available right now. Check '
+            '<code>content/chapters.jsonl</code>.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
         return
 
-    # ── Calm chapter selector (replaces the 5x2 chip grid) ──
-    selected_id = st.session_state.get("selected_chapter", ch_list[0].id)
-    # Guard against a stale id pointing at a retired or missing chapter.
-    if selected_id not in {c.id for c in ch_list}:
+    chapter_ids = {c.id for c in ch_list}
+
+    # ── Resolve selected chapter from ?learn_chapter= or session_state ──
+    qp_chapter = st.query_params.get("learn_chapter")
+    if qp_chapter and qp_chapter in chapter_ids:
+        st.session_state["selected_chapter"] = qp_chapter
+
+    selected_id = st.session_state.get("selected_chapter")
+    if not selected_id or selected_id not in chapter_ids:
         selected_id = ch_list[0].id
-        st.session_state.selected_chapter = selected_id
+        st.session_state["selected_chapter"] = selected_id
+        st.query_params["learn_chapter"] = selected_id
 
-    def _format_chapter(c) -> str:
-        title = c.title if len(c.title) <= 48 else c.title[:46].rstrip() + "…"
-        return f"{c.number:02d} · {title}"
+    # ── Progress + completed state ──────────────────────────────────
+    completed = set(st.session_state.get("completed_chapters", set()) or set())
+    done = sum(1 for c in ch_list if c.id in completed)
+    total = len(ch_list)
+    pct = int(done / total * 100) if total else 0
 
-    chosen = st.selectbox(
-        "Capitol",
-        options=ch_list,
-        index=[c.id for c in ch_list].index(selected_id),
-        format_func=_format_chapter,
-        key="learning_chapter_selectbox",
-        label_visibility="collapsed",
+    progress_cols = st.columns([1, 4])
+    with progress_cols[0]:
+        st.markdown(
+            f'<div class="or-learn-progress-num">'
+            f'<strong>{done}</strong>/{total}'
+            f'<span>&nbsp;chapters complete</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with progress_cols[1]:
+        st.progress(min(max(pct, 0), 100))
+
+    # ── Path quick-links: small horizontal strip ────────────────────
+    # Each card selects both the path detail panel AND the matching
+    # chapter so the user lands in the guide immediately.
+    st.markdown(
+        '<div class="or-learn-eyebrow" style="margin-top:1rem;">'
+        'PICK A PATH</div>',
+        unsafe_allow_html=True,
     )
-    if chosen.id != selected_id:
-        st.session_state.selected_chapter = chosen.id
-        st.rerun()
-    selected_id = chosen.id
+    _render_action_cards(_STATIC_LEARN, state_key="learn_focus",
+                         action_label="Start path")
 
-    # ── Single-column lecture page ──
-    completed = st.session_state.get("completed_chapters", set())
-    st.markdown(lecture_css(), unsafe_allow_html=True)
-    render_detail_panel(selected_id, ch_list, completed)
+    # ── Two-column guide: chapter list (left) + reading panel (right) ─
+    st.markdown('<div class="or-learn-guide">', unsafe_allow_html=True)
+    list_col, read_col = st.columns([0.42, 0.58], gap="medium")
+
+    with list_col:
+        st.markdown(
+            '<div class="or-learn-chapter-list">',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="or-learn-eyebrow" style="margin-top:0.4rem;">'
+            'CHAPTERS</div>',
+            unsafe_allow_html=True,
+        )
+        # Each chapter = a button row with status mark + title.
+        # Selected chapter gets a visible "current" treatment.
+        # Use the English title from _LOCALIZE when available so the
+        # chapter list reads in English even though the underlying
+        # Chapter.title is Romanian.
+        for c in ch_list:
+            is_done = c.id in completed
+            is_current = c.id == selected_id
+            mark = "✓" if is_done else ("•" if is_current else " ")
+            display_title = (_LOCALIZE.get(c.id) or {}).get("title") or c.title
+            row_label = f"{mark}  {c.number:02d} · {display_title}"
+            btn_type = "primary" if is_current else "secondary"
+            if st.button(
+                row_label,
+                key=f"learn_nav_{c.id}",
+                use_container_width=True,
+                type=btn_type,
+            ):
+                st.session_state["selected_chapter"] = c.id
+                st.query_params["learn_chapter"] = c.id
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)  # close or-learn-chapter-list
+
+    with read_col:
+        st.markdown(
+            '<div class="or-learn-eyebrow" style="margin-top:0.4rem;">'
+            'READING</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(lecture_css(), unsafe_allow_html=True)
+        # English wrapper around the existing Romanian body. The rich
+        # lecture renderer (verifiers / methods / cross-refs / Ask Groq)
+        # is the source of truth for content; we re-render the same
+        # chapter here with English surface labels and a clear
+        # "Detailed notes (Romanian — translation coming)" note for
+        # the body copy. Old romanian-only labels are removed in the
+        # chapter list and reading header; the rest is preserved.
+        _render_english_chapter(selected_id, ch_list, completed)
+
+        # Bottom nav: Previous / Mark complete / Next (clear, explicit).
+        idx = next((i for i, c in enumerate(ch_list) if c.id == selected_id), 0)
+        prev_ch = ch_list[idx - 1] if idx > 0 else None
+        next_ch = ch_list[idx + 1] if idx < total - 1 else None
+        st.markdown('<div class="or-learn-bottom-nav">', unsafe_allow_html=True)
+        nav_cols = st.columns(3)
+        with nav_cols[0]:
+            if prev_ch and st.button(
+                f"◀ Previous",
+                key=f"learn_prev_{selected_id}",
+                use_container_width=True,
+            ):
+                st.session_state["selected_chapter"] = prev_ch.id
+                st.query_params["learn_chapter"] = prev_ch.id
+                st.rerun()
+        with nav_cols[1]:
+            is_done = selected_id in completed
+            if st.button(
+                "Unmark complete" if is_done else "Mark complete ✓",
+                key=f"learn_toggle_{selected_id}",
+                use_container_width=True,
+                type="secondary" if is_done else "primary",
+            ):
+                if is_done:
+                    completed.discard(selected_id)
+                else:
+                    completed.add(selected_id)
+                st.session_state.completed_chapters = set(completed)
+                st.rerun()
+        with nav_cols[2]:
+            if next_ch and st.button(
+                f"Next ▶",
+                key=f"learn_next_{selected_id}",
+                use_container_width=True,
+            ):
+                st.session_state["selected_chapter"] = next_ch.id
+                st.query_params["learn_chapter"] = next_ch.id
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)  # close or-learn-bottom-nav
+    st.markdown('</div>', unsafe_allow_html=True)  # close or-learn-guide
+
+    # ── Selected path detail panel (compact, below the two columns) ───
+    # Renders the path's static guidance from _STATIC_LEARN. Kept for
+    # users who want the high-level "why this path / common mistake /
+    # next" view alongside the chapter detail.
+    st.markdown(
+        '<div class="or-learn-eyebrow" style="margin-top:1.4rem;">'
+        'PATH NOTES</div>',
+        unsafe_allow_html=True,
+    )
+    _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
+                            panel_heading="SELECTED PATH")
 
 
 # ─────────────────────────────────────────────────────────────────────────
