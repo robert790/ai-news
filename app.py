@@ -96,12 +96,14 @@ st.set_page_config(
 )
 st.markdown(render_css(), unsafe_allow_html=True)
 
-# Ambient overlays — radar rings (top-right) + slow scan line
-st.markdown(
-    '<div class="or-radar" aria-hidden="true"></div>'
-    '<div class="or-scan" aria-hidden="true"></div>',
-    unsafe_allow_html=True,
-)
+# Ambient overlays disabled by PR15 chrome cleanup. Old radar/scan
+# elements are no longer rendered — kept the marker as a no-op so the
+# rest of the page is unchanged.
+# st.markdown(
+#     '<div class="or-radar" aria-hidden="true"></div>'
+#     '<div class="or-scan" aria-hidden="true"></div>',
+#     unsafe_allow_html=True,
+# )
 
 
 # ─── Inline SVG icons ───────────────────────────────────────────────────
@@ -375,14 +377,16 @@ def render_top_nav() -> str:
 
     cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
-    # Brand — icon + name + small mono kicker for hierarchy.
+    # Brand — simple text identity. PR15 chrome cleanup: no big radar
+    # personality, no old subtitle. Just "OpenRadar" with a plain
+    # AI tools · prompts · learn · jobs kicker rendered with the
+    # same monospace tone as the rest of the chrome.
     with cols[0]:
         st.markdown(
             '<a class="or-topnav-brand" href="?section=groq">'
-            f'{RADAR_MARK}'
             '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
-            '<span class="or-name-kicker">ai career · tools radar</span>'
+            '<span class="or-name-kicker">AI tools · prompts · learn · jobs</span>'
             '</span>'
             '</a>',
             unsafe_allow_html=True,
@@ -399,13 +403,13 @@ def render_top_nav() -> str:
     # to avoid a risky deep-link rename. Tracked as follow-up debt.
     with cols[1]:
         section_labels = [
-            ("groq",     "☀  Today"),
-            ("news",     "◌  Tools"),
-            ("learning", "❡  Learn"),
-            ("jobs",     "◆  Jobs"),
-            ("prompts",  "✦  Prompt Kits"),
+            ("groq",     "Home"),
+            ("news",     "Tools"),
+            ("prompts",  "Prompt Kits"),
+            ("learning", "Learn"),
+            ("jobs",     "Jobs"),
         ]
-        st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
+        st.markdown('<div class="or-nav-shell">', unsafe_allow_html=True)
         btn_cols = st.columns(5, gap="small")
         for (key, label), col in zip(section_labels, btn_cols):
             with col:
@@ -419,30 +423,14 @@ def render_top_nav() -> str:
                     st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Status + refresh action
+    # Status + refresh action — PR15 chrome cleanup removes all fake
+    # live/online/demo status pills. Only the refresh button remains.
     with cols[2]:
-        is_live = config.has_llm()
-        dot_cls = "" if is_live else "demo"
-        status_text = "ONLINE" if is_live else "DEMO"
-
-        inner = _columns([3, 1.2], gap="small")
-        with inner[0]:
-            st.markdown(
-                f'<div class="or-topnav-status">'
-                f'<span class="or-live-pill">'
-                f'<span class="or-status-dot {dot_cls}"></span>'
-                f'<span>{status_text}</span>'
-                f'</span>'
-                f'<span class="or-tag-desktop" style="opacity:.5;">· v3</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-        with inner[1]:
-            if st.button("↻", key="nav_refresh", use_container_width=True,
-                         help="Refresh feeds (clear cache)"):
-                st.cache_data.clear()
-                st.toast("Cache cleared.")
-                st.rerun()
+        if st.button("↻", key="nav_refresh", use_container_width=True,
+                     help="Refresh feeds (clear cache)"):
+            st.cache_data.clear()
+            st.toast("Cache cleared.")
+            st.rerun()
 
     return st.session_state.section
 
@@ -460,25 +448,563 @@ if SECTION not in {"groq", "news", "learning", "jobs", "prompts"}:
 # PR10 positioning: "Today" — daily brief for an AI Career + Tools Radar.
 # Bento trio is News / Tools / Jobs (top 3 each) + lesson + prompt.
 # ─────────────────────────────────────────────────────────────────────────
-def render_groq() -> None:
-    """The default landing: cinematic hero, then a 3-card bento of
-    News / Tools / Jobs (top 3 each), then a mini-bento for lesson + prompt."""
 
-    hero_block(
-        eyebrow_html=(
-            "<span class='or-live'>"
-            "<span class='dot'></span>LIVE · BUCUREȘTI · "
-            + datetime.now(ZoneInfo("Europe/Bucharest")).strftime("%a %d %b").upper()
-            + "</span>"
-        ),
-        headline_html=(
-            'Your <span class="or-accent">AI career</span> &amp; tools radar.'
-        ),
-        sub="O dată pe zi, cinci semnale: ce e nou azi, un tool pe care să-l încerci, "
-            "o lecție scurtă și un kit de prompturi pentru mâine.",
+
+# ─── PR15: static functional section content ────────────────────────────
+# Each static item: (key, label, title, body, detail_dict). The detail dict
+# carries the spec-required fields per section so a single render helper can
+# drive any of the four sections. Pure local content — no live data, no
+# scraping, no fake telemetry.
+_STATIC_TOOLS = [
+    ("coding",
+     "Build",
+     "Coding assistants",
+     "Repo-aware help for edits, tests, refactors, and review.",
+     {
+        "what": "Assistants that read your repository and respond to edits, "
+                "tests, refactors, and code review with project context.",
+        "when": "Use when you write or modify code daily and want fewer "
+                "context switches between editor and assistant.",
+        "checklist": [
+            "Pick one assistant that supports your editor and language stack.",
+            "Wire project memory / rules so the assistant knows your style.",
+            "Start every task with a short scope note (files, goals, risks).",
+            "Run the assistant's diff through your own review before merge.",
+        ],
+        "related": "Related signals below — repos, papers, and discussions.",
+     }),
+    ("research",
+     "Decide",
+     "Research tools",
+     "Turn many sources into a clearer decision.",
+     {
+        "what": "Readers and summarizers that turn long sources (papers, "
+                "articles, threads, transcripts) into clearer signal.",
+        "when": "Use when you have to make a decision and the input is "
+                "longer than you have time to read.",
+        "checklist": [
+            "List the 2–3 questions you actually need answered.",
+            "Pick sources that disagree — single-feed reading is not research.",
+            "Force a written summary per source before comparing them.",
+            "End with a one-paragraph decision and the evidence behind it.",
+        ],
+        "related": "Related signals below — papers, threads, and analysis.",
+     }),
+    ("media",
+     "Create",
+     "Image/video tools",
+     "Generate, edit, storyboard, or repurpose visual material.",
+     {
+        "what": "Tools for generating, editing, storyboarding, and "
+                "repurposing images and video using AI.",
+        "when": "Use when a project needs visual assets faster than a "
+                "designer can hand-draft them.",
+        "checklist": [
+            "Start from a written brief, not a vibe.",
+            "Generate 3–5 variants and pick the strongest direction.",
+            "Always run final output through your brand / accessibility check.",
+            "Reuse a small set of prompts; rotate them when quality drifts.",
+        ],
+        "related": "Related signals below — fresh media tools worth scanning.",
+     }),
+    ("agents",
+     "Operate",
+     "Productivity agents",
+     "Automate inboxes, docs, spreadsheets, meetings, and repetitive admin.",
+     {
+        "what": "Agents that connect to inboxes, documents, calendars, "
+                "spreadsheets, and meeting tools to do small jobs on their own.",
+        "when": "Use when a task is repetitive, low-risk, and you can describe "
+                "what 'done' looks like in one sentence.",
+        "checklist": [
+            "Start with read-only access — never write on day one.",
+            "Define a clear done-condition and a stop rule.",
+            "Log every action the agent took; review the log weekly.",
+            "Promote to write access only after two clean weeks.",
+        ],
+        "related": "Related signals below — workflow and agent picks.",
+     }),
+]
+
+_STATIC_PROMPTS = [
+    ("ship",
+     "Build",
+     "Ship a feature safely",
+     "Scope files, risks, tests, review, and rollback before merge.",
+     {
+        "use_case": "Reduce the failure modes when shipping a non-trivial "
+                    "change. Forces scope, risk, and rollback to be decided "
+                    "before any code is written.",
+        "starter": "I'm about to change <scope>. List (1) files this change "
+                   "must touch, (2) risks I should pre-empt, (3) tests I "
+                   "must add or update, and (4) a one-line rollback plan. "
+                   "Ask me anything before writing code.",
+        "when": "Use at the start of any feature branch that touches more "
+                "than two files or any shared system.",
+        "next": "Run the AI's output as a checklist; do not skip the rollback line.",
+     }),
+    ("compare",
+     "Decide",
+     "Compare AI tools",
+     "Score options by use case, cost, quality, risk, and switching cost.",
+     {
+        "use_case": "Pick between two or more AI tools when there is no "
+                    "obvious default and the decision will be revisited "
+                    "later.",
+        "starter": "Compare <tool A> and <tool B> for <use case>. Score each "
+                   "on fit, cost, latency, output quality, risk, and switching "
+                   "cost. End with one recommendation and the top 3 reasons.",
+        "when": "Use when the team asks 'should we switch?' and the answer "
+                "is not yet obvious from the docs.",
+        "next": "Treat the scorecard as the next quarter's review input.",
+     }),
+    ("learn",
+     "Learn",
+     "Learn a concept",
+     "Explain with examples, checks for understanding, and practice tasks.",
+     {
+        "use_case": "Learn a new AI concept fast and verify the explanation "
+                    "with a concrete check, not just by reading.",
+        "starter": "Explain <concept> as if I am a senior engineer who has "
+                   "never worked on AI. Give one worked example, one common "
+                   "misconception, and one 10-minute practice task.",
+        "when": "Use before a meeting, interview, or decision that touches "
+                "a topic you have only heard about.",
+        "next": "Do the practice task before declaring the concept 'known'.",
+     }),
+    ("outreach",
+     "Write",
+     "Write outreach",
+     "Draft a specific message with context, value, proof, and a low-friction ask.",
+     {
+        "use_case": "Send cold or warm messages that actually get a reply. "
+                    "Avoids generic 'just checking in' patterns.",
+        "starter": "Draft a 90-word message to <name> at <company> about "
+                   "<specific topic>. Include (1) one line of context, "
+                   "(2) one concrete value we offer, (3) one piece of proof, "
+                   "(4) a low-friction ask.",
+        "when": "Use whenever the recipient is busy and the ask matters.",
+        "next": "Send 3 versions, pick the shortest that still says the right thing.",
+     }),
+]
+
+_STATIC_LEARN = [
+    ("basics",
+     "Foundation",
+     "AI basics",
+     "Models, context, tokens, strengths, limits, and responsible use.",
+     {
+        "understand": "How modern language and multimodal models actually "
+                      "work, what context and tokens mean in practice, and "
+                      "where the model is reliable versus brittle.",
+        "exercise": "Pick one task you do weekly. Write a 5-bullet brief: "
+                    "what context the model would need, what a good output "
+                    "looks like, and what a bad one looks like.",
+        "next_chapter": "Chapter 2 — token economics and cost.",
+        "next": "Save the brief as a template you can reuse for new tasks.",
+     }),
+    ("prompting",
+     "Craft",
+     "Prompting fundamentals",
+     "Inputs, constraints, examples, verification, and iteration.",
+     {
+        "understand": "How to design prompts that produce verifiable, "
+                      "repeatable outputs instead of lucky one-shots.",
+        "exercise": "Take a prompt you already use. Add (1) one explicit "
+                    "constraint, (2) one worked example, and (3) one "
+                    "verification step. Compare before / after on 3 tasks.",
+        "next_chapter": "Chapter 4 — verification and self-critique.",
+        "next": "Keep a personal prompt log with the changes that mattered.",
+     }),
+    ("rag",
+     "Grounding",
+     "RAG basics",
+     "Retrieval, chunking, citations, evaluation, and failure modes.",
+     {
+        "understand": "How retrieval-augmented generation works end-to-end "
+                      "and the failure modes (bad chunks, missing citations, "
+                      "silent hallucination) that hurt trust.",
+        "exercise": "Build a tiny RAG over a folder of your own notes. Log "
+                    "every question where the answer looked right but the "
+                    "citation was missing or wrong.",
+        "next_chapter": "Chapter 6 — RAG evaluation basics.",
+        "next": "Make the citation-log the input to your next RAG iteration.",
+     }),
+    ("agents",
+     "Systems",
+     "Agent workflows",
+     "Break tasks into tools, state, checks, handoffs, and recovery paths.",
+     {
+        "understand": "How to break a real task into a workflow an AI agent "
+                      "can run reliably, with explicit checks and recovery "
+                      "rules.",
+        "exercise": "Pick a task you do weekly that has at least 4 steps. "
+                    "Write the steps as (tool, input, check, failure path) "
+                    "tuples. Hand one tuple to an AI and see if it can "
+                    "execute the step on its own.",
+        "next_chapter": "Chapter 8 — agent workflows in practice.",
+        "next": "Treat the tuple list as the source of truth for any new agent.",
+     }),
+]
+
+_STATIC_JOBS = [
+    ("operator",
+     "Role",
+     "AI product operator",
+     "Turn models and workflows into reliable business outcomes.",
+     {
+        "does": "Owns the translation from model capability to a shipped "
+                "workflow that a team uses daily. Drives rollout, "
+                "evaluation, and adoption.",
+        "skills": ["Workflow design", "Evaluation basics", "Stakeholder demos", "Adoption metrics"],
+        "proof": "Run a 30-day pilot with one team: define the workflow, "
+                 "ship the assistant, measure usage and quality weekly.",
+        "search_terms": ["AI product operator", "AI workflow lead", "AI solutions"],
+     }),
+    ("automation",
+     "Automation",
+     "AI automation specialist",
+     "Connect tools, documents, workflows, and repetitive operations.",
+     {
+        "does": "Builds and maintains the connections between AI tools and "
+                "the rest of the operations stack (docs, sheets, ticketing, "
+                "CRM).",
+        "skills": ["Scripting", "API integration", "Workflow design", "Ops hygiene"],
+        "proof": "Replace one recurring multi-tool task with an automated "
+                 "flow and document the before / after in a short Loom.",
+        "search_terms": ["AI automation specialist", "automation engineer", "workflow engineer"],
+     }),
+    ("designer",
+     "Design",
+     "Prompt/workflow designer",
+     "Build reusable instructions, evaluations, and process templates.",
+     {
+        "does": "Packages repeatable procedures that other people can "
+                "reuse safely. Owns the prompt library and the process "
+                "templates that go with it.",
+        "skills": ["Prompt design", "Evaluation design", "Documentation", "Review"],
+        "proof": "Publish one prompt + evaluation template that two "
+                 "different teams adopted without changes.",
+        "search_terms": ["prompt designer", "prompt engineer", "AI workflow designer"],
+     }),
+    ("support",
+     "Support",
+     "AI developer tools support",
+     "Help teams adopt coding assistants, agents, and model tooling.",
+     {
+        "does": "Helps engineering teams adopt coding assistants and "
+                "agent tooling, debug integration issues, and roll out "
+                "best practices.",
+        "skills": ["Developer tools", "Coding assistants", "Debugging", "Enablement"],
+        "proof": "Run an internal enablement program for one team: workshop, "
+                 "shared rules, weekly office hour, measured adoption.",
+        "search_terms": ["developer relations", "developer tools support", "AI enablement"],
+     }),
+]
+
+
+# Each Today pick: (label, title, body, target_section, action_label).
+# target_section is the internal DISPATCH key the button routes to.
+_TODAY_PICKS = [
+    ("Tool of the day",
+     "Cursor rules / project memory",
+     "Turn repeated standards into a compact checklist your AI assistant can reuse.",
+     "news", "Open Tools"),
+    ("Prompt kit to try",
+     "Ship a feature safely",
+     "Scope the change, list risks, write tests, and run a second-pass review.",
+     "prompts", "Open Prompt Kits"),
+    ("Skill to learn",
+     "RAG evaluation basics",
+     "Check retrieval quality, answer faithfulness, citations, and user trust.",
+     "learning", "Open Learn"),
+    ("Career signal",
+     "AI product operator",
+     "Teams need people who convert model capability into reliable workflows.",
+     "jobs", "Open Jobs"),
+]
+
+
+_STATIC_CSS = """<style>
+/* PR15 chrome cleanup — global suppressors. */
+div.or-radar, div.or-scan { display: none !important; }
+div.or-nav-pills {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+.or-hero .or-eyebrow::before,
+.or-hero .or-eyebrow::after { display: none !important; }
+.or-hero { padding: 0 !important; min-height: 0 !important; }
+.or-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+section.main > div { padding-top: 0.6rem !important; }
+section.or-workbench-hero {
+  margin: 0.2rem 0 0.6rem 0;
+  padding: 0;
+}
+section.or-workbench-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.3rem 0;
+  color: var(--text);
+}
+section.or-workbench-hero p {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 720px;
+}
+
+div.or-static-action .or-static-label {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin: 0 0 0.3rem 0;
+}
+div.or-static-action .or-static-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  margin: 0 0 0.3rem 0;
+  line-height: 1.25;
+}
+div.or-static-action .or-static-body {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  line-height: 1.4;
+  margin: 0 0 0.6rem 0;
+}
+</style>"""
+
+
+def _read_focus(state_key: str) -> str | None:
+    """Read the selected card key from query_params or session_state."""
+    qp_val = st.query_params.get(state_key)
+    if qp_val:
+        st.session_state[state_key] = qp_val
+        return qp_val
+    return st.session_state.get(state_key)
+
+
+def _render_action_cards(items: list, state_key: str, action_label: str = "Open") -> None:
+    """Render a 4-up row of Streamlit-native action cards.
+
+    Each card has separated label/title/body + an `st.button` that sets
+    `st.session_state[state_key]` and `?state_key=...` to the card's key,
+    then reruns so the selected detail panel updates immediately.
+    """
+    st.markdown(_STATIC_CSS, unsafe_allow_html=True)
+    cols = st.columns(len(items), gap="small")
+    for col, item in zip(cols, items):
+        key, label, title, body, _detail = item
+        with col:
+            with st.container(border=True):
+                st.markdown(
+                    f"<div class='or-static-action'><div class='or-static-label'>"
+                    f"{esc(label)}</div>"
+                    f"<div class='or-static-title'>{esc(title)}</div>"
+                    f"<p class='or-static-body'>{esc(body)}</p></div>",
+                    unsafe_allow_html=True,
+                )
+                if st.button(
+                    action_label,
+                    key=f"{state_key}_open_{key}",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state[state_key] = key
+                    st.query_params[state_key] = key
+                    st.rerun()
+
+
+def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> None:
+    """Render the selected card's detail panel below the card row.
+
+    If nothing is selected, render a small "select a card" prompt. The
+    panel uses Streamlit-native widgets so label / body / checklist /
+    next-action are always rendered as separate elements.
+    """
+    selected_key = _read_focus(state_key)
+    if not selected_key:
+        st.markdown(
+            "<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+            "font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;"
+            "color:var(--muted);margin:0.4rem 0 0.2rem 0;'>"
+            "SELECTED · pick a card above to see the detail</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    match = next((item for item in items if item[0] == selected_key), None)
+    if match is None:
+        # Stale key from a previous session — clear it and re-prompt.
+        st.session_state.pop(state_key, None)
+        st.query_params.pop(state_key, None)
+        st.rerun()
+        return
+
+    key, label, title, body, detail = match
+    with st.container(border=True):
+        st.markdown(
+            f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+            f"font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;"
+            f"color:var(--amber);margin-bottom:0.25rem;'>{esc(panel_heading)} · "
+            f"{esc(label)}</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f"<div style='font-size:1.05rem;font-weight:700;color:var(--text);"
+            f"margin-bottom:0.5rem;line-height:1.2;'>{esc(title)}</div>",
+            unsafe_allow_html=True,
+        )
+        # Per-section detail fields — pick keys that exist in this item's detail.
+        if "what" in detail:
+            st.markdown("**What it helps with**")
+            st.markdown(detail["what"])
+        if "use_case" in detail:
+            st.markdown("**Use case**")
+            st.markdown(detail["use_case"])
+        if "understand" in detail:
+            st.markdown("**What you will understand**")
+            st.markdown(detail["understand"])
+        if "does" in detail:
+            st.markdown("**What the role does**")
+            st.markdown(detail["does"])
+        if "when" in detail:
+            st.markdown("**When to use**")
+            st.markdown(detail["when"])
+        if "starter" in detail:
+            st.markdown("**Starter prompt**")
+            st.markdown(
+                "<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+                "font-size:0.78rem;color:var(--text-2);background:var(--surface);"
+                "padding:0.55rem 0.7rem;border-radius:8px;border:1px solid var(--border);"
+                "margin:0.25rem 0 0.5rem 0;'>" + esc(detail["starter"]) + "</div>",
+                unsafe_allow_html=True,
+            )
+        if "checklist" in detail:
+            st.markdown("**Starter checklist**")
+            for step in detail["checklist"]:
+                st.markdown(f"- {esc(step)}")
+        if "exercise" in detail:
+            st.markdown("**One practical exercise**")
+            st.markdown(detail["exercise"])
+        if "skills" in detail:
+            st.markdown("**Skills to learn**")
+            for s in detail["skills"]:
+                st.markdown(f"- {esc(s)}")
+        if "proof" in detail:
+            st.markdown("**Portfolio proof idea**")
+            st.markdown(detail["proof"])
+        if "next_chapter" in detail:
+            st.markdown(f"**Recommended next chapter** — {esc(detail['next_chapter'])}")
+        if "next" in detail:
+            st.markdown("**Next action**")
+            st.markdown(detail["next"])
+        if "search_terms" in detail:
+            st.markdown("**Search terms**")
+            st.markdown(", ".join(f"`{esc(t)}`" for t in detail["search_terms"]))
+        if "related" in detail:
+            st.markdown(
+                f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+                f"font-size:0.62rem;color:var(--muted);margin-top:0.5rem;'>"
+                f"{esc(detail['related'])}</div>",
+                unsafe_allow_html=True,
+            )
+        if st.button(
+            "Clear selection",
+            key=f"{state_key}_clear",
+            use_container_width=False,
+        ):
+            st.session_state.pop(state_key, None)
+            st.query_params.pop(state_key, None)
+            st.rerun()
+
+
+def _render_today_picks() -> None:
+    """Today picks as Streamlit-native bordered cards with functional action buttons.
+
+    Renders a 4-up grid using st.container(border=True) + st.columns so each
+    card has separated label/title/body/action widgets (no glued text, no
+    fragile inline HTML). Clicking the action button routes to the card's
+    target section via the same st.session_state.section mechanism used by
+    the top nav.
+    """
+    cols = st.columns(4, gap="small")
+    for col, pick in zip(cols, _TODAY_PICKS):
+        label, title, body, target, action = pick
+        with col:
+            with st.container(border=True):
+                st.markdown(
+                    f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+                    f"font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;"
+                    f"color:var(--muted);'>{esc(label)}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div style='font-size:0.98rem;font-weight:600;color:var(--text);"
+                    f"margin:0.25rem 0 0.4rem 0;line-height:1.25;'>{esc(title)}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<p style='font-size:0.82rem;color:var(--text-2);"
+                    f"line-height:1.4;margin:0 0 0.6rem 0;'>{esc(body)}</p>",
+                    unsafe_allow_html=True,
+                )
+                if st.button(
+                    action,
+                    key=f"today_open_{target}",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state.section = target
+                    st.query_params["section"] = target
+                    st.rerun()
+
+
+def render_groq() -> None:
+    """The default landing: compact workbench hero, then the Today picks row,
+    then the existing live bento of News / Tools / Jobs."""
+
+    # PR15 chrome cleanup: inject the workbench CSS (global suppressors +
+    # .or-workbench-hero style) early so the chrome applies on Home even
+    # when no action card row is rendered.
+    st.markdown(_STATIC_CSS, unsafe_allow_html=True)
+
+    # PR15 chrome cleanup: compact workbench hero instead of the old
+    # cinematic serif hero. Modern system sans, no eyebrow line, no fake
+    # LIVE · BUCUREȘTI pill. The .or-workbench-hero class is the single
+    # source of truth for the new hero styling — it overrides .or-hero
+    # below in theme.py.
+    st.markdown(
+        '<section class="or-workbench-hero">'
+        '<h1>Your AI workbench for tools, prompts, learning, and jobs.</h1>'
+        '<p>Find useful AI tools, reusable prompt kits, practical '
+        'learning paths, and career signals without drowning in noise.</p>'
+        '</section>',
+        unsafe_allow_html=True,
     )
 
-    tips_strip(n=4)
+    # PR15: explicit Today picks — small static module, no glued text.
+    section_head(
+        "TODAY · STATIC PICKS",
+        "Today",
+        "Four practical picks for today’s workbench session.",
+    )
+    _render_today_picks()
 
     # ── Bento: News / Tools / Jobs (one cell each) ──
     hn = load_hn()[:3]
@@ -617,11 +1143,17 @@ def render_groq() -> None:
 # ─────────────────────────────────────────────────────────────────────────
 def render_news() -> None:
     section_head(
-        "CURATED · BY USE CASE",
+        "TOOLS · STATIC WORKBENCH CATEGORIES",
         "Tools",
-        "Patru grupări de lucru — Build / Ship / Write &amp; Decide / Discover. "
-        "Patru carduri per grupare, nu un dump. Folosește ca să alegi un tool pentru "
-        "ce vrei să faci azi.",
+        "Four practical categories of AI tools — pick the one that matches the job.",
+    )
+    _render_action_cards(_STATIC_TOOLS, state_key="tools_focus", action_label="Open")
+    _render_selected_detail(_STATIC_TOOLS, state_key="tools_focus",
+                            panel_heading="SELECTED TOOL CATEGORY")
+    section_head(
+        "FEEDS · CURRENT TOOLS RADAR",
+        "Live signals",
+        "Repos, papers, and discussions worth scanning today.",
     )
 
     # 1. Build software — repos trending on 7-day growth + GitHub today
@@ -752,6 +1284,19 @@ def render_learning() -> None:
         "făcut — nu curs generic.",
     )
 
+    section_head(
+        "LEARN · FOUR CORE AREAS",
+        "Learn",
+        "Four core areas that take you from beginner to useful — pick one to start.",
+    )
+    _render_action_cards(_STATIC_LEARN, state_key="learn_focus", action_label="Open")
+    _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
+                            panel_heading="SELECTED LEARN PATH")
+    section_head(
+        "CHAPTERS · DEEP PATHS",
+        "10 chapters",
+        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de făcut.",
+    )
     ch_list = get_all_chapters()
     # Defensive: if the loader somehow returned 0, fall back to a no-op panel.
     if not ch_list:
@@ -796,6 +1341,14 @@ def render_learning() -> None:
 # later milestone — see roadmap note at the bottom of this section.
 # ─────────────────────────────────────────────────────────────────────────
 def render_jobs() -> None:
+    section_head(
+        "JOBS · STATIC ROLE DIRECTIONS",
+        "Jobs",
+        "Four AI career directions to translate skills into useful work — not a live job board.",
+    )
+    _render_action_cards(_STATIC_JOBS, state_key="jobs_focus", action_label="Open")
+    _render_selected_detail(_STATIC_JOBS, state_key="jobs_focus",
+                            panel_heading="SELECTED JOB ROLE")
     section_head(
         "ROLE MAP · SEARCH PATHS",
         "Jobs",
@@ -950,10 +1503,17 @@ def render_prompts() -> None:
             cat_counts[c] += 1
 
     section_head(
-        "KITS · BY OUTCOME",
+        "PROMPT KITS · STATIC STARTERS",
         "Prompt Kits",
-        "Cinci kit-uri pentru o treabă specifică — un kit pentru azi, restul "
-        "când ai nevoie. Colecția completă (1.137 prompturi) e mai jos, cu filtre.",
+        "Four outcome-grouped prompt starters. Use them to plan, decide, learn, or write.",
+    )
+    _render_action_cards(_STATIC_PROMPTS, state_key="prompt_focus", action_label="Open")
+    _render_selected_detail(_STATIC_PROMPTS, state_key="prompt_focus",
+                            panel_heading="SELECTED PROMPT KIT")
+    section_head(
+        "KITS · BY OUTCOME",
+        "Prompt Bible",
+        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
     )
 
     # ── Primary layer: Kits (outcome-grouped prompt bundles) ──
