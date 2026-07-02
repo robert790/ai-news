@@ -401,9 +401,9 @@ def render_top_nav() -> str:
         section_labels = [
             ("groq",     "Home"),
             ("news",     "Tools"),
+            ("prompts",  "Prompt Kits"),
             ("learning", "Learn"),
             ("jobs",     "Jobs"),
-            ("prompts",  "Prompt Kits"),
         ]
         st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
         btn_cols = st.columns(5, gap="small")
@@ -433,7 +433,6 @@ def render_top_nav() -> str:
                 f'<span class="or-status-dot {dot_cls}"></span>'
                 f'<span>{status_text}</span>'
                 f'</span>'
-                f'<span class="or-tag-desktop" style="opacity:.5;">· v3</span>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -536,26 +535,30 @@ _STATIC_CSS = """<style>
   margin: 0 0 0.5rem 0;
   min-height: 84px;
 }
-.or-static-card .or-static-label {
+div.or-static-card > .or-static-label,
+div.or-static-card > .or-static-title,
+div.or-static-card > .or-static-body {
+  display: block !important;
+}
+div.or-static-card .or-static-label {
   font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
   font-size: 0.6rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  display: block;
-  margin-bottom: 0.2rem;
+  margin: 0 0 0.35rem 0;
 }
-.or-static-card .or-static-title {
+div.or-static-card .or-static-title {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
-  display: block;
-  margin: 0 0 0.15rem 0;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.25;
 }
-.or-static-card .or-static-body {
+div.or-static-card .or-static-body {
   font-size: 0.82rem;
   color: var(--text-2);
-  line-height: 1.35;
+  line-height: 1.4;
   margin: 0;
 }
 .or-static-grid {
@@ -574,11 +577,11 @@ def _render_static_section(eyebrow: str, items: list) -> None:
     """Render a labeled 2x2 grid of static section cards."""
     st.markdown(_STATIC_CSS, unsafe_allow_html=True)
     cards = "".join(
-        '<article class="or-static-card">'
-        f'<span class="or-static-label">{esc(eyebrow)}</span>'
-        f'<span class="or-static-title">{esc(title)}</span>'
+        '<div class="or-static-card">'
+        f'<div class="or-static-label">{esc(eyebrow)}</div>'
+        f'<div class="or-static-title">{esc(title)}</div>'
         f'<p class="or-static-body">{esc(body)}</p>'
-        '</article>'
+        '</div>'
         for title, body in items
     )
     st.markdown(
@@ -590,11 +593,11 @@ def _render_static_section(eyebrow: str, items: list) -> None:
 def _render_today_picks() -> None:
     """Small Today picks block for the Home landing. Explicit cards, no glued text."""
     rows = "".join(
-        '<article class="or-static-card">'
-        f'<span class="or-static-label">TODAY · {esc(label)}</span>'
-        f'<span class="or-static-title">{esc(title)}</span>'
+        '<div class="or-static-card">'
+        f'<div class="or-static-label">{esc(label)}</div>'
+        f'<div class="or-static-title">{esc(title)}</div>'
         f'<p class="or-static-body">{esc(body)}</p>'
-        '</article>'
+        '</div>'
         for label, title, body in _TODAY_PICKS
     )
     st.markdown(
