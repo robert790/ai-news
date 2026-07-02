@@ -96,12 +96,14 @@ st.set_page_config(
 )
 st.markdown(render_css(), unsafe_allow_html=True)
 
-# Ambient overlays — radar rings (top-right) + slow scan line
-st.markdown(
-    '<div class="or-radar" aria-hidden="true"></div>'
-    '<div class="or-scan" aria-hidden="true"></div>',
-    unsafe_allow_html=True,
-)
+# Ambient overlays disabled by PR15 chrome cleanup. Old radar/scan
+# elements are no longer rendered — kept the marker as a no-op so the
+# rest of the page is unchanged.
+# st.markdown(
+#     '<div class="or-radar" aria-hidden="true"></div>'
+#     '<div class="or-scan" aria-hidden="true"></div>',
+#     unsafe_allow_html=True,
+# )
 
 
 # ─── Inline SVG icons ───────────────────────────────────────────────────
@@ -375,14 +377,16 @@ def render_top_nav() -> str:
 
     cols = _columns([1.4, 4.2, 1.6], gap="medium")
 
-    # Brand — icon + name + small mono kicker for hierarchy.
+    # Brand — simple text identity. PR15 chrome cleanup: no big radar
+    # personality, no old subtitle. Just "OpenRadar" with a plain
+    # AI tools · prompts · learn · jobs kicker rendered with the
+    # same monospace tone as the rest of the chrome.
     with cols[0]:
         st.markdown(
             '<a class="or-topnav-brand" href="?section=groq">'
-            f'{RADAR_MARK}'
             '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
-            '<span class="or-name-kicker">ai career · tools radar</span>'
+            '<span class="or-name-kicker">AI tools · prompts · learn · jobs</span>'
             '</span>'
             '</a>',
             unsafe_allow_html=True,
@@ -405,7 +409,7 @@ def render_top_nav() -> str:
             ("learning", "Learn"),
             ("jobs",     "Jobs"),
         ]
-        st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
+        st.markdown('<div class="or-nav-shell">', unsafe_allow_html=True)
         btn_cols = st.columns(5, gap="small")
         for (key, label), col in zip(section_labels, btn_cols):
             with col:
@@ -419,32 +423,14 @@ def render_top_nav() -> str:
                     st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Status + refresh action
+    # Status + refresh action — PR15 chrome cleanup removes all fake
+    # live/online/demo status pills. Only the refresh button remains.
     with cols[2]:
-        is_live = config.has_llm()
-        dot_cls = "" if is_live else "demo"
-        status_text = "ONLINE" if is_live else ""
-
-        inner = _columns([3, 1.2], gap="small")
-        with inner[0]:
-            # Skip the live pill entirely when offline — avoids the
-            # "DEMO" chrome that PR15 owner review flagged as noise.
-            if status_text:
-                st.markdown(
-                    f'<div class="or-topnav-status">'
-                    f'<span class="or-live-pill">'
-                    f'<span class="or-status-dot {dot_cls}"></span>'
-                    f'<span>{status_text}</span>'
-                    f'</span>'
-                    f'</div>',
-                    unsafe_allow_html=True,
-                )
-        with inner[1]:
-            if st.button("↻", key="nav_refresh", use_container_width=True,
-                         help="Refresh feeds (clear cache)"):
-                st.cache_data.clear()
-                st.toast("Cache cleared.")
-                st.rerun()
+        if st.button("↻", key="nav_refresh", use_container_width=True,
+                     help="Refresh feeds (clear cache)"):
+            st.cache_data.clear()
+            st.toast("Cache cleared.")
+            st.rerun()
 
     return st.session_state.section
 
@@ -740,6 +726,44 @@ _TODAY_PICKS = [
 
 
 _STATIC_CSS = """<style>
+/* PR15 chrome cleanup — global suppressors. */
+div.or-radar, div.or-scan { display: none !important; }
+div.or-nav-pills {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+.or-hero .or-eyebrow::before,
+.or-hero .or-eyebrow::after { display: none !important; }
+.or-hero { padding: 0 !important; min-height: 0 !important; }
+.or-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+section.main > div { padding-top: 0.6rem !important; }
+section.or-workbench-hero {
+  margin: 0.2rem 0 0.6rem 0;
+  padding: 0;
+}
+section.or-workbench-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.3rem 0;
+  color: var(--text);
+}
+section.or-workbench-hero p {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 720px;
+}
+
 div.or-static-action .or-static-label {
   font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
   font-size: 0.6rem;
@@ -952,24 +976,27 @@ def _render_today_picks() -> None:
 
 
 def render_groq() -> None:
-    """The default landing: cinematic hero, then a 3-card bento of
-    News / Tools / Jobs (top 3 each), then a mini-bento for lesson + prompt."""
+    """The default landing: compact workbench hero, then the Today picks row,
+    then the existing live bento of News / Tools / Jobs."""
 
-    hero_block(
-        eyebrow_html=(
-            "<span class='or-live'>"
-            "<span class='dot'></span>LIVE · BUCUREȘTI · "
-            + datetime.now(ZoneInfo("Europe/Bucharest")).strftime("%a %d %b").upper()
-            + "</span>"
-        ),
-        headline_html=(
-            'Your <span class="or-accent">AI career</span> &amp; tools radar.'
-        ),
-        sub="O dată pe zi, cinci semnale: ce e nou azi, un tool pe care să-l încerci, "
-            "o lecție scurtă și un kit de prompturi pentru mâine.",
+    # PR15 chrome cleanup: inject the workbench CSS (global suppressors +
+    # .or-workbench-hero style) early so the chrome applies on Home even
+    # when no action card row is rendered.
+    st.markdown(_STATIC_CSS, unsafe_allow_html=True)
+
+    # PR15 chrome cleanup: compact workbench hero instead of the old
+    # cinematic serif hero. Modern system sans, no eyebrow line, no fake
+    # LIVE · BUCUREȘTI pill. The .or-workbench-hero class is the single
+    # source of truth for the new hero styling — it overrides .or-hero
+    # below in theme.py.
+    st.markdown(
+        '<section class="or-workbench-hero">'
+        '<h1>Your AI workbench for tools, prompts, learning, and jobs.</h1>'
+        '<p>Find useful AI tools, reusable prompt kits, practical '
+        'learning paths, and career signals without drowning in noise.</p>'
+        '</section>',
+        unsafe_allow_html=True,
     )
-
-    tips_strip(n=4)
 
     # PR15: explicit Today picks — small static module, no glued text.
     section_head(
