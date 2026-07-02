@@ -683,6 +683,7 @@ _STATIC_LEARN = [
      "Foundation",
      "AI basics",
      "Models, context, tokens, strengths, limits, and responsible use.",
+     "ch2",   # jump-start chapter
      {
         "understand": "How modern language and multimodal models actually "
                       "work, what context and tokens mean in practice, "
@@ -707,6 +708,7 @@ _STATIC_LEARN = [
      "Craft",
      "Prompting fundamentals",
      "Inputs, constraints, examples, verification, and iteration.",
+     "ch3",
      {
         "understand": "How to design prompts that produce verifiable, "
                       "repeatable outputs instead of lucky one-shots.",
@@ -729,6 +731,7 @@ _STATIC_LEARN = [
      "Grounding",
      "RAG basics",
      "Retrieval, chunking, citations, evaluation, and failure modes.",
+     "ch7",
      {
         "understand": "How retrieval-augmented generation works end-to-end: "
                       "a question is matched against chunks of your own "
@@ -754,6 +757,7 @@ _STATIC_LEARN = [
      "Systems",
      "Agent workflows",
      "Break tasks into tools, state, checks, handoffs, and recovery paths.",
+     "ch8",
      {
         "understand": "How to break a real task into a workflow an AI "
                       "agent can run reliably, with explicit checks, "
@@ -1055,6 +1059,57 @@ div.or-static-action .or-static-body {
   line-height: 1.4;
   margin: 0 0 0.6rem 0;
 }
+
+/* PR19 · Learn guided-course chrome — scoped to or-learn-* classes. */
+section.or-learn-hero {
+  margin: 0.4rem 0 0.8rem 0;
+  padding: 0;
+}
+section.or-learn-hero h1 {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.05rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0.2rem 0 0.45rem 0;
+  color: var(--text);
+}
+section.or-learn-hero p {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 720px;
+}
+.or-learn-eyebrow {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.35rem 0;
+}
+.or-learn-progress-num {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.or-learn-progress-num strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-right: 0.15rem;
+}
+.or-learn-progress-num span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+@media (max-width: 720px) {
+  /* On narrow screens, stack the progress number above the bar. */
+  .or-learn-progress-num { margin-bottom: 0.3rem; }
+}
 </style>"""
 
 
@@ -1073,11 +1128,22 @@ def _render_action_cards(items: list, state_key: str, action_label: str = "Open"
     Each card has separated label/title/body + an `st.button` that sets
     `st.session_state[state_key]` and `?state_key=...` to the card's key,
     then reruns so the selected detail panel updates immediately.
+
+    Cards in `_STATIC_LEARN` carry an extra `chapter` field (a chapter
+    id string). When a Learn path-card is clicked, the card also sets
+    `st.session_state["selected_chapter"]` so the guided Learn view
+    jumps to that chapter.
     """
     st.markdown(_STATIC_CSS, unsafe_allow_html=True)
     cols = st.columns(len(items), gap="small")
     for col, item in zip(cols, items):
-        key, label, title, body, _detail = item
+        # Item shape is either 5-tuple (key, label, title, body, detail)
+        # or 6-tuple (key, label, title, body, chapter_id, detail).
+        if len(item) == 6:
+            key, label, title, body, chapter_id, _detail = item
+        else:
+            key, label, title, body, _detail = item
+            chapter_id = None
         with col:
             with st.container(border=True):
                 st.markdown(
@@ -1095,6 +1161,9 @@ def _render_action_cards(items: list, state_key: str, action_label: str = "Open"
                 ):
                     st.session_state[state_key] = key
                     st.query_params[state_key] = key
+                    if chapter_id:
+                        st.session_state["selected_chapter"] = chapter_id
+                        st.query_params["learn_chapter"] = chapter_id
                     st.rerun()
 
 
@@ -1124,7 +1193,11 @@ def _render_selected_detail(items: list, state_key: str, panel_heading: str) -> 
         st.rerun()
         return
 
-    key, label, title, body, detail = match
+    # _STATIC_LEARN items are 6-tuples (key, label, title, body, chapter_id,
+    # detail); all other section items are 5-tuples (key, label, title, body,
+    # detail). Take the first 5 fields explicitly so both shapes unpack
+    # cleanly and the detail dict always lives in slot 5.
+    key, label, title, body, detail = match[0], match[1], match[2], match[3], match[5] if len(match) > 5 else match[4]
     with st.container(border=True):
         st.markdown(
             f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
@@ -1564,64 +1637,169 @@ def render_news() -> None:
 # SECTION: LEARN · Practical short paths (10 chapters)
 # PR10: copy nudge — frames the 10 chapters as practical short paths,
 # not a generic course catalog. Content itself is unchanged.
+# PR19: replaces the static-card + selectbox layout with a guided course:
+# left column = chapter list with status marks, right column = the
+# existing rich lecture renderer (PR-A detail panel from
+# learning.learning_render). State stays in session_state + ?learn_chapter=...
+# PR1 `_progress` machinery is untouched (it mirrors session_state to ?p=...).
 # ─────────────────────────────────────────────────────────────────────────
 def render_learning() -> None:
     from learning.learning_render import render_detail_panel
     from theme import lecture_css
 
-    section_head(
-        "PATHS · 10 CHAPTERS",
-        "Learn",
-        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de "
-        "făcut — nu curs generic.",
+    # Header + subheadline (intro line the user sees first).
+    st.markdown(
+        '<section class="or-learn-hero">'
+        '<div class="or-learn-eyebrow">LEARN · GUIDED COURSE</div>'
+        '<h1>Learn AI by building useful workflows.</h1>'
+        '<p>Pick a path, read one short chapter, do a 20-minute '
+        'exercise, mark it complete. No quiz, no certificate — just '
+        'practical AI you can actually use at work.</p>'
+        '</section>',
+        unsafe_allow_html=True,
     )
 
-    section_head(
-        "LEARN · FOUR CORE AREAS",
-        "Learn",
-        "Four core areas that take you from beginner to useful — pick one to start.",
-    )
-    _render_action_cards(_STATIC_LEARN, state_key="learn_focus", action_label="Open")
-    _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
-                            panel_heading="SELECTED LEARN PATH")
-    section_head(
-        "CHAPTERS · DEEP PATHS",
-        "10 chapters",
-        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de făcut.",
-    )
+    # ── Load chapter list ────────────────────────────────────────────
     ch_list = get_all_chapters()
-    # Defensive: if the loader somehow returned 0, fall back to a no-op panel.
     if not ch_list:
+        st.markdown(
+            '<div style="padding:1rem;color:var(--muted);">'
+            'No chapters available right now. Check '
+            '<code>content/chapters.jsonl</code>.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
         return
 
-    # ── Calm chapter selector (replaces the 5x2 chip grid) ──
-    selected_id = st.session_state.get("selected_chapter", ch_list[0].id)
-    # Guard against a stale id pointing at a retired or missing chapter.
-    if selected_id not in {c.id for c in ch_list}:
+    chapter_ids = {c.id for c in ch_list}
+
+    # ── Resolve selected chapter from ?learn_chapter= or session_state ──
+    qp_chapter = st.query_params.get("learn_chapter")
+    if qp_chapter and qp_chapter in chapter_ids:
+        st.session_state["selected_chapter"] = qp_chapter
+
+    selected_id = st.session_state.get("selected_chapter")
+    if not selected_id or selected_id not in chapter_ids:
         selected_id = ch_list[0].id
-        st.session_state.selected_chapter = selected_id
+        st.session_state["selected_chapter"] = selected_id
+        st.query_params["learn_chapter"] = selected_id
 
-    def _format_chapter(c) -> str:
-        title = c.title if len(c.title) <= 48 else c.title[:46].rstrip() + "…"
-        return f"{c.number:02d} · {title}"
+    # ── Progress + completed state ──────────────────────────────────
+    completed = set(st.session_state.get("completed_chapters", set()) or set())
+    done = sum(1 for c in ch_list if c.id in completed)
+    total = len(ch_list)
+    pct = int(done / total * 100) if total else 0
 
-    chosen = st.selectbox(
-        "Capitol",
-        options=ch_list,
-        index=[c.id for c in ch_list].index(selected_id),
-        format_func=_format_chapter,
-        key="learning_chapter_selectbox",
-        label_visibility="collapsed",
+    progress_cols = st.columns([1, 4])
+    with progress_cols[0]:
+        st.markdown(
+            f'<div class="or-learn-progress-num">'
+            f'<strong>{done}</strong>/{total}'
+            f'<span>&nbsp;chapters complete</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with progress_cols[1]:
+        st.progress(min(max(pct, 0), 100))
+
+    # ── Path quick-links: small horizontal strip ────────────────────
+    # Each card selects both the path detail panel AND the matching
+    # chapter so the user lands in the guide immediately.
+    st.markdown(
+        '<div class="or-learn-eyebrow" style="margin-top:1rem;">'
+        'PICK A PATH</div>',
+        unsafe_allow_html=True,
     )
-    if chosen.id != selected_id:
-        st.session_state.selected_chapter = chosen.id
-        st.rerun()
-    selected_id = chosen.id
+    _render_action_cards(_STATIC_LEARN, state_key="learn_focus",
+                         action_label="Start path")
 
-    # ── Single-column lecture page ──
-    completed = st.session_state.get("completed_chapters", set())
-    st.markdown(lecture_css(), unsafe_allow_html=True)
-    render_detail_panel(selected_id, ch_list, completed)
+    # ── Two-column guide: chapter list (left) + reading panel (right) ─
+    list_col, read_col = st.columns([0.42, 0.58], gap="medium")
+
+    with list_col:
+        st.markdown(
+            '<div class="or-learn-eyebrow" style="margin-top:0.4rem;">'
+            'CHAPTERS</div>',
+            unsafe_allow_html=True,
+        )
+        # Each chapter = a button row with status mark + title.
+        # Selected chapter gets a visible "current" treatment.
+        for c in ch_list:
+            is_done = c.id in completed
+            is_current = c.id == selected_id
+            mark = "✓" if is_done else ("•" if is_current else " ")
+            row_label = f"{mark}  {c.number:02d} · {c.title}"
+            btn_type = "primary" if is_current else "secondary"
+            if st.button(
+                row_label,
+                key=f"learn_nav_{c.id}",
+                use_container_width=True,
+                type=btn_type,
+            ):
+                st.session_state["selected_chapter"] = c.id
+                st.query_params["learn_chapter"] = c.id
+                st.rerun()
+
+    with read_col:
+        st.markdown(
+            '<div class="or-learn-eyebrow" style="margin-top:0.4rem;">'
+            'READING</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(lecture_css(), unsafe_allow_html=True)
+        # Existing rich renderer: body_md, verifiers (auto-complete),
+        # methods, cross-refs, Ask Groq, footer progress, prev/next.
+        render_detail_panel(selected_id, ch_list, completed)
+
+        # Bottom nav: Previous / Mark complete / Next (clear, explicit).
+        idx = next((i for i, c in enumerate(ch_list) if c.id == selected_id), 0)
+        prev_ch = ch_list[idx - 1] if idx > 0 else None
+        next_ch = ch_list[idx + 1] if idx < total - 1 else None
+        nav_cols = st.columns(3)
+        with nav_cols[0]:
+            if prev_ch and st.button(
+                f"◀ Previous",
+                key=f"learn_prev_{selected_id}",
+                use_container_width=True,
+            ):
+                st.session_state["selected_chapter"] = prev_ch.id
+                st.query_params["learn_chapter"] = prev_ch.id
+                st.rerun()
+        with nav_cols[1]:
+            is_done = selected_id in completed
+            if st.button(
+                "Unmark complete" if is_done else "Mark complete ✓",
+                key=f"learn_toggle_{selected_id}",
+                use_container_width=True,
+                type="secondary" if is_done else "primary",
+            ):
+                if is_done:
+                    completed.discard(selected_id)
+                else:
+                    completed.add(selected_id)
+                st.session_state.completed_chapters = set(completed)
+                st.rerun()
+        with nav_cols[2]:
+            if next_ch and st.button(
+                f"Next ▶",
+                key=f"learn_next_{selected_id}",
+                use_container_width=True,
+            ):
+                st.session_state["selected_chapter"] = next_ch.id
+                st.query_params["learn_chapter"] = next_ch.id
+                st.rerun()
+
+    # ── Selected path detail panel (compact, below the two columns) ───
+    # Renders the path's static guidance from _STATIC_LEARN. Kept for
+    # users who want the high-level "why this path / common mistake /
+    # next" view alongside the chapter detail.
+    st.markdown(
+        '<div class="or-learn-eyebrow" style="margin-top:1.4rem;">'
+        'PATH NOTES</div>',
+        unsafe_allow_html=True,
+    )
+    _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
+                            panel_heading="SELECTED PATH")
 
 
 # ─────────────────────────────────────────────────────────────────────────
