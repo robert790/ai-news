@@ -423,19 +423,22 @@ def render_top_nav() -> str:
     with cols[2]:
         is_live = config.has_llm()
         dot_cls = "" if is_live else "demo"
-        status_text = "ONLINE" if is_live else "DEMO"
+        status_text = "ONLINE" if is_live else ""
 
         inner = _columns([3, 1.2], gap="small")
         with inner[0]:
-            st.markdown(
-                f'<div class="or-topnav-status">'
-                f'<span class="or-live-pill">'
-                f'<span class="or-status-dot {dot_cls}"></span>'
-                f'<span>{status_text}</span>'
-                f'</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
+            # Skip the live pill entirely when offline — avoids the
+            # "DEMO" chrome that PR15 owner review flagged as noise.
+            if status_text:
+                st.markdown(
+                    f'<div class="or-topnav-status">'
+                    f'<span class="or-live-pill">'
+                    f'<span class="or-status-dot {dot_cls}"></span>'
+                    f'<span>{status_text}</span>'
+                    f'</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
         with inner[1]:
             if st.button("↻", key="nav_refresh", use_container_width=True,
                          help="Refresh feeds (clear cache)"):
@@ -510,19 +513,25 @@ _STATIC_JOBS = [
      "Help teams adopt coding assistants, agents, and model tooling."),
 ]
 
+# Each Today pick: (label, title, body, target_section, action_label).
+# target_section is the internal DISPATCH key the button routes to.
 _TODAY_PICKS = [
     ("Tool of the day",
      "Cursor rules / project memory",
-     "Turn repeated standards into a compact checklist your AI assistant can reuse."),
+     "Turn repeated standards into a compact checklist your AI assistant can reuse.",
+     "news", "Open Tools"),
     ("Prompt kit to try",
      "Ship a feature safely",
-     "Scope the change, list risks, write tests, and run a second-pass review."),
+     "Scope the change, list risks, write tests, and run a second-pass review.",
+     "prompts", "Open Prompt Kits"),
     ("Skill to learn",
      "RAG evaluation basics",
-     "Check retrieval quality, answer faithfulness, citations, and user trust."),
+     "Check retrieval quality, answer faithfulness, citations, and user trust.",
+     "learning", "Open Learn"),
     ("Career signal",
      "AI product operator",
-     "Teams need people who convert model capability into reliable workflows."),
+     "Teams need people who convert model capability into reliable workflows.",
+     "jobs", "Open Jobs"),
 ]
 
 
@@ -591,19 +600,44 @@ def _render_static_section(eyebrow: str, items: list) -> None:
 
 
 def _render_today_picks() -> None:
-    """Small Today picks block for the Home landing. Explicit cards, no glued text."""
-    rows = "".join(
-        '<div class="or-static-card">'
-        f'<div class="or-static-label">{esc(label)}</div>'
-        f'<div class="or-static-title">{esc(title)}</div>'
-        f'<p class="or-static-body">{esc(body)}</p>'
-        '</div>'
-        for label, title, body in _TODAY_PICKS
-    )
-    st.markdown(
-        f'<div class="or-static-grid" aria-label="Today’s picks">{rows}</div>',
-        unsafe_allow_html=True,
-    )
+    """Today picks as Streamlit-native bordered cards with functional action buttons.
+
+    Renders a 4-up grid using st.container(border=True) + st.columns so each
+    card has separated label/title/body/action widgets (no glued text, no
+    fragile inline HTML). Clicking the action button routes to the card's
+    target section via the same st.session_state.section mechanism used by
+    the top nav.
+    """
+    cols = st.columns(4, gap="small")
+    for col, pick in zip(cols, _TODAY_PICKS):
+        label, title, body, target, action = pick
+        with col:
+            with st.container(border=True):
+                st.markdown(
+                    f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
+                    f"font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;"
+                    f"color:var(--muted);'>{esc(label)}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div style='font-size:0.98rem;font-weight:600;color:var(--text);"
+                    f"margin:0.25rem 0 0.4rem 0;line-height:1.25;'>{esc(title)}</div>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<p style='font-size:0.82rem;color:var(--text-2);"
+                    f"line-height:1.4;margin:0 0 0.6rem 0;'>{esc(body)}</p>",
+                    unsafe_allow_html=True,
+                )
+                if st.button(
+                    action,
+                    key=f"today_open_{target}",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state.section = target
+                    st.query_params["section"] = target
+                    st.rerun()
 
 
 def render_groq() -> None:
