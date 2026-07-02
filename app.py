@@ -361,13 +361,14 @@ def tips_strip(n: int = 4) -> None:
 def render_top_nav() -> str:
     """Render the top nav row. Returns the active section id.
 
-    Desktop:  ┌──────────┬─────────────────────────┬──────────────┐
-              │ brand    │ 5-pill button group     │ status + act │
-              └──────────┴─────────────────────────┴──────────────┘
+    Layout (PR16 header cleanup):
+      ┌────────────┬────────────────────────────┬─────────┐
+      │ brand      │ 5 button nav (single line) │ refresh │
+      └────────────┴────────────────────────────┴─────────┘
 
-    Mobile (≤720px, CSS-only): stack into 3 rows — brand on top, full-
-    width pills below, status + refresh at the bottom. CSS handles it
-    via .or-topnav and `.or-nav-pills` rules in theme.py.
+    Brand block stacks "OpenRadar" + a one-line subtitle with `nowrap`
+    + tight letter-spacing so the subtitle never wraps mid-phrase.
+    Refresh action lives in the right column as a quiet text button.
     """
     if "section" not in st.session_state:
         # Allow `?section=learning` deep-link via query params
@@ -375,18 +376,20 @@ def render_top_nav() -> str:
         _valid = {"groq", "news", "learning", "jobs", "prompts"}
         st.session_state.section = _qp if _qp in _valid else "groq"
 
-    cols = _columns([1.4, 4.2, 1.6], gap="medium")
+    # Tighter column ratios so brand is compact, nav gets the room it
+    # actually needs, and refresh button gets a narrow dedicated slot.
+    cols = _columns([1.05, 3.55, 0.4], gap="small")
 
-    # Brand — simple text identity. PR15 chrome cleanup: no big radar
-    # personality, no old subtitle. Just "OpenRadar" with a plain
-    # AI tools · prompts · learn · jobs kicker rendered with the
-    # same monospace tone as the rest of the chrome.
+    # Brand — plain text identity. Subtitle uses non-breaking spaces
+    # between dots so the phrase "AI tools · prompts · learn · jobs"
+    # never wraps mid-phrase on a desktop viewport. CSS .or-name-kicker
+    # enforces nowrap + tight letter-spacing.
     with cols[0]:
         st.markdown(
             '<a class="or-topnav-brand" href="?section=groq">'
             '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
-            '<span class="or-name-kicker">AI tools · prompts · learn · jobs</span>'
+            '<span class="or-name-kicker">AI&nbsp;tools&nbsp;·&nbsp;prompts&nbsp;·&nbsp;learn&nbsp;·&nbsp;jobs</span>'
             '</span>'
             '</a>',
             unsafe_allow_html=True,
@@ -423,10 +426,12 @@ def render_top_nav() -> str:
                     st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Status + refresh action — PR15 chrome cleanup removes all fake
-    # live/online/demo status pills. Only the refresh button remains.
+    # Quiet refresh action — narrow column, no icon, just a plain
+    # text button. Clears Streamlit cache and reruns. Visually quiet
+    # so the header reads as a workbench chrome, not a dashboard
+    # toolbar.
     with cols[2]:
-        if st.button("↻", key="nav_refresh", use_container_width=True,
+        if st.button("Refresh", key="nav_refresh", use_container_width=True,
                      help="Refresh feeds (clear cache)"):
             st.cache_data.clear()
             st.toast("Cache cleared.")
@@ -741,23 +746,132 @@ div.or-nav-pills {
   font-weight: 700 !important;
   letter-spacing: -0.02em !important;
 }
-section.main > div { padding-top: 0.6rem !important; }
+
+/* PR16 header brand + nav cleanup — keep header as a compact workbench
+   bar. Brand wordmark + one-line subtitle stay readable on desktop,
+   refresh action is quiet, nav buttons sit on a single row. */
+section.main > div { padding-top: 0.35rem !important; }
+
+.or-topnav-brand {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1 !important;
+}
+.or-topnav-brand .or-name {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.or-topnav-brand .or-name-stack {
+  display: inline-flex !important;
+  flex-direction: column !important;
+  gap: 0.18rem !important;
+  line-height: 1 !important;
+}
+.or-topnav-brand .or-name-kicker {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace !important;
+  font-size: 0.52rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: none !important;
+  color: var(--muted-2) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+.or-topnav-brand .or-mark { display: none !important; }
+
+/* Nav shell — no decorative frame, single row, even gaps. */
+div.or-nav-shell {
+  display: flex !important;
+  gap: 0.25rem !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+[class*="st-key-nav_"] button {
+  white-space: nowrap !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+  padding: 0.4rem 0.6rem !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+[class*="st-key-nav_"] button[data-testid="stBaseButton-primary"],
+[class*="st-key-nav_"] button[data-testid="baseButton-primary"] {
+  background: rgba(214, 154, 95, 0.18) !important;
+  color: #fff7ed !important;
+  border: 1px solid rgba(214, 154, 95, 0.55) !important;
+  font-weight: 700 !important;
+}
+[class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"],
+[class*="st-key-nav_"] button[data-testid="baseButton-secondary"] {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid transparent !important;
+  font-weight: 600 !important;
+}
+[class*="st-key-nav_"] button[data-testid="stBaseButton-secondary"]:hover,
+[class*="st-key-nav_"] button[data-testid="baseButton-secondary"]:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--text) !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+}
+
+/* Quiet refresh action — text button, no chrome, small footprint. */
+.st-key-nav_refresh button,
+[data-testid="stColumn"]:has(.st-key-nav_refresh) button {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  border-radius: 8px !important;
+  padding: 0.3rem 0.55rem !important;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.005em !important;
+  text-transform: none !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  line-height: 1 !important;
+}
+[data-testid="stColumn"]:has(.st-key-nav_refresh) button:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--text) !important;
+  border-color: rgba(148, 163, 184, 0.32) !important;
+}
+
 section.or-workbench-hero {
-  margin: 0.2rem 0 0.6rem 0;
+  margin: 0.15rem 0 0.55rem 0;
   padding: 0;
 }
 section.or-workbench-hero h1 {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
   font-weight: 750;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  margin: 0 0 0.3rem 0;
+  margin: 0 0 0.25rem 0;
   color: var(--text);
 }
 section.or-workbench-hero p {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   color: var(--text-2);
   margin: 0;
