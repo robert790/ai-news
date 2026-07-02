@@ -387,25 +387,6 @@ def render_css() -> str:
   }}
   .or-topnav-brand:hover .or-mark {{ color: var(--amber); }}
 
-  /* ── Top nav pills (5 buttons inside `.or-nav-pills`) ──────── */
-
-  /* Pill container wrapper (just lays them out in a row) */
-  .or-nav-pills {{
-    display: flex !important;
-    gap: 0.35rem !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0.4rem !important;
-    background: rgba(28, 24, 19, 0.6) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 999px !important;
-    backdrop-filter: blur(8px);
-    width: 100% !important;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }}
-  .or-nav-pills::-webkit-scrollbar {{ display: none; }}
-
   /* Each nav button — pill-shaped, hover + selected. Scoped via
      Streamlit's `class="st-key-nav_*"` on the wrapping element container.
      PR11: HF Spaces runs Streamlit 1.32, local venv runs ≥1.50. The
@@ -1037,65 +1018,6 @@ def render_css() -> str:
   .or-tip-line:nth-child(3) {{ animation-delay: -12s; }}
   .or-tip-line:nth-child(4) {{ animation-delay: -6s; }}
 
-  /* ── Ambient radar pulse (top-right glow) + scan line ────── */
-  @keyframes or-pulse {{
-    0%, 100% {{ opacity: 0.4; }}
-    50%      {{ opacity: 1; }}
-  }}
-
-  @keyframes or-radar-ring {{
-    0%   {{ transform: scale(0.1); opacity: 0.55; }}
-    100% {{ transform: scale(2.2); opacity: 0; }}
-  }}
-
-  .or-radar {{
-    position: fixed;
-    top: -40vh;
-    right: -40vw;
-    width: 100vh;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 0;
-  }}
-  .or-radar::before,
-  .or-radar::after {{
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 1px solid rgba(212, 145, 90, 0.32);
-    animation: or-radar-ring 9s linear infinite;
-  }}
-  .or-radar::after {{ animation-delay: 4.5s; }}
-
-  @keyframes or-scan-line {{
-    0%   {{ transform: translateY(-2vh); opacity: 0; }}
-    10%  {{ opacity: 0.5; }}
-    90%  {{ opacity: 0.5; }}
-    100% {{ transform: translateY(102vh); opacity: 0; }}
-  }}
-  .or-scan {{
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(212, 145, 90, 0.45) 50%,
-      transparent 100%);
-    animation: or-scan-line 14s linear infinite;
-    pointer-events: none;
-    z-index: 0;
-  }}
-
-  @media (prefers-reduced-motion: reduce) {{
-    .or-radar::before, .or-radar::after,
-    .or-scan, .or-tip-line, .or-live .dot, .or-side-status .dot {{
-      animation: none !important;
-    }}
-    .or-tip-line:first-child {{ opacity: 1 !important; }}
-    .or-tip-line:not(:first-child) {{ display: none !important; }}
-  }}
-
   /* ── Reveal animations ───────────────────────────────────── */
   @keyframes or-fade-up {{
     from {{ opacity: 0; transform: translateY(8px); }}
@@ -1192,6 +1114,5 @@ def render_css() -> str:
       padding-left: 1.2rem;
       padding-right: 1.2rem;
     }}
-    .or-radar {{ width: 80vh; height: 80vh; top: -35vh; right: -45vw; }}
   }}
 </style>"""

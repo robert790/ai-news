@@ -96,15 +96,8 @@ st.set_page_config(
 )
 st.markdown(render_css(), unsafe_allow_html=True)
 
-# Ambient overlays disabled by PR15 chrome cleanup. Old radar/scan
-# elements are no longer rendered — kept the marker as a no-op so the
-# rest of the page is unchanged.
-# st.markdown(
-#     '<div class="or-radar" aria-hidden="true"></div>'
-#     '<div class="or-scan" aria-hidden="true"></div>',
-#     unsafe_allow_html=True,
-# )
-
+# Ambient radar/scan overlays were removed in PR15; .or-radar / .or-scan
+# selectors are now stripped via `_STATIC_CSS` for any stray markup.
 
 # ─── Inline SVG icons ───────────────────────────────────────────────────
 # Lucide-style stroke icons. Shapes only — class is supplied at the call
@@ -146,24 +139,6 @@ def icon(name: str, cls: str = "nav-ico") -> str:
         'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
         'class="' + cls + '">' + ICON_SHAPES[name] + '</svg>'
     )
-
-
-# Brand radar mark — concentric rings with four spokes. Explicit
-# width/height so the SVG can't fall back to browser-default 300x150px
-# when the surrounding CSS hasn't been applied yet.
-RADAR_MARK = (
-    '<svg width="26" height="26" viewBox="0 0 32 32" fill="none" '
-    'stroke="currentColor" stroke-width="1.2" stroke-linecap="round" '
-    'class="or-mark">'
-    '<circle cx="16" cy="16" r="13"/>'
-    '<circle cx="16" cy="16" r="8" opacity="0.6"/>'
-    '<circle cx="16" cy="16" r="3" opacity="0.85"/>'
-    '<line x1="16" y1="2" x2="16" y2="6" opacity="0.7"/>'
-    '<line x1="16" y1="26" x2="16" y2="30" opacity="0.7"/>'
-    '<line x1="2" y1="16" x2="6" y2="16" opacity="0.7"/>'
-    '<line x1="26" y1="16" x2="30" y2="16" opacity="0.7"/>'
-    '</svg>'
-)
 
 
 # ─── Data loaders (cached) ──────────────────────────────────────────────
@@ -1100,9 +1075,9 @@ def render_groq() -> None:
 
     # PR15 chrome cleanup: compact workbench hero instead of the old
     # cinematic serif hero. Modern system sans, no eyebrow line, no fake
-    # LIVE · BUCUREȘTI pill. The .or-workbench-hero class is the single
-    # source of truth for the new hero styling — it overrides .or-hero
-    # below in theme.py.
+    # status pill. The .or-workbench-hero class is the single source of
+    # truth for the new hero styling — it overrides .or-hero below in
+    # theme.py.
     st.markdown(
         '<section class="or-workbench-hero">'
         '<h1>Your AI workbench for tools, prompts, learning, and jobs.</h1>'
