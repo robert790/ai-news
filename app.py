@@ -876,12 +876,11 @@ _STATIC_JOBS = [
 # - "build this" exercise lines
 # - cross-ref labels
 # - button labels (already English: Mark complete / Previous / Next)
-# Full body_md translation is out of scope for this PR — the body is
-# rendered below the English wrapper with a clear "Detailed notes
-# (Romanian — translation coming)" notice. Source of truth stays in
-# `learning/chapters.py` / `content/chapters.jsonl`; this dict is a
-# pure English surface layer that does not modify the underlying
-# Romanian content.
+# Body_md is intentionally NOT rendered in the English-first guide.
+# Source of truth stays in `learning/learning_render._render_body_md`
+# and `content/chapters.jsonl` — we just skip emitting it here so the
+# visible Learn UI is 100% English. See the "Looking for more?"
+# placeholder in `_render_english_chapter` for the user-facing note.
 _LOCALIZE = {
     "ch1": {
         "title": "Why AI matters now",
@@ -1631,8 +1630,9 @@ def _render_english_chapter(selected_id: str, ch_list: list, completed: set) -> 
     """PR19 English surface layer for the Learn guide.
 
     Wraps the existing rich lecture content (Romanian body, verifiers,
-    methods, cross-refs) with English surface labels and a clear
-    "Detailed notes" disclosure for the body copy. Falls back gracefully
+    methods, cross-refs) with English surface labels. The Romanian
+    body_md is NOT rendered — a "Looking for more?" placeholder sits
+    in its place so the page rhythm is preserved. Falls back gracefully
     to the original renderer if no English localization is available.
     """
     from learning.learning_render import render_detail_panel
@@ -1744,22 +1744,28 @@ def _render_english_chapter(selected_id: str, ch_list: list, completed: set) -> 
             key=f"method_done_{ch.id}_main",
         )
 
-    # ── Detailed notes (the original Romanian body, clearly flagged) ─
+    # ── Detailed notes section ─────────────────────────────────────
+    # Original Romanian body_md intentionally not rendered in
+    # English-first guide until full translation lands. The source
+    # content stays in `learning/learning_render._render_body_md` and
+    # `content/chapters.jsonl` for future translation work; we just
+    # skip emitting it here so the visible Learn UI is 100% English.
+    # A short "Looking for more?" placeholder keeps the page rhythm
+    # honest without reintroducing the Romanian copy.
     st.markdown('<hr class="lrn-rule" />', unsafe_allow_html=True)
     st.markdown(
         f'<div class="lrn-domain-tag" style="color:{accent};">'
-        f'▸ Detailed notes (Romanian — translation coming)</div>',
+        f'▸ Looking for more?</div>',
         unsafe_allow_html=True,
     )
-    # The existing learning_render._render_body_md handles body_md's
-    # markdown → HTML conversion. We reuse the rich renderer's body
-    # renderer by calling the full render_detail_panel but with a
-    # bypass — instead, call _render_body_md directly via the
-    # existing module surface.
-    from learning.learning_render import _render_body_md
-    body_html = _render_body_md(ch.body_md)
     st.markdown(
-        f'<div class="lrn-body">{body_html}</div>',
+        '<div class="lrn-body" style="color: var(--text-2); '
+        'font-size: 0.9rem;">'
+        'Detailed chapter notes are still being translated from the '
+        'original Romanian drafts. The structure above (intro, '
+        'self-check, recommended method, cross-references) covers '
+        'the core of every chapter.'
+        '</div>',
         unsafe_allow_html=True,
     )
 
