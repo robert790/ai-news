@@ -399,11 +399,11 @@ def render_top_nav() -> str:
     # to avoid a risky deep-link rename. Tracked as follow-up debt.
     with cols[1]:
         section_labels = [
-            ("groq",     "☀  Today"),
-            ("news",     "◌  Tools"),
-            ("learning", "❡  Learn"),
-            ("jobs",     "◆  Jobs"),
-            ("prompts",  "✦  Prompt Kits"),
+            ("groq",     "Home"),
+            ("news",     "Tools"),
+            ("learning", "Learn"),
+            ("jobs",     "Jobs"),
+            ("prompts",  "Prompt Kits"),
         ]
         st.markdown('<div class="or-nav-pills">', unsafe_allow_html=True)
         btn_cols = st.columns(5, gap="small")
@@ -460,6 +460,149 @@ if SECTION not in {"groq", "news", "learning", "jobs", "prompts"}:
 # PR10 positioning: "Today" — daily brief for an AI Career + Tools Radar.
 # Bento trio is News / Tools / Jobs (top 3 each) + lesson + prompt.
 # ─────────────────────────────────────────────────────────────────────────
+
+
+# ─── PR15: static functional section content ────────────────────────────
+# Additive static descriptions for Tools / Prompt Kits / Learn / Jobs / Home
+# so each section visibly carries its own product surface. No live data,
+# no scraping, no fake telemetry — only local text rendered as Streamlit
+# cards + a tiny `.or-static-card` CSS hook.
+_STATIC_TOOLS = [
+    ("Coding assistants",
+     "Repo-aware help for edits, tests, refactors, and review."),
+    ("Research tools",
+     "Turn many sources into a clearer decision."),
+    ("Image/video tools",
+     "Generate, edit, storyboard, or repurpose visual material."),
+    ("Productivity agents",
+     "Automate inboxes, docs, spreadsheets, meetings, and repetitive admin."),
+]
+
+_STATIC_PROMPTS = [
+    ("Ship a feature safely",
+     "Scope files, risks, tests, review, and rollback before merge."),
+    ("Compare AI tools",
+     "Score options by use case, cost, quality, risk, and switching cost."),
+    ("Learn a concept",
+     "Explain with examples, checks for understanding, and practice tasks."),
+    ("Write outreach",
+     "Draft a specific message with context, value, proof, and a low-friction ask."),
+]
+
+_STATIC_LEARN = [
+    ("AI basics",
+     "Models, context, tokens, strengths, limits, and responsible use."),
+    ("Prompting fundamentals",
+     "Inputs, constraints, examples, verification, and iteration."),
+    ("RAG basics",
+     "Retrieval, chunking, citations, evaluation, and failure modes."),
+    ("Agent workflows",
+     "Break tasks into tools, state, checks, handoffs, and recovery paths."),
+]
+
+_STATIC_JOBS = [
+    ("AI product operator",
+     "Turn models and workflows into reliable business outcomes."),
+    ("AI automation specialist",
+     "Connect tools, documents, workflows, and repetitive operations."),
+    ("Prompt/workflow designer",
+     "Build reusable instructions, evaluations, and process templates."),
+    ("AI developer tools support",
+     "Help teams adopt coding assistants, agents, and model tooling."),
+]
+
+_TODAY_PICKS = [
+    ("Tool of the day",
+     "Cursor rules / project memory",
+     "Turn repeated standards into a compact checklist your AI assistant can reuse."),
+    ("Prompt kit to try",
+     "Ship a feature safely",
+     "Scope the change, list risks, write tests, and run a second-pass review."),
+    ("Skill to learn",
+     "RAG evaluation basics",
+     "Check retrieval quality, answer faithfulness, citations, and user trust."),
+    ("Career signal",
+     "AI product operator",
+     "Teams need people who convert model capability into reliable workflows."),
+]
+
+
+_STATIC_CSS = """<style>
+.or-static-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 0.75rem 0.85rem;
+  margin: 0 0 0.5rem 0;
+  min-height: 84px;
+}
+.or-static-card .or-static-label {
+  font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.or-static-card .or-static-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  margin: 0 0 0.15rem 0;
+}
+.or-static-card .or-static-body {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  line-height: 1.35;
+  margin: 0;
+}
+.or-static-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0 0 1rem 0;
+}
+@media (max-width: 720px) {
+  .or-static-grid { grid-template-columns: 1fr; }
+}
+</style>"""
+
+
+def _render_static_section(eyebrow: str, items: list) -> None:
+    """Render a labeled 2x2 grid of static section cards."""
+    st.markdown(_STATIC_CSS, unsafe_allow_html=True)
+    cards = "".join(
+        '<article class="or-static-card">'
+        f'<span class="or-static-label">{esc(eyebrow)}</span>'
+        f'<span class="or-static-title">{esc(title)}</span>'
+        f'<p class="or-static-body">{esc(body)}</p>'
+        '</article>'
+        for title, body in items
+    )
+    st.markdown(
+        f'<div class="or-static-grid" aria-label="{esc(eyebrow)}">{cards}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_today_picks() -> None:
+    """Small Today picks block for the Home landing. Explicit cards, no glued text."""
+    rows = "".join(
+        '<article class="or-static-card">'
+        f'<span class="or-static-label">TODAY · {esc(label)}</span>'
+        f'<span class="or-static-title">{esc(title)}</span>'
+        f'<p class="or-static-body">{esc(body)}</p>'
+        '</article>'
+        for label, title, body in _TODAY_PICKS
+    )
+    st.markdown(
+        f'<div class="or-static-grid" aria-label="Today’s picks">{rows}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_groq() -> None:
     """The default landing: cinematic hero, then a 3-card bento of
     News / Tools / Jobs (top 3 each), then a mini-bento for lesson + prompt."""
@@ -479,6 +622,14 @@ def render_groq() -> None:
     )
 
     tips_strip(n=4)
+
+    # PR15: explicit Today picks — small static module, no glued text.
+    section_head(
+        "TODAY · STATIC PICKS",
+        "Today",
+        "Four practical picks for today’s workbench session.",
+    )
+    _render_today_picks()
 
     # ── Bento: News / Tools / Jobs (one cell each) ──
     hn = load_hn()[:3]
@@ -617,11 +768,15 @@ def render_groq() -> None:
 # ─────────────────────────────────────────────────────────────────────────
 def render_news() -> None:
     section_head(
-        "CURATED · BY USE CASE",
+        "TOOLS · STATIC WORKBENCH CATEGORIES",
         "Tools",
-        "Patru grupări de lucru — Build / Ship / Write &amp; Decide / Discover. "
-        "Patru carduri per grupare, nu un dump. Folosește ca să alegi un tool pentru "
-        "ce vrei să faci azi.",
+        "Four practical categories of AI tools — pick the one that matches the job.",
+    )
+    _render_static_section("TOOLS · CATEGORY", _STATIC_TOOLS)
+    section_head(
+        "FEEDS · CURRENT TOOLS RADAR",
+        "Live signals",
+        "Repos, papers, and discussions worth scanning today.",
     )
 
     # 1. Build software — repos trending on 7-day growth + GitHub today
@@ -752,6 +907,17 @@ def render_learning() -> None:
         "făcut — nu curs generic.",
     )
 
+    section_head(
+        "LEARN · FOUR CORE AREAS",
+        "Learn",
+        "Four core areas that take you from beginner to useful — pick one to start.",
+    )
+    _render_static_section("LEARN AREA", _STATIC_LEARN)
+    section_head(
+        "CHAPTERS · DEEP PATHS",
+        "10 chapters",
+        "Zece capitole scurte, fiecare cu un exercițiu. Basics + o treabă concretă de făcut.",
+    )
     ch_list = get_all_chapters()
     # Defensive: if the loader somehow returned 0, fall back to a no-op panel.
     if not ch_list:
@@ -796,6 +962,12 @@ def render_learning() -> None:
 # later milestone — see roadmap note at the bottom of this section.
 # ─────────────────────────────────────────────────────────────────────────
 def render_jobs() -> None:
+    section_head(
+        "JOBS · STATIC ROLE DIRECTIONS",
+        "Jobs",
+        "Four AI career directions to translate skills into useful work — not a live job board.",
+    )
+    _render_static_section("JOB ROLE", _STATIC_JOBS)
     section_head(
         "ROLE MAP · SEARCH PATHS",
         "Jobs",
@@ -950,10 +1122,15 @@ def render_prompts() -> None:
             cat_counts[c] += 1
 
     section_head(
-        "KITS · BY OUTCOME",
+        "PROMPT KITS · STATIC STARTERS",
         "Prompt Kits",
-        "Cinci kit-uri pentru o treabă specifică — un kit pentru azi, restul "
-        "când ai nevoie. Colecția completă (1.137 prompturi) e mai jos, cu filtre.",
+        "Four outcome-grouped prompt starters. Use them to plan, decide, learn, or write.",
+    )
+    _render_static_section("PROMPT KIT", _STATIC_PROMPTS)
+    section_head(
+        "KITS · BY OUTCOME",
+        "Prompt Bible",
+        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
     )
 
     # ── Primary layer: Kits (outcome-grouped prompt bundles) ──
