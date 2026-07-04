@@ -202,7 +202,7 @@ def section_head(eyebrow: str, title: str, caption: str = "") -> None:
     st.markdown(
         f'<div class="or-section-head or-reveal">'
         f'<span class="or-eyebrow">{esc(eyebrow)}</span>'
-        f'<div><h1>{esc(title)}</h1></div>'
+        f'<h1>{esc(title)}</h1>'
         f'{cap}'
         f'</div>',
         unsafe_allow_html=True,
@@ -1843,20 +1843,22 @@ def _render_today_picks() -> None:
         label, title, body, target, action = pick
         with col:
             with st.container(border=True):
+                # Wrap the 3 inner divs + button in a single .or-static-action
+                # root so the theme.py `:has(.or-static-action)` responsive
+                # rules (column-wrap at <=1099px, 1-up at <=600px) apply to
+                # this row too. Without this class, the Today row stays 4-up
+                # at every viewport — the original "feels like desktop
+                # squeezed into phone" failure.
                 st.markdown(
+                    f"<div class='or-static-action or-today-pick'>"
                     f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
                     f"font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;"
-                    f"color:var(--muted);'>{esc(label)}</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
+                    f"color:var(--muted);'>{esc(label)}</div>"
                     f"<div style='font-size:0.98rem;font-weight:600;color:var(--text);"
-                    f"margin:0.25rem 0 0.4rem 0;line-height:1.25;'>{esc(title)}</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
+                    f"margin:0.25rem 0 0.4rem 0;line-height:1.25;'>{esc(title)}</div>"
                     f"<p style='font-size:0.82rem;color:var(--text-2);"
-                    f"line-height:1.4;margin:0 0 0.6rem 0;'>{esc(body)}</p>",
+                    f"line-height:1.4;margin:0 0 0.6rem 0;'>{esc(body)}</p>"
+                    f"</div>",
                     unsafe_allow_html=True,
                 )
                 if st.button(

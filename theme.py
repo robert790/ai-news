@@ -1080,7 +1080,29 @@ def render_css() -> str:
   }}
 
   /* ── Responsive ───────────────────────────────────────────── */
-  @media (max-width: 880px) {{
+  /* ── Responsive (PR19, PR27, PR #27 follow-up #3) ────────────── */
+  /* Three tiers:
+       desktop (>=1100px): default. 4-up action cards (Streamlit
+         default for st.columns(4)), 3-up .or-bento, 2-up .or-bento-mini.
+       tablet  (<=1099px): 2-up action cards, 1-up bento,
+         1-up bento-mini. h1 shrinks to 2rem; hero padding tight.
+       phone   (<=600px):  1-up action cards, stacked section_head,
+         tighter padding, h1 1.4-1.6rem.
+
+     Why <=1099 (not <=920) for the tablet tier: at 921-1099px
+     (laptop edge) the action cards were still 4-up, which the
+     owner correctly flagged as "feels like desktop squeezed into
+     tablet". Bumping the tablet ceiling to 1099px gives the 2-up
+     layout to the full laptop range.
+
+     Why the min-width: 0 !important on stColumn: Streamlit's
+     default stColumn has min-width: 25% (for st.columns(4)) baked
+     into its CSS. Our flex: 1 0 calc(50% - 0.25rem) !important
+     rule alone cannot wrap the columns because the min-width
+     prevents it. Forcing min-width: 0 lets the flex-wrap take
+     effect. The same fix applies at every responsive tier. */
+
+  @media (max-width: 1099px) {{
     .or-hero {{ padding: 2rem 0 1.4rem; }}
     .or-hero h1 {{ font-size: 2.4rem; }}
     h1 {{ font-size: 2rem; }}
@@ -1089,20 +1111,38 @@ def render_css() -> str:
       padding-left: 1.2rem;
       padding-right: 1.2rem;
     }}
+    /* Action card row (path-kit cards + Today picks): 2-up.
+       Both rows use st.columns(4) at desktop, which produces 4
+       stColumn children with min-width: 25% baked in. Forcing
+       min-width: 0 here lets the flex-wrap actually take effect. */
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) {{
+      flex-wrap: wrap !important;
+      row-gap: 0.6rem !important;
+    }}
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
+      flex: 1 0 calc(50% - 0.3rem) !important;
+      max-width: calc(50% - 0.3rem) !important;
+      min-width: 0 !important;
+      align-items: stretch !important;
+    }}
+    /* Streamlit st.container border wrapper: stretch to row height
+       so the border surrounds the full content even when one
+       card has less content than another. */
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] > div {{
+      height: 100% !important;
+    }}
+    /* .or-bento (3-up Home landing): collapse to 1-col. */
+    .or-bento {{ grid-template-columns: 1fr !important; }}
+    /* .or-bento-mini (2-up Jobs role map + Prompt Kits kit grid):
+       collapse to 1-col on tablet. The 2-up variant is only
+       useful at >=1100px where the cards have ~520px of width
+       each; below that the cards get squeezed. */
+    .or-bento-mini {{ grid-template-columns: 1fr !important; }}
+    .or-bento-mini--2up {{ margin-bottom: 1.2rem !important; }}
   }}
 
-  /* PR #27 follow-up #2: phone rhythm polish.
-     The previous <=600px block kept content on screen (no overflow);
-     this block re-conceives the layout for phone-portrait. Three
-     specific failures the owner flagged:
-       (a) too much vertical dead space above the first section
-       (b) .or-section-head wraps awkwardly (eyebrow + h1 + caption
-           on 3 lines with weird baseline alignment)
-       (c) cards stack but the gap between them is too heavy
-     We fix all three with small, scoped rules. Desktop (>=881px) is
-     unchanged; tablet (601-880px) keeps the existing rules. */
   @media (max-width: 600px) {{
-    /* (a) top/bottom dead space. section.main > div had padding-top:2rem
+    /* Top/bottom dead space. section.main > div had padding-top:2rem
        and padding-bottom:5rem at desktop, which on a 414x896 phone
        viewport is ~3.5% of the screen height of dead space on every
        page. Pull both to phone-friendly values. */
@@ -1110,14 +1150,12 @@ def render_css() -> str:
       padding-top: 0.5rem !important;
       padding-bottom: 1.4rem !important;
     }}
-    /* h1 already shrinks at <=880px (2rem) but on a 414px viewport
-       even 2rem is heavy for a phone. Drop further. */
+    /* h1 shrink (desktop 2rem -> 1.6rem; section_head h1 1.4rem). */
     h1 {{ font-size: 1.6rem !important; }}
     .or-section-head h1 {{ font-size: 1.4rem !important; line-height: 1.2; }}
-    /* (b) section_head row. The flex baseline alignment + flex-wrap
-       creates 3 lines on phone with odd vertical gaps. Stack
-       explicitly, align everything to flex-start (left), tighten
-       margins, and put the eyebrow above the h1 (not beside it). */
+    /* section_head row: stack vertically. The previous fix-direction
+       (flex-direction: column) is correct now that the h1 is no
+       longer wrapped in a nested <div> (app.py fix 1). */
     .or-section-head {{
       flex-direction: column !important;
       align-items: flex-start !important;
@@ -1125,54 +1163,20 @@ def render_css() -> str:
       margin: 0 0 1rem !important;
       padding-bottom: 0.7rem !important;
     }}
-    .or-section-head .or-eyebrow {{
-      margin-bottom: 0 !important;
-    }}
-    .or-section-head .or-caption {{
-      margin-top: 0.1rem !important;
-    }}
-    /* (c) card / bento / bento-mini margins. The desktop default
-       (margin: 0 0 1.6rem on .or-bento; margin: 1.6rem 0 0 on
-       .or-bento-mini) leaves heavy vertical air between sections
-       on a phone where every pixel is visible. Tighten. */
-    .or-bento {{
-      gap: 0.7rem !important;
-      margin: 0 0 0.9rem !important;
-    }}
-    .or-bento-mini {{
-      gap: 0.7rem !important;
-      margin: 0.8rem 0 0 !important;
-    }}
-    .or-bento-mini--2up {{
-      margin-bottom: 0.9rem !important;
-    }}
-    .or-mini {{
-      margin-bottom: 0 !important;
-    }}
-    /* Tighter gaps between stacked cards. The .or-card default
-       margin-bottom:0.6rem is fine at desktop; on a 414px phone
-       where the card itself is ~200px tall, 0.6rem feels heavy. */
-    .or-card {{
-      margin-bottom: 0.4rem !important;
-    }}
-    /* Stack rhythm for the section_head -> first content gap. The
-       section_head has padding-bottom:1.1rem at desktop; on phone
-       we already pulled it to 0.7rem above. No further change. */
-  }}
-
-  /* PR #27 follow-up: <=600px mobile hardening.
-     At <=600px the page is essentially phone-portrait. The bento
-     grids are already 1-col at <=880px; this block ensures the
-     action card row, .or-card, and .or-mini don't horizontally
-     overflow and that content stays readable on a 360-414px viewport. */
-  @media (max-width: 600px) {{
-    .or-static-action .or-static-title {{ font-size: 0.92rem !important; }}
-    .or-static-action .or-static-body  {{ font-size: 0.78rem !important; }}
-    .or-mini {{ padding: 1rem 1.05rem; }}
+    .or-section-head .or-eyebrow {{ margin-bottom: 0 !important; }}
+    .or-section-head .or-caption {{ margin-top: 0.1rem !important; }}
+    /* Card / bento / bento-mini margins — tighten. */
+    .or-bento {{ gap: 0.7rem !important; margin: 0 0 0.9rem !important; }}
+    .or-bento-mini {{ gap: 0.7rem !important; margin: 0.8rem 0 0 !important; }}
+    .or-bento-mini--2up {{ margin-bottom: 0.9rem !important; }}
+    .or-mini {{ margin-bottom: 0 !important; padding: 1rem 1.05rem; }}
     .or-mini .or-mini-foot a {{ font-size: 0.62rem; }}
-    .or-card {{ padding: 0.85rem 0.9rem 0.8rem; }}
+    .or-card {{ padding: 0.85rem 0.9rem 0.8rem; margin-bottom: 0.4rem !important; }}
     .or-card-meta {{ font-size: 0.62rem; }}
-    /* Action card row: 1-up on small phones. */
+    /* Action card row (path-kit + Today): 1-up on phone. The
+       flex: 1 0 100% would already wrap, but Streamlit's
+       default stColumn min-width blocks it — force min-width: 0
+       so the flex-wrap takes effect. */
     [data-testid="stHorizontalBlock"]:has(.or-static-action) {{
       flex-direction: column !important;
       gap: 0.5rem !important;
@@ -1180,28 +1184,18 @@ def render_css() -> str:
     [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
       flex: 1 0 100% !important;
       max-width: 100% !important;
-      min-width: 100% !important;
+      min-width: 0 !important;
+      width: 100% !important;
     }}
-    /* Streamlit st.container border wrapper: stretch to row height so
-       the border surrounds the full content even when content is short. */
     [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] > div {{
       height: auto !important;
     }}
-    /* Equal-height stretch for the action card row at desktop+tablet. */
-    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
-      align-items: stretch !important;
-    }}
-  }}
-
-  /* Equal-height stretch for the action card row (4-up at desktop,
-     2-up at <=920px). Applies from 600px up; below 600px the
-     column rule above forces 1-up and disables stretch. */
-  @media (min-width: 601px) {{
-    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
-      align-items: stretch !important;
-    }}
-    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] > div {{
-      height: 100% !important;
-    }}
+    /* Smaller static-action typography on phone. The Today-pick
+       cards use inline styles so the .or-static-label/title/body
+       rules won't match their inner divs; we only shrink the
+       root-level rules that DO apply (the label/title/body class
+       rules from app.py's _STATIC_CSS at line 1267-1289). */
+    .or-static-action .or-static-title {{ font-size: 0.92rem !important; }}
+    .or-static-action .or-static-body  {{ font-size: 0.78rem !important; }}
   }}
 </style>"""
