@@ -2045,10 +2045,29 @@ def render_news() -> None:
     _render_action_cards(_STATIC_TOOLS, state_key="tools_focus", action_label="Open")
     _render_selected_detail(_STATIC_TOOLS, state_key="tools_focus",
                             panel_heading="SELECTED TOOL CATEGORY")
-    section_head(
-        "FEEDS · CURRENT TOOLS RADAR",
-        "Live signals",
-        "Repos, papers, and discussions worth scanning today.",
+    # PR25 fix: the "Tools" h1 belongs to the top of the section. The
+    # 4 live feeds (Build software / Ship faster / Write & decide /
+    # Discover) sit under a small or-eyebrow — same pattern as
+    # "KITS BY OUTCOME" in Prompt Kits and "ROLE MAP · SEARCH PATHS"
+    # in Jobs. One h1 per tab.
+    st.markdown(
+        '<div class="or-reveal" style="margin:0.8rem 0 0.6rem;">'
+        '<span class="or-eyebrow" style="font-size:.7rem;">FEEDS · CURRENT TOOLS RADAR</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # PR25: one honest intro line. The 4 feeds below are global; Romania-
+    # specific items are out of scope for this PR. This note sets
+    # expectations honestly rather than implying Romania coverage we don't
+    # have yet.
+    st.markdown(
+        '<p style="font-family:Newsreader,serif;font-style:italic;color:var(--muted);'
+        'font-size:.95rem;margin:0 0 1.1rem;">'
+        'Three feeds to scan today. None are Romania-specific yet — they '
+        'help you see what is moving in AI tools globally.'
+        '</p>',
+        unsafe_allow_html=True,
     )
 
     # 1. Build software — repos trending on 7-day growth + GitHub today
@@ -2065,7 +2084,7 @@ def render_news() -> None:
     if not repos:
         st.markdown(
             '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">'
-            'Feed offline. Încearcă din nou.</div>',
+            'Feed offline. Try again.</div>',
             unsafe_allow_html=True,
         )
     for r in repos:
@@ -2122,7 +2141,7 @@ def render_news() -> None:
     if not combined:
         st.markdown(
             '<div style="color:var(--muted);font-style:italic;font-size:.85rem;">'
-            'Opinion feed offline. Încearcă din nou.</div>',
+            'Opinion feed offline. Try again.</div>',
             unsafe_allow_html=True,
         )
     for it in summarize_batch(combined):
@@ -2421,12 +2440,15 @@ def render_jobs() -> None:
     _render_action_cards(_STATIC_JOBS, state_key="jobs_focus", action_label="Open")
     _render_selected_detail(_STATIC_JOBS, state_key="jobs_focus",
                             panel_heading="SELECTED JOB ROLE")
-    section_head(
-        "ROLE MAP · SEARCH PATHS",
-        "Jobs",
-        "Șapte direcții AI de urmărit în RO. Pentru fiecare: abilități, "
-        "capitol de învățat, și link-uri de căutare pe platformele care contează. "
-        "Nu e job board — e hartă.",
+    # PR25 fix: the "Jobs" h1 belongs to the top of the section, not to
+    # the role map below. The 7 role cards sit under a small or-eyebrow
+    # subsection header — same pattern PR #22 used for "KITS BY OUTCOME"
+    # in the Prompt Kits section. One h1 per tab.
+    st.markdown(
+        '<div class="or-reveal" style="margin:0.8rem 0 0.6rem;">'
+        '<span class="or-eyebrow" style="font-size:.7rem;">ROLE MAP · SEARCH PATHS</span>'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
     st.markdown(
@@ -2618,15 +2640,10 @@ def render_prompts() -> None:
         "Prompt Kits",
         "Four outcome-grouped prompt starters. Use them to plan, decide, learn, or write.",
     )
-    _render_action_cards(_STATIC_PROMPTS, state_key="prompt_focus", action_label="Open")
-    _render_selected_detail(_STATIC_PROMPTS, state_key="prompt_focus",
-                            panel_heading="SELECTED PROMPT KIT")
-
-    # ── PR22: short how-to-use block, English, calm, practical ──────
-    # Sits between the static outcome row and the outcome-grouped kit
-    # grid. Four short lines: choose a kit by outcome → copy a prompt
-    # block → adapt placeholders → use variants only when needed.
-    # No theme.py change. No behavior change.
+    # ── PR25: how-to-use block moved to the top of the section (it was
+    # buried mid-page in PR #22). Now sits between the section_head
+    # and the 4 static starter cards so a first-time user sees the
+    # instructions before the catalog.
     st.markdown(
         '<div class="or-mini or-reveal" '
         'style="min-height:auto;margin:0.4rem 0 0.9rem;">'
@@ -2642,6 +2659,9 @@ def render_prompts() -> None:
         '</div>',
         unsafe_allow_html=True,
     )
+    _render_action_cards(_STATIC_PROMPTS, state_key="prompt_focus", action_label="Open")
+    _render_selected_detail(_STATIC_PROMPTS, state_key="prompt_focus",
+                            panel_heading="SELECTED PROMPT KIT")
 
     # PR22 fix: small, calm eyebrow above the kit grid. No h1 here —
     # the "Prompt Bible" h1 belongs to the full search/filter/results
