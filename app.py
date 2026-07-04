@@ -2232,6 +2232,60 @@ def render_learning() -> None:
     with progress_cols[1]:
         st.progress(min(max(pct, 0), 100))
 
+    # ── PR21: Progress link affordance + reset (small, calm, honest) ─
+    # No account, no cloud, no database. Progress lives in the URL as a
+    # signed token (see learning/progress.py). Bookmarking or copying
+    # the address is the only "save" mechanism. The reset button clears
+    # every verifier/method/completed key, the private sync markers,
+    # and the ?p= query param so the URL is clean again.
+    st.markdown(
+        '<div class="or-mini or-reveal" '
+        'style="min-height:auto;margin:0.7rem 0 0.4rem;">'
+        '<div class="or-mini-tag" style="color:var(--sky);">'
+        '▸ HOW YOUR PROGRESS IS SAVED</div>'
+        '<p class="or-mini-body" style="margin-bottom:0.55rem;">'
+        'No account needed. Your progress is saved in this page address. '
+        'Bookmark or copy the URL to continue later on any device.'
+        '</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    reset_cols = st.columns([1, 5])
+    with reset_cols[0]:
+        if st.button(
+            "Reset progress",
+            key="learn_reset_progress",
+            use_container_width=True,
+            help="Clears all completed chapters, verifier and method checkboxes.",
+        ):
+            # Walk every Learning key. Use list() to avoid mutating
+            # session_state during iteration. Keep selected_chapter and
+            # learn_chapter (deep-link) — those are navigation, not
+            # progress.
+            drop_keys = [
+                k for k in st.session_state.keys()
+                if (
+                    k == "completed_chapters"
+                    or k.startswith("verifier_")
+                    or k.startswith("method_done_")
+                    or k == "__last_token"
+                    or k == "__restored"
+                )
+            ]
+            for k in drop_keys:
+                st.session_state.pop(k, None)
+            # Clear the ?p= transport so the URL no longer carries the
+            # old snapshot. selected_chapter / learn_chapter stay.
+            try:
+                if "p" in st.query_params:
+                    del st.query_params["p"]
+            except Exception:
+                try:
+                    delattr(st.query_params, "p")
+                except Exception:
+                    pass
+            st.rerun()
+
     # ── Path quick-links: small horizontal strip ────────────────────
     # Each card selects both the path detail panel AND the matching
     # chapter so the user lands in the guide immediately.

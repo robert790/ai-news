@@ -155,7 +155,7 @@ These are explicit no-fly zones. Reviving any of them blocks the next PR.
 
 In priority order, subject to Control Room sign-off per task:
 
-1. **PR #21 candidate — Learning progress persistence.** Write `completed_chapters` + per-method `method_done_*` flags to `./data/progress.json`; read on app start. Highest-impact UX improvement that does not require a new visual layer. On the in-repo short-term list from the pre-PR-#19 HANDOFF.
+1. **Done — Learning progress persistence (shipped as part of the post-#19 stack via `feat/persistence-progress-queryparam`, before PR #20).** The transport is a stdlib-only signed query-param token: snapshot of Learning state is zlib-compressed + urlsafe-base64-encoded into `?p=...`; restoring is a one-shot gated by a session marker. See `learning/progress.py` for `snapshot_for_chapters / encode / decode / apply_incoming_query_param / sync_query_param`. No disk, no cookies, no localStorage, no auth, no database. The first-class UX work is now the **progress link affordance** (explain + Reset button), shipped as PR #21.
 2. **Prompt Kits copy/code UX.** Polish the curated prompt library section (copy buttons, code block rendering, search/filter).
 3. **Mobile polish.** Audit ≤720px breakpoint across all five sections; fix any clipping, horizontal overflow, or hidden nav.
 4. **Stale remote branch cleanup (later).** 12 `feat/*` branches + 2 `feature/pr-*` branches. Belongs to a dedicated cleanup PR, not mixed into a feature PR.
