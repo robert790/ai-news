@@ -2582,6 +2582,28 @@ def render_prompts() -> None:
     _render_action_cards(_STATIC_PROMPTS, state_key="prompt_focus", action_label="Open")
     _render_selected_detail(_STATIC_PROMPTS, state_key="prompt_focus",
                             panel_heading="SELECTED PROMPT KIT")
+
+    # ── PR22: short how-to-use block, English, calm, practical ──────
+    # Sits between the static outcome row and the outcome-grouped kit
+    # grid. Four short lines: choose a kit by outcome → copy a prompt
+    # block → adapt placeholders → use variants only when needed.
+    # No theme.py change. No behavior change.
+    st.markdown(
+        '<div class="or-mini or-reveal" '
+        'style="min-height:auto;margin:0.4rem 0 0.9rem;">'
+        '<div class="or-mini-tag" style="color:var(--sky);">'
+        '▸ HOW TO USE PROMPT KITS</div>'
+        '<ol class="or-mini-body" style="margin:0.3rem 0 0;padding-left:1.2rem;'
+        'font-size:.92rem;line-height:1.45;">'
+        '<li>Pick a kit by the <em>outcome</em> you want, not the topic.</li>'
+        '<li>Copy one prompt block and paste it into your model.</li>'
+        '<li>Replace the placeholders with your real context.</li>'
+        '<li>Use variants only when the default prompt misses.</li>'
+        '</ol>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
     section_head(
         "KITS · BY OUTCOME",
         "Prompt Bible",
@@ -2615,9 +2637,10 @@ def render_prompts() -> None:
         )
         kit_cells += (
             '<div class="or-mini" style="min-height:auto;">'
-            f'<div class="or-mini-tag" style="color:{esc(clr)};">▸ KIT {i+1} OF {len(bundles)}</div>'
-            f'<h3 style="font-size:1.15rem;margin-bottom:.3rem;">{esc(ico)} {esc(kit["title"])}</h3>'
-            f'<p class="or-mini-body" style="margin-bottom:.8rem;font-style:italic;color:var(--muted);">'
+            f'<h3 style="font-size:1.15rem;margin:0 0 .3rem;line-height:1.25;">'
+            f'{esc(ico)} {esc(kit["title"])}</h3>'
+            f'<p class="or-mini-body" style="margin:0 0 .7rem;font-style:italic;'
+            f'color:var(--text);opacity:.85;font-size:.92rem;">'
             f'{esc(kit.get("outcome",""))}</p>'
             f'<div style="margin-bottom:.7rem;">{sample_html}</div>'
             f'{more_html}'
