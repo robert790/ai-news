@@ -667,6 +667,7 @@ def render_css() -> str:
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     margin: 0 0 1.6rem;
+    align-items: stretch;
   }}
   @media (max-width: 880px) {{ .or-bento {{ grid-template-columns: 1fr; }} }}
 
@@ -810,6 +811,15 @@ def render_css() -> str:
   .or-bento-mini--2up {{
     margin-bottom: 2rem;
   }}
+  /* PR #27 follow-up: equal-height card rhythm for the 2-up bento
+     (Jobs role map, Prompt Kits kit grid). Stand-alone mini cards
+     outside a bento stay content-height (no min-height). The grid
+     default 'align-items: stretch' would already give equal row
+     height; we add it explicitly for clarity, and add a min-height
+     floor so a card with short content does not look under-filled
+     next to a card with longer content (3 skill chips vs 5). */
+  .or-bento-mini {{ align-items: stretch; }}
+  .or-bento-mini > .or-mini {{ min-height: 220px; }}
   @media (max-width: 880px) {{ .or-bento-mini {{ grid-template-columns: 1fr; }} }}
 
   .or-mini {{
@@ -1078,6 +1088,51 @@ def render_css() -> str:
       max-width: 100%;
       padding-left: 1.2rem;
       padding-right: 1.2rem;
+    }}
+  }}
+
+  /* PR #27 follow-up: <=600px mobile hardening.
+     At <=600px the page is essentially phone-portrait. The bento
+     grids are already 1-col at <=880px; this block ensures the
+     action card row, .or-card, and .or-mini don't horizontally
+     overflow and that content stays readable on a 360-414px viewport. */
+  @media (max-width: 600px) {{
+    .or-static-action .or-static-title {{ font-size: 0.92rem !important; }}
+    .or-static-action .or-static-body  {{ font-size: 0.78rem !important; }}
+    .or-mini {{ padding: 1rem 1.05rem; }}
+    .or-mini .or-mini-foot a {{ font-size: 0.62rem; }}
+    .or-card {{ padding: 0.85rem 0.9rem 0.8rem; }}
+    .or-card-meta {{ font-size: 0.62rem; }}
+    /* Action card row: 1-up on small phones. */
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) {{
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+    }}
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
+      flex: 1 0 100% !important;
+      max-width: 100% !important;
+      min-width: 100% !important;
+    }}
+    /* Streamlit st.container border wrapper: stretch to row height so
+       the border surrounds the full content even when content is short. */
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] > div {{
+      height: auto !important;
+    }}
+    /* Equal-height stretch for the action card row at desktop+tablet. */
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
+      align-items: stretch !important;
+    }}
+  }}
+
+  /* Equal-height stretch for the action card row (4-up at desktop,
+     2-up at <=920px). Applies from 600px up; below 600px the
+     column rule above forces 1-up and disables stretch. */
+  @media (min-width: 601px) {{
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] {{
+      align-items: stretch !important;
+    }}
+    [data-testid="stHorizontalBlock"]:has(.or-static-action) > [data-testid="stColumn"] > div {{
+      height: 100% !important;
     }}
   }}
 </style>"""
