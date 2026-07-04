@@ -2604,10 +2604,15 @@ def render_prompts() -> None:
         unsafe_allow_html=True,
     )
 
-    section_head(
-        "KITS · BY OUTCOME",
-        "Prompt Bible",
-        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
+    # PR22 fix: small, calm eyebrow above the kit grid. No h1 here —
+    # the "Prompt Bible" h1 belongs to the full search/filter/results
+    # area below, not to the curated kits (which are the entry point,
+    # not the bible itself).
+    st.markdown(
+        '<div class="or-reveal" style="margin:0.6rem 0 0.8rem;">'
+        '<span class="or-eyebrow" style="font-size:.7rem;">KITS BY OUTCOME</span>'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
     # ── Primary layer: Kits (outcome-grouped prompt bundles) ──
@@ -2652,13 +2657,25 @@ def render_prompts() -> None:
         unsafe_allow_html=True,
     )
 
+    # PR22 fix: the "Prompt Bible" h1 now introduces the full
+    # search/filter/results area (this is the actual bible). The
+    # divider below stays as a visual breath before the search input.
+    section_head(
+        "FULL BIBLE",
+        "Prompt Bible",
+        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
+    )
+
     # ── Secondary layer divider ──
+    # PR22 fix: dropped the redundant "FULL BIBLE" prefix — the
+    # section_head above already carries that eyebrow. Keep the
+    # count + "power-user filters" so the user knows what to expect.
     st.markdown(
         '<div style="margin:2rem 0 1rem;display:flex;align-items:center;gap:1rem;">'
         '<span style="flex:1;height:1px;background:var(--border);"></span>'
         '<span style="font-family:JetBrains Mono,monospace;font-size:.65rem;'
         'letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
-        'FULL BIBLE · 1,137 PROMPTS · POWER-USER FILTERS BELOW</span>'
+        '1,137 PROMPTS · POWER-USER FILTERS BELOW</span>'
         '<span style="flex:1;height:1px;background:var(--border);"></span>'
         '</div>',
         unsafe_allow_html=True,
