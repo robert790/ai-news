@@ -2259,7 +2259,7 @@ def render_learning() -> None:
     # and the ?p= query param so the URL is clean again.
     st.markdown(
         '<div class="or-mini or-reveal" '
-        'style="min-height:auto;margin:0.7rem 0 0.4rem;">'
+        'style="margin:0.7rem 0 0.4rem;">'
         '<div class="or-mini-tag" style="color:var(--sky);">'
         '▸ HOW YOUR PROGRESS IS SAVED</div>'
         '<p class="or-mini-body" style="margin-bottom:0.55rem;">'
@@ -2452,7 +2452,7 @@ def render_jobs() -> None:
     )
 
     st.markdown(
-        '<div class="or-mini or-reveal" style="min-height:auto;margin:0 0 1.4rem;">'
+        '<div class="or-mini or-reveal" style="margin:0 0 1.4rem;">'
         '<div class="or-mini-tag" style="color:var(--sky);">▸ HOW THIS WORKS</div>'
         '<p class="or-mini-body" style="margin-bottom:0;">'
         'Alege un rol · citește gap-ul · mergi la capitolul recomandat · aplică '
@@ -2580,7 +2580,7 @@ def render_jobs() -> None:
         )
         chapter_url = f"?section=learning&ch={r['chapter_id']}"
         cards_html += (
-            '<div class="or-mini" style="min-height:auto;">'
+            '<div class="or-mini">'
             f'<div class="or-mini-tag">▸ {esc(r["location"].upper())} · {esc(r["company"].upper())}</div>'
             f'<h3 style="font-size:1.15rem;margin-bottom:.5rem;">{esc(r["title"])}</h3>'
             f'<div style="margin-bottom:.7rem;">{skills_html}</div>'
@@ -2592,15 +2592,15 @@ def render_jobs() -> None:
             f'</div>'
         )
     st.markdown(
-        f'<div class="or-bento-mini or-reveal" '
-        f'style="grid-template-columns:repeat(2,1fr);">{cards_html}</div>',
+        f'<div class="or-bento-mini or-reveal or-bento-mini--2up">'
+        f'{cards_html}</div>',
         unsafe_allow_html=True,
     )
 
     # Roadmap note — explicit, no fake live feed promise
     st.markdown('<div style="height:2rem;"></div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="or-mini or-reveal" style="min-height:auto;">'
+        '<div class="or-mini or-reveal">'
         '<div class="or-mini-tag" style="color:var(--coral);">▸ ROADMAP</div>'
         '<h3>Live job feed — nu azi</h3>'
         '<p class="or-mini-body">'
@@ -2646,7 +2646,7 @@ def render_prompts() -> None:
     # instructions before the catalog.
     st.markdown(
         '<div class="or-mini or-reveal" '
-        'style="min-height:auto;margin:0.4rem 0 0.9rem;">'
+        'style="margin:0.4rem 0 0.9rem;">'
         '<div class="or-mini-tag" style="color:var(--sky);">'
         '▸ HOW TO USE PROMPT KITS</div>'
         '<ol class="or-mini-body" style="margin:0.3rem 0 0;padding-left:1.2rem;'
@@ -2700,7 +2700,7 @@ def render_prompts() -> None:
             if more else ""
         )
         kit_cells += (
-            '<div class="or-mini" style="min-height:auto;">'
+            '<div class="or-mini">'
             f'<h3 style="font-size:1.15rem;margin:0 0 .3rem;line-height:1.25;">'
             f'{esc(ico)} {esc(kit["title"])}</h3>'
             f'<p class="or-mini-body" style="margin:0 0 .7rem;font-style:italic;'
@@ -2711,8 +2711,8 @@ def render_prompts() -> None:
             f'</div>'
         )
     st.markdown(
-        f'<div class="or-bento-mini or-reveal" '
-        f'style="grid-template-columns:repeat(2,1fr);margin-bottom:2rem;">{kit_cells}</div>',
+        f'<div class="or-bento-mini or-reveal or-bento-mini--2up">'
+        f'{kit_cells}</div>',
         unsafe_allow_html=True,
     )
 

@@ -270,6 +270,24 @@ def render_css() -> str:
   html {{ scroll-behavior: smooth; }}
   *, *::before, *::after {{ box-sizing: border-box; }}
 
+  /* ── Typography scale (informal, PR #27) ───────────────────── */
+  /* PR #27 documents the scale actually in use. New visual primitives
+     should pick from this list instead of inventing a new font-size.
+     These are values, not variables — left as a comment so the file
+     stays compatible with the existing CSS-variable system in `_ROOT`.
+     Micro-typography (eyebrows / labels / kickers) sits in the
+     0.55–0.7rem range; cards in 0.92–1.05rem; titles in 1.18–1.4rem;
+     h1 / hero in 1.9–2.4rem.
+
+     micro   0.55–0.78rem   (eyebrow, label, kicker, tag)
+     sm      0.85–0.92rem   (small body, summary, caption)
+     base    0.95–1.0rem    (body text)
+     md      1.05–1.18rem   (card title, method name)
+     lg      1.28–1.45rem   (h3, panel title)
+     xl      1.9rem        (section h1, hero h1 desktop)
+     2xl     2.4rem        (hero h1 mobile @880px)
+  */
+
   /* ── App shell ─────────────────────────────────────────────── */
   .stApp {{
     background:
@@ -772,66 +790,7 @@ def render_css() -> str:
     line-height: 1;
   }}
 
-  /* ── Methods block (Sebastian Rey BLUE) — ◆ MAIN + ○ alts ─── */
-
-  /* Main method callout — amber gradient border-left */
-  .or-method-main {{
-    margin-top: 1.5rem;
-    padding: 1.1rem 1.2rem;
-    background: linear-gradient(180deg,
-      rgba(212, 145, 90, 0.10),
-      rgba(212, 145, 90, 0.04));
-    border-left: 3px solid var(--amber);
-    border-radius: 6px;
-    transition: transform var(--t-fast) var(--ease);
-  }}
-  .or-method-main:hover {{
-    transform: translateX(2px);
-  }}
-  .or-method-main .or-method-tag {{
-    font-family: {f['mono']};
-    font-size: 0.62rem;
-    color: var(--amber);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin-bottom: 0.55rem;
-    font-weight: 600;
-  }}
-  .or-method-main .or-method-name {{
-    font-family: {f['display']};
-    font-size: 1.18rem;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.3;
-    margin-bottom: 0.55rem;
-  }}
-  .or-method-main .or-method-summary {{
-    font-family: {f['display']};
-    font-size: 0.95rem;
-    color: var(--text-2);
-    line-height: 1.55;
-  }}
-  .or-method-main .or-method-when {{
-    margin-top: 0.7rem;
-    padding-top: 0.55rem;
-    border-top: 1px dashed rgba(212, 145, 90, 0.25);
-    font-family: {f['mono']};
-    font-size: 0.68rem;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-  }}
-
-  /* Alt method label */
-  .or-method-alts-label {{
-    margin-top: 0.85rem;
-    font-family: {f['mono']};
-    font-size: 0.6rem;
-    color: var(--muted-2);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }}
-
-  /* Alt expander header — open circle marker */
+  /* ── Alt expander header — open circle marker */
   .streamlit-expanderHeader:has(p:contains("○")) {{
     font-family: {f['mono']} !important;
     color: var(--muted) !important;
@@ -844,6 +803,13 @@ def render_css() -> str:
     gap: 1rem;
     margin: 1.6rem 0 0;
   }}
+  /* PR #27: 2-up mid-section variant (Jobs role map, Prompt Kits kit
+     grid). The base .or-bento-mini has no margin-bottom; the mid-section
+     uses need a margin-bottom so the next section_head sits cleanly below.
+     Use this modifier instead of an inline style override. */
+  .or-bento-mini--2up {{
+    margin-bottom: 2rem;
+  }}
   @media (max-width: 880px) {{ .or-bento-mini {{ grid-template-columns: 1fr; }} }}
 
   .or-mini {{
@@ -851,7 +817,6 @@ def render_css() -> str:
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.2rem 1.3rem;
-    min-height: 220px;
     display: flex;
     flex-direction: column;
   }}
