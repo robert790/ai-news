@@ -1,7 +1,7 @@
 # Handoff · OpenRadar
 
 > Romanian-source AI product, English-first user surface.
-> Last refreshed: 2026-07-04 · PR #23 (docs-only · post-#22 HANDOFF checkpoint).
+> Last refreshed: 2026-07-04 · PR #25 (docs-only · post-#26 HANDOFF checkpoint · updated after PR #24 and PR #26).
 
 ---
 
@@ -37,23 +37,26 @@
 | Field | Value |
 |-------|-------|
 | Production branch | `main` |
-| Production SHA | `2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
-| Last merged PR | **#22 — Prompt Kits How-to-use** (squash-merged 2026-07-04) |
-| Previous tip | `1f9df46` (PR #21 — Learning Progress Link UX) |
-| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-04 post-#22 merge) |
-| CI workflow | green on `2a8cb43b` |
-| Deploy-to-HF workflow | green on `2a8cb43b` |
+| Production SHA | `f956edfb4efc23149e16b5b3c13bf3e7acdc88af` |
+| Last merged PR | **#26 — Tools + Jobs UX cleanup** (squash-merged 2026-07-04) |
+| Previous tip | `60e59c50` (PR #24 — Romania Jobs Expansion) |
+| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-04 post-#26 merge) |
+| CI workflow | green on `f956edfb` |
+| Deploy-to-HF workflow | green on `f956edfb` |
 
 ### Recent merged PRs (chronological)
 
 - **#20 — Refresh Repo HANDOFF** (2026-07-04, docs-only). Replaced the Mavis-era in-repo HANDOFF with the post-#19 quick-reference.
 - **#21 — Learning Progress Link UX** (2026-07-04). Added the "How your progress is saved" affordance + Reset progress button to the Learn section. The persistence transport itself (`learning/progress.py` signed query-param token) shipped earlier as PR #3 and was already on main.
 - **#22 — Prompt Kits How-to-use + hierarchy polish** (2026-07-04). Two small UX changes to the Prompt Kits section: a short English how-to-use block, and a fix to the section heading hierarchy so the "Prompt Bible" h1 correctly introduces the full search/filter area (not the kit grid).
+- **#23 — HANDOFF checkpoint** (2026-07-04, docs-only). Refreshed this file after PR #21 + PR #22; updated production SHA, last-merged-PR, recent-PR list, and the next-task pointers.
+- **#24 — Romania Jobs Expansion** (2026-07-04). Content-only expansion of the Romania role map from 4 to 7 role directions: AI Automation Engineer, Data + AI Analyst, AI Solutions Architect added to the existing DRUID/Bitdefender/ClusterPower/UiPath cards. New cards use neutral company labels ("Automation teams / partners", "Enterprise data teams", "IT services / consulting") — no claim is made that any company is currently hiring. Section copy updated from "Four" to "Seven" (English) and from "Patru" to "Șapte" (Romanian). Confirms Romania-first positioning (see §6).
+- **#26 — Tools + Jobs UX cleanup** (2026-07-04). Three small UX changes: (a) Jobs and Tools tabs now have one h1 each (the second `section_head` in each was demoted to a small `or-eyebrow` block, matching PR #22's pattern); (b) Prompt Kits' "HOW TO USE" block moved from mid-page to the top of the section so first-time users see the instructions before the catalog; (c) two Romanian offline-fallback strings on Tools translated to English (`Încearcă din nou` → `Try again`). Also added an honest intro line under the Tools eyebrow: "Three feeds to scan today. None are Romania-specific yet — they help you see what is moving in AI tools globally." `app.py` only, no theme change, no behavior change, no new files.
 
 ### Rollback (preferred — preserves history)
 
 ```bash
-git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e
+git revert --no-edit f956edfb4efc23149e16b5b3c13bf3e7acdc88af
 git push origin main
 ```
 
@@ -62,11 +65,11 @@ HF Space auto-redeploys on push (see §4).
 ### Rollback (emergency — only if no other work has landed)
 
 ```bash
-git reset --hard 1f9df46
+git reset --hard 60e59c50
 git push --force-with-lease origin main
 ```
 
-**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `2a8cb43b`.
+**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `f956edfb`.
 
 ---
 
@@ -115,7 +118,7 @@ git push --force-with-lease origin main
 | **Tools** | Curated tool directory. |
 | **Prompt Kits** | Curated prompt library with copy buttons. |
 | **Learn** | Guided English-first course (10 chapters, PR #19). |
-| **Jobs** | Skill-gap matcher between CV and AI infra roles (Romania focus). |
+| **Jobs** | Romania role map — 7 AI role directions (PR #24) with outbound search paths to LinkedIn / BestJobs / eJobs / Indeed RO. Single h1, "ROLE MAP" is a small or-eyebrow subsection header (PR #26). Not a live job board. |
 
 ### Internal section keys (compatibility, not copy)
 
@@ -163,8 +166,11 @@ In priority order, subject to Control Room sign-off per task:
 
 1. **Done — Learning progress persistence (PR #3 transport + PR #21 affordance).** The transport is a stdlib-only signed query-param token: snapshot of Learning state is zlib-compressed + urlsafe-base64-encoded into `?p=...`; restoring is a one-shot gated by a session marker. See `learning/progress.py` for `snapshot_for_chapters / encode / decode / apply_incoming_query_param / sync_query_param`. No disk, no cookies, no localStorage, no auth, no database. The first-class UX work (the "How your progress is saved" affordance + Reset button) shipped as PR #21.
 2. **Done — Prompt Kits copy/code UX (PR #22).** Short English how-to-use block, light kit-card hierarchy polish (dropped redundant "▸ KIT N OF 5" eyebrow, made the outcome line legible, moved the "Prompt Bible" h1 to the full search/filter area).
-3. **Mobile polish.** Audit ≤720px breakpoint across all five sections; fix any clipping, horizontal overflow, or hidden nav.
-4. **Stale branch cleanup (pending, separate maintenance action).** A handful of `feat/*` and `feature/pr-*` remote branches are stale pointers to old state. **The exact list must be re-verified at the time of cleanup** — branch counts in this file have been wrong before and the previous audit caught a count mismatch. Do **not** delete branches from this HANDOFF; re-run `git branch -r` and a per-branch reachability check at cleanup time. Do **not** revive the closed PR #13 (homepage radar/personality redesign) or PR #14 (Home Workbench Dashboard) — see §7.
+3. **Done — Jobs + Tools + Prompt Kits UX cleanup (PR #26).** One h1 per tab (the second `section_head` in Jobs and Tools demoted to a small `or-eyebrow` block); Prompt Kits' "HOW TO USE" block moved to the top of the section; two Romanian offline-fallback strings on Tools translated to English.
+4. **Next candidate — Responsive / card system audit.** Audit the card system (or-mini, or-bento-mini, or-static-action) at ≤720px and ≤1024px viewports across all five sections. Fix any clipping, horizontal overflow, or hidden nav. Earlier "Mobile polish" intent (before PR #26) was narrow; this widens to a card-system audit and explicitly includes the kit bento (2-up grid) and the role-map bento (2-up grid, 7 cards = 4 rows with 1-card last row) which both deserve a per-card-width check. **Not started — pending Control Room sign-off.**
+5. **Stale branch cleanup (pending, separate maintenance action).** A handful of `feat/*` and `feature/pr-*` remote branches are stale pointers to old state. **The exact list must be re-verified at the time of cleanup** — branch counts in this file have been wrong before and the previous audit caught a count mismatch. Do **not** delete branches from this HANDOFF; re-run `git branch -r` and a per-branch reachability check at cleanup time. Do **not** revive the closed PR #13 (homepage radar/personality redesign) or PR #14 (Home Workbench Dashboard) — see §7.
+
+**Note:** PR #25 (this docs checkpoint) was originally created after PR #24 and remained open. It was rebased onto post-#26 `main` and updated in-place to reflect the post-#26 state, instead of being closed and superseded by a new PR.
 
 ---
 
@@ -187,11 +193,11 @@ In priority order, subject to Control Room sign-off per task:
 
 | Need | Go to |
 |------|-------|
-| Current production SHA | `git rev-parse origin/main` (should be `2a8cb43b…`) |
+| Current production SHA | `git rev-parse origin/main` (should be `f956edfb…`) |
 | Last PR | `gh pr list --state merged --limit 1` |
 | Open PRs | `gh pr list --state open` |
 | HF live | `https://vrobert94-ai-news.hf.space/` |
-| Rollback (safe) | `git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
+| Rollback (safe) | `git revert --no-edit f956edfb4efc23149e16b5b3c13bf3e7acdc88af` |
 | Preview start | `bash scripts/preview.sh` |
 | Preview stop | `bash scripts/stop-preview.sh` |
 | Obsidian HANDOFF | `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/HANDOFF.md` |
