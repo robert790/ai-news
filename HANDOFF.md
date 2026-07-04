@@ -1,498 +1,196 @@
-# Handoff · OpenRadar (Ziarul Digital)
+# Handoff · OpenRadar
 
-> Romanian-first AI news + a 10-chapter learning path.  
-> Last updated: 2026-06-30 · Streamlit 1.50 local / 1.32 on HF Spaces.
-> Takeover update: 2026-06-30 — see §15.
-
-> **PR review QA · read this first:** [docs/WORKFLOW.md](docs/WORKFLOW.md) —
-> VPS PR preview runs on port 8780 via `bash scripts/preview.sh`; Mac
-> tunnels to it. HF live is separate; HF deploy remains manual until
-> automation is approved.
+> Romanian-source AI product, English-first user surface.
+> Last refreshed: 2026-07-04 · PR #20 (docs-only).
 
 ---
 
-## 1. What this is
+## 0. Source of truth
 
-OpenRadar (was "Ziarul Digital") is a Streamlit app with **5 sections**:
+**Read in this order. Newer overrides older.**
 
-| Section    | Tab | What it does                                                                 |
-|------------|-----|------------------------------------------------------------------------------|
-| **Groq**   | ☀   | Daily AI briefing — 3 stories, 1 takeaway, ask-the-curator chat.             |
-| **News**   | ◌   | Hacker News AI stories, summarized in Romanian (Groq; deterministic fallback). |
-| **Learning** | ❡ | 10-chapter category walkthrough (history → LLMs → diffusion → agents → career). |
-| **Jobs**   | ◆   | Skill-gap matcher between your CV and AI infra roles (Romania focus).         |
-| **Prompts** | ✦ | Curated prompt library with copy buttons.                                    |
-
-Hero identity is **OpenRadar**. First tab is named **Groq** (a curator persona in
-the Learning chapters — NOT a Romanian word "azi"; that means "today" and is
-preserved in chapter body text).
+1. **GitHub `main` and open PRs** — `robert790/ai-news` · canonical.
+2. **Obsidian OpenRadar HANDOFF** — `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/HANDOFF.md`.
+3. **This file** — in-repo quick-reference; lags Obsidian by intent.
+4. **Old default-profile sessions** — archive only. Do not use as live context.
 
 ---
 
-## 2. Where the code lives
+## 1. Active profile
 
-```
-/Users/zero/Minimax Projects/ai-news/
-├── app.py                    1058 lines · top nav + section dispatch + 5 renderers
-├── theme.py                  1007 lines · ~28KB CSS (warm dark, amber/sage/coral)
-├── config.py                  36 lines  · env-driven config (GROQ_API_KEY etc.)
-├── prompts.py                ~5.5KB    · prompt library data
-├── tips.py                   ~4.7KB    · tip system
-├── learning/
-│   ├── chapters.py           1301 lines · 10 Chapter dataclasses, methods, verifiers
-│   ├── learning_render.py     659 lines · detail panel, methods, verifiers, next-card
-│   ├── insight.py             230 lines · Groq's take + Ask Groq (LLM chat)
-│   ├── timeline.py            157 lines · 7-era SVG timeline (era 1-7 → ACUM)
-│   ├── cross_refs.py          ~100     · chapter pointer relationships
-│   ├── skill_tree.py          ~?        · prereq graph (Cytoscape planned)
-│   ├── reader.py              ~?        · content loader
-│   ├── parser.py              ~?        · markdown → HTML
-│   ├── chapter_tags.py        ~?        · domain tag helpers
-│   └── content/                         · chapter raw markdown + assets
-├── llm/                       · Groq client (OpenAI-compatible); legacy DeepSeek references kept in history
-├── scrapers/                  · HN + findarepo fetcher
-├── prompts_data/              · prompt library JSON
-├── data/                      · cached fetch results
-├── rag/                       · RAG over chapter content (placeholder)
-├── tests/                     · smoke tests
-├── docs/
-│   ├── LEARNING_TAB_PLAN.md   · original plan
-│   └── decisions.md           · design decisions log
-├── .env.example
-├── requirements.txt           · streamlit, httpx, bs4, openai, dateutil
-├── DEPLOY.md                  · HF Spaces deploy notes
-├── STRUCTURE.md               · original file map
-├── README.md                  · public-facing (HF metadata frontmatter)
-└── HANDOFF.md                 · this file
-```
+| Field | Value |
+|-------|-------|
+| Hermes profile | `openradar` |
+| Repo (local) | `/home/opencode/projects/openradar` |
+| GitHub | `robert790/ai-news` |
+| HuggingFace Space | `vrobert94/ai-news` |
+| Live URL | `https://vrobert94-ai-news.hf.space/` |
+| Default model | `MiniMax-M3` via `custom:minimax-v1` (1M context) |
+| OpenAI / GPT-5.5 | **not available on this profile** — use `default` or ChatGPT Control Room |
 
-Total app code: ~4,400 lines across 6 main files (app.py + theme.py + 4 learning
-modules). The visual layer lives entirely in `theme.py` — one CSS dump fed via
-`st.markdown(..., unsafe_allow_html=True)` at app start.
+**New OpenRadar sessions must start in the `openradar` profile and begin with a read-only grounding check** (see §9). Old default-profile OpenRadar sessions are historical archive only.
 
 ---
 
-## 3. Tech stack
+## 2. Current production
 
-- **Python 3.9** (HF Spaces) / 3.13 (local)
-- **Streamlit 1.50** local · **1.32** on HF (pinned via Dockerfile in HF Space)
-- **httpx** for HTTP, **beautifulsoup4** for parsing
-- **openai** client pointed at **Groq** (`https://api.groq.com/openai/v1`, OpenAI-compatible). Optional **Anthropic** path via `ANTHROPIC_API_KEY` for the `PREMIUM_ENABLED` tier.
-- No frontend build step. No JS framework. CSS only.
-- **No** pydantic, **no** SQLAlchemy, **no** LangChain — kept minimal for HF cold start.
+| Field | Value |
+|-------|-------|
+| Production branch | `main` |
+| Production SHA | `45d2b03cced77d511cdf93916a4aa7510fd56b26` |
+| Last merged PR | **#19 — Learn Real Guide** (squash-merged 2026-07-02) |
+| Previous tip | `f245756` (PR #18) |
+| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-02 post-merge) |
+| CI workflow | green on `45d2b03` |
+| Deploy-to-HF workflow | green on `45d2b03` |
 
----
+### Rollback (preferred — preserves history)
 
-## 4. Running locally
-
-### Prerequisites
-- macOS (Apple Silicon · M-series)
-- Python 3.9+ (3.13 works fine; 3.9 needed for HF parity)
-- venv at `./.venv`
-
-### One-time setup
 ```bash
-cd "/Users/zero/Minimax Projects/ai-news"
-python3 -m venv .venv
-arch -arm64 ./.venv/bin/python3 -m pip install -r requirements.txt
-cp .env.example .env  # edit GROQ_API_KEY if you want live summaries
+git revert --no-edit 45d2b03cced77d511cdf93916a4aa7510fd56b26
+git push origin main
 ```
 
-> **Why `arch -arm64`?** The venv was created with a pydantic-core wheel
-> that only ships x86_64. Running the default `python3` (arm64) fails with
-> `pydantic_core` arch mismatch. Always use `arch -arm64 ./.venv/bin/python3`.
+HF Space auto-redeploys on push (see §4).
 
-### Dev server
+### Rollback (emergency — only if no other work has landed)
+
 ```bash
-nohup arch -arm64 ./.venv/bin/python3 -m streamlit run app.py \
-  --server.port 8521 --server.headless true --browser.gatherUsageStats false \
-  > /tmp/streamlit_8521.log 2>&1 &
-disown
-sleep 5
-open http://localhost:8521
+git reset --hard f245756
+git push --force-with-lease origin main
 ```
 
-Port **8521** is the redesign workspace. Port **8501** is the original
-Ziarul Digital background dev server. Don't mix them.
-
-### Restart after theme.py or app.py changes
-```bash
-ps aux | grep -E 'streamlit.*8521' | grep -v grep | awk '{print $2}' | xargs -r kill
-sleep 3
-# then start fresh as above
-```
-
-> **Streamlit 1.32 caches CSS** — hard restart needed after big `theme.py`
-> edits, not just browser refresh.
+**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `45d2b03`.
 
 ---
 
-## 5. Deployment · Hugging Face Spaces
+## 3. Workflow lanes
 
-- Repo: `https://huggingface.co/spaces/vrobert94/ai-news`
-- Live URL: `https://vrobert94-ai-news.hf.space/`
-- SDK: Streamlit, pinned to **1.32.0** (Dockerfile in HF Space)
-- Deploy: `git push huggingface main` (auto-rebuilds ~60s)
-- Deep-link: `?section=learning&ch=ch1` works in both `app.py` and `st.query_params`
+| Lane | Purpose | Allowed actions |
+|------|---------|-----------------|
+| **WORK** | open/fix PRs, preview locally | read, branch, edit, commit, push branch, open PR, run preview |
+| **REVIEW** | read-only browser/QA | inspect, screenshot, comment on PR, run preview |
+| **PROD** | merge/deploy/health-check | merge approved PR, verify HF deploy, smoke-check, rollback if needed |
+| **Control Room** | owner/ChatGPT approves next task and merge/no-merge | decision, scope change, abort |
 
-> **HF Spaces 1.32 quirks** — don't use these Streamlit 1.50+ features:
-> - `st.columns(..., vertical_alignment="center")` → use `_columns()` helper
-> - `st.query_params` is OK on both
-> - Verify any new feature with both versions before shipping
+**WORK never merges. PROD never opens new branches. REVIEW never edits files.** ChatGPT Control Room (owner-facing) decides what becomes the next PR and signs off on merge.
 
 ---
 
-## 6. Code conventions (enforced)
+## 4. Deploy truth
 
-These are the rules I (Mavis) have learned from working with Robert. Every
-new file/edit should pass them.
+**HF deploy is automated via GitHub Actions on push to `main`.** The `Deploy to Hugging Face Space` workflow runs on every push; successful runs are visible in the GitHub Actions tab.
 
-1. **No em-dashes (U+2014) anywhere.** Use `:` for appositive, `·` for section
-   separator, `.` for hard break, `,` for proper-name joiner. Polish copy only.
-2. **No "Mavis" / "Mavis Agent" / "minimax Code Agent" in user copy.** Use
-   "minimax Code Agent + CLI" in tech blocks, or omit entirely.
-3. **No repetition across sections.** Don't restate the hero intro in the right
-   sidebar. Don't restate the method in the verifier.
-4. **Romanian-first copy** — chapter body, UI labels, button text. English only
-   for technical terms in code blocks.
-5. **CSS lives in `theme.py`** — no inline `<style>` in `app.py` except for
-   data-driven styles (e.g. accent colour per chapter domain).
-6. **Inline styles allowed** in `learning_render.py` for one-off blocks (Methods
-   callout, Următorul capitol card) when the block is small and self-contained.
-7. **`st.button` over `st.radio`** for nav and toggles — radio circles fight CSS.
-8. **Never use `rm`/`rm -rf`** — use `mavis-trash <path>` for deletions.
-9. **Never edit source files via `sed -i`/`> file`** — bash auto-blocker. Use
-   Edit tool with prior Read.
-10. **CV/Learning copy must NOT pretend to be senior engineer.** Robert's angle:
-    AI-powered business operator (production, Romania, multi-tool stack).
-11. **Project lives in `/Users/zero/Minimax Projects/`, not
-    `/Users/zero/.minimax-agent/projects/`.** User has a visible folder for
-    projects; the hidden one is daemon internal.
+- Do **not** claim HF deploy is manual unless future verification proves automation changed.
+- A successful CI run + a successful Deploy-to-HF run on the same commit means production is mirrored. Verify both before announcing a release.
+- If Deploy-to-HF fails on `main`, treat it as an incident: stop merging, post in Control Room, hold all PRs that target `main` until the deploy is green or rolled back.
 
 ---
 
-## 7. What we built in this session (chronological)
+## 5. Preview
 
-### Top nav redesign (commit `eb79c14`)
-- Killed Streamlit sidebar. Replaced with `st.columns([1.4, 4.2, 1.6])` row:
-  brand · pills · status. 5 pill buttons with `type="primary/secondary"`
-  toggled by `st.session_state.active_section`.
-- `?section=foo` deep-link via `st.query_params`.
-- Mobile (≤720px) breakpoint via CSS `:has()` selectors — stacks into 3 rows.
-- Backwards-compat helper `_columns()` drops `vertical_alignment=` on 1.32.
+| Action | Command |
+|--------|---------|
+| Start preview | `bash scripts/preview.sh` |
+| Stop preview | `bash scripts/stop-preview.sh` |
+| Port | `8780` |
 
-### Learning redesign (commits `c97d585` → `a01ad4f` → `8e4ec18` → `0406e41`)
-- Killed "Project Erica" entirely (was a fictional persona arc).
-- Replaced with **10-category walkthrough**:
-  CH1 Fundamente · CH2 LLMs · CH3 Prompting · CH4 Vision AI · CH5 Diffusion ·
-  CH6 Speech & Audio · CH7 Embeddings & RAG · CH8 Agents · CH9 Cum construiești
-  · CH10 Aplică.
-- New `DOMAINS` dict: `history, llm, prompting, vision, diffusion, speech, rag,
-  agents, tools, career` (replaces `story, concepts, skills, policy, fusion`).
-- Timeline rewritten: "ERIKA" → "ACUM", subtitle "7 ERE · 10 CATEGORII · UN
-  DE ACUM".
-- Detail panel: number + domain + era + body + verifiers + build-this.
-
-### Azi → Groq rename (commit `345da6d`)
-- Section key `azi` → `groq`, render_azi → render_groq, ask_azi → ask_groq.
-- "Ask Azi" expander → "Ask Groq". `insight.py` SYSTEM prompts now address
-  Groq. Romanian word "azi" (= today) **preserved** in chapter body.
-
-### Methods overlay (commit `44cab4a`)
-- `@dataclass Method(name, summary, when_to_use, recommended)` populated on
-  every chapter — 1 MAIN + 1 alternative per chapter.
-- Visual: ◆ MAIN = amber-gradient bordered callout; ○ alts = collapsed expander.
-- Method names are memorable: "Cronologia pe frigider", "Detective de
-  token-uri", "Whisper pe viața ta", "5 linii, 1 Ollama", "Aplică azi".
-
-### Next-chapter card + methods progress (commit `2af3a5d`)
-- Sage-bordered **"Următorul capitol"** card above prev/next buttons. Shows
-  next chapter number + title + subtitle + next MAIN method name.
-- **"Am făcut metoda X azi"** checkbox under each method (main + alts).
-- Right sidebar now shows **"◆ N metode bifate"** below the chapter progress
-  bar. Counts across all 10 chapters.
+**Post-merge state:** preview is **stopped**. Start it only when actively reviewing a branch.
 
 ---
 
-## 8. State architecture
+## 6. Product state
 
-### session_state keys used
-- `active_section` — `"groq" | "news" | "learning" | "jobs" | "prompts"`
-- `selected_chapter` — `"ch1" .. "ch10"`
-- `completed_chapters` — `set[str]`
-- `verifier_{ch.id}_{i}` — bool (per chapter verifier checkbox)
-- `method_done_{ch.id}_main` — bool (MAIN method done)
-- `method_done_{ch.id}_alt_{i}` — bool (alt method done)
+### User-facing sections (PR #19 onwards)
 
-### Cross-chapter computation
-- Right sidebar counts methods across all chapters via list comprehension over
-  `ch_list` (not just current chapter).
-- No persistence — refresh = lose progress. Acceptable for v1; see §11.
+| Section | What it is |
+|---------|-----------|
+| **Home** | Landing — OpenRadar identity, daily briefing anchor. |
+| **Tools** | Curated tool directory. |
+| **Prompt Kits** | Curated prompt library with copy buttons. |
+| **Learn** | Guided English-first course (10 chapters, PR #19). |
+| **Jobs** | Skill-gap matcher between CV and AI infra roles (Romania focus). |
 
-### Render order in app.py
-1. `render_top_nav()` — sets `active_section`
-2. If `?section=` in URL, sync to `active_section`
-3. Dispatch table:
-   ```python
-   if active == "groq":    render_groq()
-   elif active == "news":  render_news()
-   elif active == "learning": render_learning()  # left/right cols
-   elif active == "jobs":  render_jobs()
-   elif active == "prompts": render_prompts()
-   ```
+### Internal section keys (compatibility, not copy)
 
----
+The runtime may still use older internal keys — `groq`, `news`, `prompts`, `learning`, `jobs` — in `st.session_state`, `st.query_params`, and the section dispatch table. This is **internal compatibility**, not product copy. The user-facing tab names are the section names from the table above.
 
-## 9. File edit recipes (the traps we hit)
+If you touch the section dispatch:
 
-These are the things that bit us. Future contributors should NOT rediscover them.
+- Update the public-facing name in `app.py` (nav + section render) **and** the internal key in the same commit.
+- Keep `?section=learning&learn_chapter=ch3` deep-link behaviour working — old URLs in the wild rely on it.
+- Verify with `scripts/preview.sh` on port 8780 before opening the PR.
 
-### Streamlit CSS injection
-- **`st.markdown('<div>')` does NOT wrap subsequent elements.** Rendered as a
-  sibling of `st.columns` children. Decorative wrapper divs are empty in DOM.
-- **`key=` becomes `class="st-key-key_name"`, not `data-key`.** Use selector
-  `[class*="st-key-nav_"]` to target Streamlit widgets.
-- **BaseWeb radio markup**: `<label data-baseweb="radio"><div><div></div></div>
-  <input type="radio">...</label>`. Hide via `> div:first-child { display: none }`.
+### Learn (PR #19 specifics)
 
-### Streamlit 1.32 vs 1.50
-- Don't use `vertical_alignment=` kwarg on `st.columns` (1.50+ only).
-- `_columns()` wrapper in `app.py` drops the kwarg conditionally.
-- `st.query_params` works on both.
+- 10-chapter guided course, English-first.
+- Romanian source content is **preserved** in the chapter corpus (in-repo `learning/content/`) but is not rendered in the English guide. Do not delete the Romanian source — future work may re-surface it (e.g. locale toggle, RAG corpus).
+- Per-chapter verifiers, methods overlay, "Următorul capitol" card, methods progress counter all live in `learning/learning_render.py` and `learning/chapters.py`.
 
-### theme.py key dict
-- `FONTS` dict has only 3 keys: `display, ui, mono`. **No `serif`.** Use
-  `f['display']` (Newsreader) when you want serif.
+### Stack (current)
 
-### Bash traps
-- `sed -i` on source files = blocked by bash auto-classifier.
-- `> file` overwriting source = blocked.
-- Use Edit tool (anchored oldString/newString) for source edits.
-- For huge transforms (500+ lines), use Python to write to `/tmp/`, then
-  Edit tool to copy blocks in. Don't `cp /tmp/x dest.py` either — blocked.
-
-### Romaniantypographic quotes
-- `„` (U+201E) inside Python `"..."` strings breaks the literal. Use `« »` or
-  escape: `\"`. Hit on chapter rewrite at line 847.
-
-### Wide CSS injection inside `st.markdown`
-- Style blocks inside f-strings need `{{` and `}}` to escape Python braces.
-- Pattern: `<style>.foo {{ color: red; }}</style>` (double braces).
-
-### Chapter dataclass regex injection
-- Adding methods to all 10 chapters: regex like `\n    \)\n` fails because
-  the closing paren was at indent 1 (not 4). Better: walk parens from
-  `CH<N> = Chapter(` opening to find the matching `)`.
+- Python 3.9 (HF) / 3.13 (local VPS)
+- Streamlit 1.50 local · **1.32.0 pinned on HF** via the HF Space Dockerfile
+- `httpx`, `beautifulsoup4`, `openai` client pointed at Groq
+- Optional Anthropic path via `ANTHROPIC_API_KEY` for the `PREMIUM_ENABLED` tier
+- No pydantic, no SQLAlchemy, no LangChain — kept minimal for HF cold start
 
 ---
 
-## 10. Visual identity
+## 7. Known failures / do-not-continue
 
-### Colour palette (theme.py: COLORS)
-- `--bg` — deep warm dark (almost-black with brown undertone)
-- `--bg-sidebar` — slightly lighter brown
-- `--surface` / `--surface-2` — card backgrounds
-- `--accent` — per-chapter domain colour:
-  - history: sage green
-  - llm: amber
-  - vision: sky blue
-  - diffusion: coral
-  - speech: lavender
-  - rag: amber secondary
-  - agents: gold
-  - tools: sage secondary
-  - career: amber primary
-- `--text` — cream (#f4ede0)
-- `--text-muted` — `#c4b9a7` / `#cdc4b1` / `#9a8f7c`
-- `--text-dim` — `#6a6058`
+These are explicit no-fly zones. Reviving any of them blocks the next PR.
 
-### Typography
-- **Display**: Newsreader (serif, italic, weights 300-700) — for chapter titles, body
-- **UI**: Inter (sans, weights 300-700) — for nav, labels, buttons
-- **Mono**: JetBrains Mono — for tags, eyebrows, verifiers, counters
-- All loaded from Google Fonts CDN via single `@import` in theme.py.
-
-### Visual signatures
-- **Eyebrow** = uppercase mono 0.6rem with 0.16em letter-spacing + accent colour.
-- **Card** = border-left 2-3px solid accent + 6-10px border-radius + light
-  background gradient.
-- **Methods MAIN** = amber gradient with `◆` glyph prefix.
-- **Methods alts** = collapsed expander with `○` glyph prefix.
-- **Verifiers** = sage `▸ Ai înțeles?` eyebrow + green checkboxes.
-- **Build this** = gold `⚡ Fă asta ACUM` callout.
-- **Următorul capitol** = sage-green bordered card with gradient.
+- **Do not revive PR #13 — homepage radar/personality redesign.** Closed; direction was rejected.
+- **Do not revive PR #14 — Home Workbench Dashboard.** Closed; direction was rejected.
+- **Do not use stale Mavis-era copy, the "Mavis Agent" name, or "minimax Code Agent" framing in user copy.** This repo's HANDOFF was Mavis-era until PR #20; that era is closed.
+- **Do not do a broad homepage redesign without explicit owner approval.** Small targeted edits inside the existing Home section are fine; structural redesigns require Control Room sign-off.
+- **Do not claim HF deploy is manual.** It is automated (see §4). Future re-verification may change this, but until then, do not write the older claim anywhere.
+- **Do not delete Romanian source content from `learning/content/`.** It is preserved on purpose.
+- **Do not commit secrets, `.env`, or HF/GitHub tokens.** Use `.env.example` for new env knobs.
 
 ---
 
-## 11. Where this is going (next moves)
+## 8. Current next likely tasks
 
-### Short-term (1-2 sessions)
-- [ ] **Persist progress** — write `completed_chapters` + methods to disk
-      (`./data/progress.json` or similar) so refresh doesn't reset.
-- [ ] **Skill tree visual** — Cytoscape.js graph showing 10 chapters as nodes
-      with prereq edges + domain colour + complexity 1-4 as node size. Already
-      partly scaffolded in `learning/skill_tree.py`.
-- [ ] **Pillar gold badges** — gold dashed line between consecutive pillars
-      in the skill tree (Sebastian Rey blueprint signature).
-- [ ] **Mobile polish** — full check at ≤720px including Methods block,
-      Următorul capitol card, and right sidebar.
+In priority order, subject to Control Room sign-off per task:
 
-### Medium-term (1-2 weeks)
-- [x] ~~Real Groq LLM call~~ — `insight.py` once had a DeepSeek fallback.
-      *Superseded on 2026-06-30 by the takeover refactor: `config.py` now
-      reads `GROQ_API_KEY` (and optionally `ANTHROPIC_API_KEY`); the old
-      `DEEPSEEK_API_KEY` env name is no longer read by any runtime path.
-      Refresh this section on the next sweep.*
-- [ ] **RAG over chapter content** — `rag/` placeholder exists. Embed chapter
-      bodies + cross-refs → answer "where does ch4 mention Vision?" queries.
-- [ ] **Jobs section wired up** — currently has UI scaffold, no skill-gap
-      matcher logic.
-- [ ] **Onboarding modal** — first-visit 30-second tour: "click here → learn → check → next".
-
-### Long-term (vision)
-- OpenRadar becomes **the Romanian AI hub** — news + learning + jobs + prompts,
-  with a curator persona (Groq) that ties them together.
-- Three tiers of users:
-  1. **Casual** — just scan the news + tips.
-  2. **Learning** — walk the 10 chapters, tick verifiers, do rituals.
-  3. **Hunting** — finish ch10 "Aplică", then jump to Jobs, get matched.
-- White-label friendly: themes are 1 CSS file, content is 1 Python module,
-  persona is 1 dataclass.
+1. **PR #21 candidate — Learning progress persistence.** Write `completed_chapters` + per-method `method_done_*` flags to `./data/progress.json`; read on app start. Highest-impact UX improvement that does not require a new visual layer. On the in-repo short-term list from the pre-PR-#19 HANDOFF.
+2. **Prompt Kits copy/code UX.** Polish the curated prompt library section (copy buttons, code block rendering, search/filter).
+3. **Mobile polish.** Audit ≤720px breakpoint across all five sections; fix any clipping, horizontal overflow, or hidden nav.
+4. **Stale remote branch cleanup (later).** 12 `feat/*` branches + 2 `feature/pr-*` branches. Belongs to a dedicated cleanup PR, not mixed into a feature PR.
 
 ---
 
-## 12. Gotchas for the next environment
+## 9. Session guidance
 
-If you're continuing this project on a different machine (not Robert's Mac):
+**Starting a new OpenRadar session on this profile:**
 
-1. **The Streamlit version matters.** If you're on Linux without HF pinning,
-   use 1.50+. The codebase supports both via `_columns()` helper.
+1. **Confirm profile and model.** You should already be on `openradar` with `MiniMax-M3` / `custom:minimax-v1`. If not, switch before any work.
+2. **Read-only grounding check.** `pwd`, `git status -s`, `git branch --show-current`, `git log --oneline -8`, `git rev-parse origin/main`. Stop if dirty.
+3. **Re-read §0–§4 of this file** (and the Obsidian HANDOFF if the question touches workflow, rollback, or HF state).
+4. **Re-read the Obsidian profile card** for the current profile's allowed-actions and stop-conditions.
+5. **Pick the lane (WORK / REVIEW / PROD / Control Room)** and stay in it. Do not silently mix lanes.
+6. **Plan → owner approval → execute.** WORK does not merge. PROD does not open branches. The Control Room signs off on the next task and on merge.
 
-2. **Don't `git push huggingface` from anywhere except Robert's machine** —
-   the HF token is in `git remote -v`. On a fresh clone, you'll need to add
-   your own HF Spaces remote:
-   ```bash
-   git remote add huggingface https://huggingface.co/spaces/<your-user>/ai-news
-   ```
-
-3. **No Groq key = degraded News tab.** Demo mode returns canned
-   summaries. Add `GROQ_API_KEY=*** to `.env` for real summarization.
-   (`DEEPSEEK_API_KEY` is a legacy name from an earlier build; `config.py`
-   no longer reads it. If it is still set on the HF Space, it is ignored
-   by current code and can be left in place or deleted — your call — but
-   do not delete without grepping `config.py` and `llm/` to confirm no
-   older runtime path still references it.)
-
-4. **No Ollama on this machine.** The Methods overlay mentions "5 linii, 1
-   Ollama" as a ch9 ritual — the user runs Ollama locally; the app doesn't.
-
-5. **`venv` is not portable.** The repo does NOT commit a venv. Every fresh
-   clone needs `python3 -m venv .venv && pip install -r requirements.txt`
-   (this Linux host requires the `python3.13-venv` apt package if `ensurepip`
-   is missing). The earlier "committed `.venv`" line in this same gotcha
-   list was incorrect; do not act on it.
-
-6. **The `learning/content/` directory has chapter assets.** If you see
-   broken images in chapters, that's where to look.
-
-7. **Memories are user-scoped.** Robert-specific copy rules (CV voice, Hermes
-   CLI framing) live in `~/.mavis/agents/mavis/memory/robert-context.md` —
-   load that file if you're Mavis and writing Robert-facing copy.
-
-8. **Don't add new Streamlit features without checking 1.32 compat.** Test
-   locally first, then check HF rebuild. HF rebuilds are slow (~60s) and
-   failures are silent in the UI.
-
-9. **No tests written.** The `tests/` folder is a placeholder. The codebase
-   relies on visual verification + Python import-time checks.
-
-10. **CI exists on GitHub now.** `.github/workflows/ci.yml` runs a compileall
-    + import smoke on every `push` and `pull_request` (Python 3.11,
-    `contents: read`, 10-min timeout, `pip` cache). After takeover, `main`
-    passes CI; future PRs must keep it green before merge. HF deploys are
-    **still manual** — see §15.
+**Old default-profile OpenRadar sessions are historical archive only.** Do not use them as live context; they predate the profile split, the WORK/PROD lane split, and the automated HF deploy.
 
 ---
 
-## 13. Quick reference · most-touched files
+## 10. Quick reference
 
-When extending, edit in this order:
-
-1. **`learning/chapters.py`** — add/edit chapter content + methods + verifiers.
-2. **`learning/learning_render.py`** — adjust how a chapter renders.
-3. **`theme.py`** — add CSS classes for new visuals.
-4. **`app.py`** — add new sections or nav tabs.
-5. **`insight.py`** — swap LLM prompts.
-6. **`.env.example`** — surface new config knobs.
-
-Last thing first: any new visual primitive belongs in `theme.py` BEFORE
-`learning_render.py` calls it. Inline styles in `learning_render.py` are OK
-for self-contained one-offs (current pattern: Methods + Următorul capitol).
-
----
-
-## 14. Final state · commit log (latest 10)
-
-```
-22f213c chore(ci): add minimal smoke workflow
-7030a40 fix(hf): valid metadata (colorTo=yellow, short_description<60)
-7ef35c6 docs: HANDOFF.md + refresh README
-2af3a5d feat(learning): next-chapter card + methods progress
-44cab4a feat(learning): Sebastian Rey BLUE methods overlay (◆ MAIN + ○ alts)
-345da6d rename: Azi → Groq (nav tab + learning persona)
-0406e41 fix(learning): drop remaining 'Project Erica' copy in app.py + add deep-link
-a01ad4f refactor(learning): kill Project Erica, walk through AI categories
-4af886b fix(nav): backwards-compatible columns for Streamlit 1.32 (HF)
-eb79c14 feat(nav): replace sidebar with top nav (brand | pills | status)
-```
-
-`main` is in sync with `origin` (GitHub: `robert790/ai-news`). At takeover on
-2026-06-30, public probes suggested the HF Space (`vrobert94/ai-news`) was
-some hours behind `main` because HF deploys were still manual. Until you
-run an explicit `git push huggingface main` from a machine with the HF
-token in its git credential store, the live app serves whatever commit
-was last mirrored from Robert's Mac. Re-probe the Space's `last-modified`
-header before assuming it is current.
+| Need | Go to |
+|------|-------|
+| Current production SHA | `git rev-parse origin/main` (should be `45d2b03…`) |
+| Last PR | `gh pr list --state merged --limit 1` |
+| Open PRs | `gh pr list --state open` |
+| HF live | `https://vrobert94-ai-news.hf.space/` |
+| Rollback (safe) | `git revert --no-edit 45d2b03cced77d511cdf93916a4aa7510fd56b26` |
+| Preview start | `bash scripts/preview.sh` |
+| Preview stop | `bash scripts/stop-preview.sh` |
+| Obsidian HANDOFF | `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/HANDOFF.md` |
+| Profile card | `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/profile-card.md` |
 
 ---
 
-## 15. Hermes takeover note (2026-06-30)
-
-Snapshot as of takeover on **2026-06-30** on a Linux VPS (Debian 13,
-Python 3.13.5). Date-stamped; treat as a point-in-time record, not a
-permanent section.
-
-- **Canonical:** GitHub `main` at takeover was `22f213c` (PR #1 squash-merged).
-  HF Space is downstream — always treat `origin/main` as the source of truth.
-- **CI:** `.github/workflows/ci.yml` runs a compileall + config/core import
-  smoke on every `push` and `pull_request` (Python 3.11, `contents: read`,
-  10-min timeout, `pip` cache). PR #1's CI passed green.
-- **HF deploy:** still **manual and explicit** at takeover. No GitHub Action,
-  webhook, or repo secret mirrored `main` to HF; the VPS had no HF remote
-  configured and no HF token in any credential store. To deploy: `git fetch
-  origin main && git push huggingface main` from a machine that has the HF
-  token in its git credential store.
-- **Drift at takeover:** public probes suggested the live Space's
-  `last-modified` was some hours behind GitHub `main` (no auto-mirror was
-  active at that moment). Re-probe before each release — `last-modified`
-  is the truth, the HF Space URL is downstream.
-- **Secrets env truth (current code):** `GROQ_API_KEY` required for
-  non-demo summaries; `ANTHROPIC_API_KEY` optional for the
-  `PREMIUM_ENABLED` tier; `DEEPSEEK_API_KEY` is **legacy / no reader** —
-  `grep -RIn DEEPSEEK config.py llm/` returned zero matches; safe to
-  keep or delete, but re-grep yourself before deleting.
-- **Validated local path at takeover:** `apt install python3.13-venv &&
-  python3 -m venv .venv && pip install -r requirements.txt` (local Streamlit
-  resolved to 1.58.0; HF still pins 1.32.0 via its own Dockerfile;
-  `app.py::_columns()` keeps both happy). Smoke: `compileall` +
-  config/tips/prompts import + Streamlit boot on `127.0.0.1:8522` returned
-  HTTP 200 on `/` and `/?section=learning&ch=ch1`.
-
-Future maintainers: when this section no longer reflects state, refresh
-or delete it — do not let it accumulate.
-
----
-
-*If you read this and find a section unclear, the answer is in §6 (rules),
-§9 (traps), or §11 (where it's going). If those don't cover it, ask Robert —
-he knows what he wants even when he doesn't say it yet.*
+*This file is a quick-reference, not a journal. Detailed session history lives in Obsidian; architectural decisions live in `07-Decisions/`.*
