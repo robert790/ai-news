@@ -1,7 +1,7 @@
 # Handoff · OpenRadar
 
 > Romanian-source AI product, English-first user surface.
-> Last refreshed: 2026-07-04 · PR #23 (docs-only · post-#22 HANDOFF checkpoint).
+> Last refreshed: 2026-07-04 · PR #25 (docs-only · post-#24 HANDOFF checkpoint).
 
 ---
 
@@ -37,23 +37,25 @@
 | Field | Value |
 |-------|-------|
 | Production branch | `main` |
-| Production SHA | `2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
-| Last merged PR | **#22 — Prompt Kits How-to-use** (squash-merged 2026-07-04) |
-| Previous tip | `1f9df46` (PR #21 — Learning Progress Link UX) |
-| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-04 post-#22 merge) |
-| CI workflow | green on `2a8cb43b` |
-| Deploy-to-HF workflow | green on `2a8cb43b` |
+| Production SHA | `60e59c50ed343b0127daf0290d1da52aac29f288` |
+| Last merged PR | **#24 — Romania Jobs Expansion** (squash-merged 2026-07-04) |
+| Previous tip | `f8f2690` (PR #23 — HANDOFF checkpoint) |
+| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-04 post-#24 merge) |
+| CI workflow | green on `60e59c50` |
+| Deploy-to-HF workflow | green on `60e59c50` |
 
 ### Recent merged PRs (chronological)
 
 - **#20 — Refresh Repo HANDOFF** (2026-07-04, docs-only). Replaced the Mavis-era in-repo HANDOFF with the post-#19 quick-reference.
 - **#21 — Learning Progress Link UX** (2026-07-04). Added the "How your progress is saved" affordance + Reset progress button to the Learn section. The persistence transport itself (`learning/progress.py` signed query-param token) shipped earlier as PR #3 and was already on main.
 - **#22 — Prompt Kits How-to-use + hierarchy polish** (2026-07-04). Two small UX changes to the Prompt Kits section: a short English how-to-use block, and a fix to the section heading hierarchy so the "Prompt Bible" h1 correctly introduces the full search/filter area (not the kit grid).
+- **#23 — HANDOFF checkpoint** (2026-07-04, docs-only). Refreshed this file after PR #21 + PR #22; updated production SHA, last-merged-PR, recent-PR list, and the next-task pointers.
+- **#24 — Romania Jobs Expansion** (2026-07-04). Content-only expansion of the Romania role map from 4 to 7 role directions: AI Automation Engineer, Data + AI Analyst, AI Solutions Architect added to the existing DRUID/Bitdefender/ClusterPower/UiPath cards. New cards use neutral company labels ("Automation teams / partners", "Enterprise data teams", "IT services / consulting") — no claim is made that any company is currently hiring. Section copy updated from "Four" to "Seven" (English) and from "Patru" to "Șapte" (Romanian). Confirms Romania-first positioning (see §6).
 
 ### Rollback (preferred — preserves history)
 
 ```bash
-git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e
+git revert --no-edit 60e59c50ed343b0127daf0290d1da52aac29f288
 git push origin main
 ```
 
@@ -62,11 +64,11 @@ HF Space auto-redeploys on push (see §4).
 ### Rollback (emergency — only if no other work has landed)
 
 ```bash
-git reset --hard 1f9df46
+git reset --hard f8f2690
 git push --force-with-lease origin main
 ```
 
-**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `2a8cb43b`.
+**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `60e59c50`.
 
 ---
 
@@ -115,7 +117,7 @@ git push --force-with-lease origin main
 | **Tools** | Curated tool directory. |
 | **Prompt Kits** | Curated prompt library with copy buttons. |
 | **Learn** | Guided English-first course (10 chapters, PR #19). |
-| **Jobs** | Skill-gap matcher between CV and AI infra roles (Romania focus). |
+| **Jobs** | Romania role map — 7 AI role directions (PR #24) with outbound search paths to LinkedIn / BestJobs / eJobs / Indeed RO. Not a live job board. |
 
 ### Internal section keys (compatibility, not copy)
 
@@ -187,11 +189,11 @@ In priority order, subject to Control Room sign-off per task:
 
 | Need | Go to |
 |------|-------|
-| Current production SHA | `git rev-parse origin/main` (should be `2a8cb43b…`) |
+| Current production SHA | `git rev-parse origin/main` (should be `60e59c50…`) |
 | Last PR | `gh pr list --state merged --limit 1` |
 | Open PRs | `gh pr list --state open` |
 | HF live | `https://vrobert94-ai-news.hf.space/` |
-| Rollback (safe) | `git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
+| Rollback (safe) | `git revert --no-edit 60e59c50ed343b0127daf0290d1da52aac29f288` |
 | Preview start | `bash scripts/preview.sh` |
 | Preview stop | `bash scripts/stop-preview.sh` |
 | Obsidian HANDOFF | `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/HANDOFF.md` |
