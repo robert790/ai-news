@@ -1091,6 +1091,75 @@ def render_css() -> str:
     }}
   }}
 
+  /* PR #27 follow-up #2: phone rhythm polish.
+     The previous <=600px block kept content on screen (no overflow);
+     this block re-conceives the layout for phone-portrait. Three
+     specific failures the owner flagged:
+       (a) too much vertical dead space above the first section
+       (b) .or-section-head wraps awkwardly (eyebrow + h1 + caption
+           on 3 lines with weird baseline alignment)
+       (c) cards stack but the gap between them is too heavy
+     We fix all three with small, scoped rules. Desktop (>=881px) is
+     unchanged; tablet (601-880px) keeps the existing rules. */
+  @media (max-width: 600px) {{
+    /* (a) top/bottom dead space. section.main > div had padding-top:2rem
+       and padding-bottom:5rem at desktop, which on a 414x896 phone
+       viewport is ~3.5% of the screen height of dead space on every
+       page. Pull both to phone-friendly values. */
+    section.main > div {{
+      padding-top: 0.5rem !important;
+      padding-bottom: 1.4rem !important;
+    }}
+    /* h1 already shrinks at <=880px (2rem) but on a 414px viewport
+       even 2rem is heavy for a phone. Drop further. */
+    h1 {{ font-size: 1.6rem !important; }}
+    .or-section-head h1 {{ font-size: 1.4rem !important; line-height: 1.2; }}
+    /* (b) section_head row. The flex baseline alignment + flex-wrap
+       creates 3 lines on phone with odd vertical gaps. Stack
+       explicitly, align everything to flex-start (left), tighten
+       margins, and put the eyebrow above the h1 (not beside it). */
+    .or-section-head {{
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.3rem !important;
+      margin: 0 0 1rem !important;
+      padding-bottom: 0.7rem !important;
+    }}
+    .or-section-head .or-eyebrow {{
+      margin-bottom: 0 !important;
+    }}
+    .or-section-head .or-caption {{
+      margin-top: 0.1rem !important;
+    }}
+    /* (c) card / bento / bento-mini margins. The desktop default
+       (margin: 0 0 1.6rem on .or-bento; margin: 1.6rem 0 0 on
+       .or-bento-mini) leaves heavy vertical air between sections
+       on a phone where every pixel is visible. Tighten. */
+    .or-bento {{
+      gap: 0.7rem !important;
+      margin: 0 0 0.9rem !important;
+    }}
+    .or-bento-mini {{
+      gap: 0.7rem !important;
+      margin: 0.8rem 0 0 !important;
+    }}
+    .or-bento-mini--2up {{
+      margin-bottom: 0.9rem !important;
+    }}
+    .or-mini {{
+      margin-bottom: 0 !important;
+    }}
+    /* Tighter gaps between stacked cards. The .or-card default
+       margin-bottom:0.6rem is fine at desktop; on a 414px phone
+       where the card itself is ~200px tall, 0.6rem feels heavy. */
+    .or-card {{
+      margin-bottom: 0.4rem !important;
+    }}
+    /* Stack rhythm for the section_head -> first content gap. The
+       section_head has padding-bottom:1.1rem at desktop; on phone
+       we already pulled it to 0.7rem above. No further change. */
+  }}
+
   /* PR #27 follow-up: <=600px mobile hardening.
      At <=600px the page is essentially phone-portrait. The bento
      grids are already 1-col at <=880px; this block ensures the
