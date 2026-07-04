@@ -1,7 +1,7 @@
 # Handoff · OpenRadar
 
 > Romanian-source AI product, English-first user surface.
-> Last refreshed: 2026-07-04 · PR #20 (docs-only).
+> Last refreshed: 2026-07-04 · PR #23 (docs-only · post-#22 HANDOFF checkpoint).
 
 ---
 
@@ -37,17 +37,23 @@
 | Field | Value |
 |-------|-------|
 | Production branch | `main` |
-| Production SHA | `45d2b03cced77d511cdf93916a4aa7510fd56b26` |
-| Last merged PR | **#19 — Learn Real Guide** (squash-merged 2026-07-02) |
-| Previous tip | `f245756` (PR #18) |
-| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-02 post-merge) |
-| CI workflow | green on `45d2b03` |
-| Deploy-to-HF workflow | green on `45d2b03` |
+| Production SHA | `2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
+| Last merged PR | **#22 — Prompt Kits How-to-use** (squash-merged 2026-07-04) |
+| Previous tip | `1f9df46` (PR #21 — Learning Progress Link UX) |
+| HF Space health | 7/7 endpoints HTTP 200 (verified 2026-07-04 post-#22 merge) |
+| CI workflow | green on `2a8cb43b` |
+| Deploy-to-HF workflow | green on `2a8cb43b` |
+
+### Recent merged PRs (chronological)
+
+- **#20 — Refresh Repo HANDOFF** (2026-07-04, docs-only). Replaced the Mavis-era in-repo HANDOFF with the post-#19 quick-reference.
+- **#21 — Learning Progress Link UX** (2026-07-04). Added the "How your progress is saved" affordance + Reset progress button to the Learn section. The persistence transport itself (`learning/progress.py` signed query-param token) shipped earlier as PR #3 and was already on main.
+- **#22 — Prompt Kits How-to-use + hierarchy polish** (2026-07-04). Two small UX changes to the Prompt Kits section: a short English how-to-use block, and a fix to the section heading hierarchy so the "Prompt Bible" h1 correctly introduces the full search/filter area (not the kit grid).
 
 ### Rollback (preferred — preserves history)
 
 ```bash
-git revert --no-edit 45d2b03cced77d511cdf93916a4aa7510fd56b26
+git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e
 git push origin main
 ```
 
@@ -56,11 +62,11 @@ HF Space auto-redeploys on push (see §4).
 ### Rollback (emergency — only if no other work has landed)
 
 ```bash
-git reset --hard f245756
+git reset --hard 1f9df46
 git push --force-with-lease origin main
 ```
 
-**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `45d2b03`.
+**DANGER:** `--force-with-lease` rewrites remote history. Use only when no collaborator has pulled `2a8cb43b`.
 
 ---
 
@@ -155,10 +161,10 @@ These are explicit no-fly zones. Reviving any of them blocks the next PR.
 
 In priority order, subject to Control Room sign-off per task:
 
-1. **Done — Learning progress persistence (shipped as part of the post-#19 stack via `feat/persistence-progress-queryparam`, before PR #20).** The transport is a stdlib-only signed query-param token: snapshot of Learning state is zlib-compressed + urlsafe-base64-encoded into `?p=...`; restoring is a one-shot gated by a session marker. See `learning/progress.py` for `snapshot_for_chapters / encode / decode / apply_incoming_query_param / sync_query_param`. No disk, no cookies, no localStorage, no auth, no database. The first-class UX work is now the **progress link affordance** (explain + Reset button), shipped as PR #21.
-2. **Prompt Kits copy/code UX.** Polish the curated prompt library section (copy buttons, code block rendering, search/filter).
+1. **Done — Learning progress persistence (PR #3 transport + PR #21 affordance).** The transport is a stdlib-only signed query-param token: snapshot of Learning state is zlib-compressed + urlsafe-base64-encoded into `?p=...`; restoring is a one-shot gated by a session marker. See `learning/progress.py` for `snapshot_for_chapters / encode / decode / apply_incoming_query_param / sync_query_param`. No disk, no cookies, no localStorage, no auth, no database. The first-class UX work (the "How your progress is saved" affordance + Reset button) shipped as PR #21.
+2. **Done — Prompt Kits copy/code UX (PR #22).** Short English how-to-use block, light kit-card hierarchy polish (dropped redundant "▸ KIT N OF 5" eyebrow, made the outcome line legible, moved the "Prompt Bible" h1 to the full search/filter area).
 3. **Mobile polish.** Audit ≤720px breakpoint across all five sections; fix any clipping, horizontal overflow, or hidden nav.
-4. **Stale remote branch cleanup (later).** 12 `feat/*` branches + 2 `feature/pr-*` branches. Belongs to a dedicated cleanup PR, not mixed into a feature PR.
+4. **Stale branch cleanup (pending, separate maintenance action).** A handful of `feat/*` and `feature/pr-*` remote branches are stale pointers to old state. **The exact list must be re-verified at the time of cleanup** — branch counts in this file have been wrong before and the previous audit caught a count mismatch. Do **not** delete branches from this HANDOFF; re-run `git branch -r` and a per-branch reachability check at cleanup time. Do **not** revive the closed PR #13 (homepage radar/personality redesign) or PR #14 (Home Workbench Dashboard) — see §7.
 
 ---
 
@@ -181,11 +187,11 @@ In priority order, subject to Control Room sign-off per task:
 
 | Need | Go to |
 |------|-------|
-| Current production SHA | `git rev-parse origin/main` (should be `45d2b03…`) |
+| Current production SHA | `git rev-parse origin/main` (should be `2a8cb43b…`) |
 | Last PR | `gh pr list --state merged --limit 1` |
 | Open PRs | `gh pr list --state open` |
 | HF live | `https://vrobert94-ai-news.hf.space/` |
-| Rollback (safe) | `git revert --no-edit 45d2b03cced77d511cdf93916a4aa7510fd56b26` |
+| Rollback (safe) | `git revert --no-edit 2a8cb43b47a88b137267a590f1132c3ce7884d2e` |
 | Preview start | `bash scripts/preview.sh` |
 | Preview stop | `bash scripts/stop-preview.sh` |
 | Obsidian HANDOFF | `~/obsidian/AI-Operating-System/02-Current-Projects/openradar/HANDOFF.md` |
