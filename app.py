@@ -2416,7 +2416,7 @@ def render_jobs() -> None:
     section_head(
         "JOBS · STATIC ROLE DIRECTIONS",
         "Jobs",
-        "Four AI career directions to translate skills into useful work — not a live job board.",
+        "Seven AI career directions to translate skills into useful work — not a live job board.",
     )
     _render_action_cards(_STATIC_JOBS, state_key="jobs_focus", action_label="Open")
     _render_selected_detail(_STATIC_JOBS, state_key="jobs_focus",
@@ -2424,7 +2424,7 @@ def render_jobs() -> None:
     section_head(
         "ROLE MAP · SEARCH PATHS",
         "Jobs",
-        "Patru roluri AI care angajează activ în RO. Pentru fiecare: abilități, "
+        "Șapte direcții AI de urmărit în RO. Pentru fiecare: abilități, "
         "capitol de învățat, și link-uri de căutare pe platformele care contează. "
         "Nu e job board — e hartă.",
     )
@@ -2496,6 +2496,45 @@ def render_jobs() -> None:
                 ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=ML%20Engineer"),
                 ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=ML%20Engineer"),
                 ("Indeed RO","https://ro.indeed.com/jobs?q=ML+Engineer"),
+            ],
+        },
+        {
+            "title": "AI Automation Engineer",
+            "company": "Automation teams / partners",
+            "location": "București / remote RO",
+            "skills": ["Python", "REST APIs", "UiPath / n8n", "Workflow design"],
+            "chapter_id": "ch8",   # agents & automation
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=AI%20Automation%20Engineer%20Romania"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=AI%20Automation%20Engineer"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=AI%20Automation%20Engineer"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=AI+Automation+Engineer"),
+            ],
+        },
+        {
+            "title": "Data + AI Analyst",
+            "company": "Enterprise data teams",
+            "location": "București / Cluj / remote RO",
+            "skills": ["SQL", "Python", "BI tools", "RAG basics", "Evaluation"],
+            "chapter_id": "ch7",   # RAG / evaluation
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=Data%20Analyst%20AI%20Romania"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=Data%20Analyst%20AI"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=Data%20Analyst%20AI"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=Data+Analyst+AI"),
+            ],
+        },
+        {
+            "title": "AI Solutions Architect",
+            "company": "IT services / consulting",
+            "location": "București / Cluj / hybrid",
+            "skills": ["Python", "Architecture diagrams", "RAG / agents", "Evaluation", "Stakeholder demos"],
+            "chapter_id": "ch7",   # RAG / evaluation
+            "search": [
+                ("LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=AI%20Solutions%20Architect%20Romania"),
+                ("BestJobs", "https://www.bestjobs.eu/ro/locuri-de-munca?q=AI%20Solutions%20Architect"),
+                ("eJobs",    "https://www.ejobs.ro/locuri-de-munca?q=AI%20Solutions%20Architect"),
+                ("Indeed RO","https://ro.indeed.com/jobs?q=AI+Solutions+Architect"),
             ],
         },
     ]
