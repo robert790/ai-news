@@ -2582,10 +2582,37 @@ def render_prompts() -> None:
     _render_action_cards(_STATIC_PROMPTS, state_key="prompt_focus", action_label="Open")
     _render_selected_detail(_STATIC_PROMPTS, state_key="prompt_focus",
                             panel_heading="SELECTED PROMPT KIT")
-    section_head(
-        "KITS · BY OUTCOME",
-        "Prompt Bible",
-        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
+
+    # ── PR22: short how-to-use block, English, calm, practical ──────
+    # Sits between the static outcome row and the outcome-grouped kit
+    # grid. Four short lines: choose a kit by outcome → copy a prompt
+    # block → adapt placeholders → use variants only when needed.
+    # No theme.py change. No behavior change.
+    st.markdown(
+        '<div class="or-mini or-reveal" '
+        'style="min-height:auto;margin:0.4rem 0 0.9rem;">'
+        '<div class="or-mini-tag" style="color:var(--sky);">'
+        '▸ HOW TO USE PROMPT KITS</div>'
+        '<ol class="or-mini-body" style="margin:0.3rem 0 0;padding-left:1.2rem;'
+        'font-size:.92rem;line-height:1.45;">'
+        '<li>Pick a kit by the <em>outcome</em> you want, not the topic.</li>'
+        '<li>Copy one prompt block and paste it into your model.</li>'
+        '<li>Replace the placeholders with your real context.</li>'
+        '<li>Use variants only when the default prompt misses.</li>'
+        '</ol>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # PR22 fix: small, calm eyebrow above the kit grid. No h1 here —
+    # the "Prompt Bible" h1 belongs to the full search/filter/results
+    # area below, not to the curated kits (which are the entry point,
+    # not the bible itself).
+    st.markdown(
+        '<div class="or-reveal" style="margin:0.6rem 0 0.8rem;">'
+        '<span class="or-eyebrow" style="font-size:.7rem;">KITS BY OUTCOME</span>'
+        '</div>',
+        unsafe_allow_html=True,
     )
 
     # ── Primary layer: Kits (outcome-grouped prompt bundles) ──
@@ -2615,9 +2642,10 @@ def render_prompts() -> None:
         )
         kit_cells += (
             '<div class="or-mini" style="min-height:auto;">'
-            f'<div class="or-mini-tag" style="color:{esc(clr)};">▸ KIT {i+1} OF {len(bundles)}</div>'
-            f'<h3 style="font-size:1.15rem;margin-bottom:.3rem;">{esc(ico)} {esc(kit["title"])}</h3>'
-            f'<p class="or-mini-body" style="margin-bottom:.8rem;font-style:italic;color:var(--muted);">'
+            f'<h3 style="font-size:1.15rem;margin:0 0 .3rem;line-height:1.25;">'
+            f'{esc(ico)} {esc(kit["title"])}</h3>'
+            f'<p class="or-mini-body" style="margin:0 0 .7rem;font-style:italic;'
+            f'color:var(--text);opacity:.85;font-size:.92rem;">'
             f'{esc(kit.get("outcome",""))}</p>'
             f'<div style="margin-bottom:.7rem;">{sample_html}</div>'
             f'{more_html}'
@@ -2629,13 +2657,25 @@ def render_prompts() -> None:
         unsafe_allow_html=True,
     )
 
+    # PR22 fix: the "Prompt Bible" h1 now introduces the full
+    # search/filter/results area (this is the actual bible). The
+    # divider below stays as a visual breath before the search input.
+    section_head(
+        "FULL BIBLE",
+        "Prompt Bible",
+        "Colecția completă de prompturi, organizată pe categorii și dificultate.",
+    )
+
     # ── Secondary layer divider ──
+    # PR22 fix: dropped the redundant "FULL BIBLE" prefix — the
+    # section_head above already carries that eyebrow. Keep the
+    # count + "power-user filters" so the user knows what to expect.
     st.markdown(
         '<div style="margin:2rem 0 1rem;display:flex;align-items:center;gap:1rem;">'
         '<span style="flex:1;height:1px;background:var(--border);"></span>'
         '<span style="font-family:JetBrains Mono,monospace;font-size:.65rem;'
         'letter-spacing:.18em;text-transform:uppercase;color:var(--muted);">'
-        'FULL BIBLE · 1,137 PROMPTS · POWER-USER FILTERS BELOW</span>'
+        '1,137 PROMPTS · POWER-USER FILTERS BELOW</span>'
         '<span style="flex:1;height:1px;background:var(--border);"></span>'
         '</div>',
         unsafe_allow_html=True,
