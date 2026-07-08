@@ -846,6 +846,28 @@ def render_css() -> str:
   }}
   @media (max-width: 880px) {{ .or-bento-mini {{ grid-template-columns: 1fr; }} }}
 
+  /* PR #28: phone-overflow fixes for bento card children.
+     (a) The card itself needs min-width: 0 so a CSS-Grid cell can
+         shrink below its content's intrinsic width. Without this,
+         the long link chip row ("BestJobs ↗ Indeed RO ↗ ...")
+         forces the card wider than the viewport on phone.
+     (b) The h3 title can hold long role names ("AI Solutions
+         Architect"). overflow-wrap: anywhere lets the browser break
+         the title at arbitrary points instead of forcing horizontal
+         overflow.
+     (c) The .or-bento-mini .or-mini-foot > div wraps the chip link
+         row inside Jobs role cards. Making it a flex-wrap container
+         with gap lets the chips wrap to multiple lines on narrow
+         viewports instead of overflowing the card. */
+  .or-bento-mini .or-mini {{ min-width: 0; }}
+  .or-bento-mini .or-mini h3 {{ overflow-wrap: anywhere; }}
+  .or-bento-mini .or-mini-foot > div {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: baseline;
+  }}
+
   .or-mini {{
     background: var(--surface);
     border: 1px solid var(--border);
