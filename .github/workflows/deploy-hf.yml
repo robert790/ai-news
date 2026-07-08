@@ -51,51 +51,51 @@ jobs:
         with:
           fetch-depth: 0
 
-      # PR #30 follow-up: install uv on the runner. The direct upload step
-      # calls `uvx hf upload`, but ubuntu-latest does not ship uv/uvx
-      # by default. The old hub-sync action bootstrapped uv internally;
-      # our inline replacement must install uv explicitly so `uvx` is
-      # on PATH when the upload step runs.
-      - name: Install uv for HF CLI upload
-        uses: astral-sh/setup-uv@v8.1.0
-
-      - name: Sync main to Hugging Face Space (direct upload)
-        # PR #30 fix: drop huggingface/hub-sync@v0.1.0.
-        # The action unconditionally runs `hf repos create --space-sdk
-        # "${SPACE_SDK}"` before the upload step (action.yml line 87-99),
-        # with no way to skip creation. HF's repos create API has dropped
-        # `streamlit` from the SDK whitelist (streamlit SDK is deprecated;
-        # HF wants Streamlit Spaces on the docker SDK now). Our existing
-        # Space vrobert94/ai-news was created as a streamlit Space, so
-        # no SDK value works through the action:
-        #   - streamlit -> HTTP 400 "Invalid option: expected one of
-        #                  gradio|docker|static"
-        #   - docker/gradio -> HTTP 402 (SDK mismatch against an existing
-        #                       free cpu-basic Space = upgrade request =
-        #                       PRO subscription required)
-        # Fix: skip repo creation entirely. `hf upload` does not validate
-        # the SDK and works against any existing repo the token can write
-        # to. Same upload semantics as the previous hub-sync action's
-        # upload step (--exclude, --delete, --commit-message).
+      # PR #30 (final attempt): replace hub-sync + hf upload with git push.
+      # Both the old huggingface/hub-sync@v0.1.0 action AND `hf upload`
+      # internally hit the HF repos/create endpoint (the action explicitly,
+      # the CLI implicitly via the upload API handshake). HF's repos/create
+      # is permanently blocked for this Space:
+      #   - streamlit SDK rejected as invalid (HTTP 400, SDK whitelist
+      #     is gradio|docker|static)
+      #   - gradio/docker SDK mismatch against the existing streamlit Space
+      #     on free cpu-basic returns HTTP 402 (treated as upgrade request)
+      # No SDK value satisfies the repos/create call. Git push bypasses
+      # this entirely: it pushes commits to the existing Space repository
+      # without touching repos/create at all. Same outcome (file sync to
+      # an existing Space) via a different transport.
+      - name: Sync main to Hugging Face Space (git push)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_REPO_ID: vrobert94/ai-news
-          REPO_TYPE: space
         run: |
           set -euo pipefail
-          FILE_COUNT=$(find . -type f ! -path '*/.git/*' ! -path '*/.github/*' | wc -l | tr -d ' ')
-          if [[ ${FILE_COUNT} -eq 0 ]]; then
-            echo "::error::No files to upload. Check that your repository has files."
-            exit 1
+
+          DEPLOY_DIR="$(mktemp -d)"
+          trap 'rm -rf "${DEPLOY_DIR}"' EXIT
+
+          echo "Cloning existing HF Space repository..."
+          git clone "https://x-access-token:${HF_TOKEN}@huggingface.co/spaces/${HF_REPO_ID}" "${DEPLOY_DIR}"
+
+          echo "Syncing repository files, excluding GitHub workflow internals..."
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            ./ "${DEPLOY_DIR}/"
+
+          cd "${DEPLOY_DIR}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+            exit 0
           fi
-          echo "Uploading ${FILE_COUNT} files to ${HF_REPO_ID} (${REPO_TYPE})..."
-          uvx hf upload \
-            "${HF_REPO_ID}" \
-            . \
-            --repo-type "${REPO_TYPE}" \
-            --exclude=".git*" \
-            --exclude=".github*" \
-            --delete="*" \
-            --commit-message="Sync from GitHub via direct upload (PR #30)"
-          echo "✓ Sync completed successfully"
+
+          git commit -m "Sync from GitHub ${GITHUB_SHA}"
+          git push origin HEAD:main
+
+          echo "✓ Git push sync completed successfully"
           echo "View at: https://huggingface.co/spaces/${HF_REPO_ID}"
