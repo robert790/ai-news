@@ -259,6 +259,10 @@ def render_css() -> str:
     --lavender: {c['lavender']};
     --sky: {c['sky']};
 
+    /* Scoped radar accent — used ONLY by the animated brand mark in the
+       topnav. Do not apply to text, backgrounds, cards, buttons, hero. */
+    --radar: #A6FFBA;
+
     --ease: {m['ease']};
     --ease-soft: {m['ease_soft']};
     --t-fast: {m['fast']};
@@ -1136,5 +1140,73 @@ def render_css() -> str:
       padding-left: 1.2rem;
       padding-right: 1.2rem;
     }}
+  }}
+
+  /* ── Radar brand mark (PR radar-extraction v2) ─────────────────
+     Scoped: ONLY the .or-mark inside .or-topnav-brand + hairline
+     accent under the topnav + faint hero atmosphere. The rest of the
+     page keeps the existing warm-dark amber palette unchanged. */
+  .or-topnav-brand .or-mark {{
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    /* tiny inner shadow gives the brand a controlled phosphor glow */
+    filter: drop-shadow(0 0 4px rgba(166, 255, 186, 0.55))
+            drop-shadow(0 0 10px rgba(166, 255, 186, 0.22));
+  }}
+  .or-topnav-brand .or-mark svg {{
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }}
+  .or-mark .or-mark-sweep {{
+    transform-origin: 16px 16px;
+    transform-box: fill-box;
+    animation: or-radar-sweep 4s linear infinite;
+    will-change: transform;
+  }}
+  @keyframes or-radar-sweep {{
+    from {{ transform: rotate(0deg); }}
+    to   {{ transform: rotate(360deg); }}
+  }}
+
+  /* ── Hairline under the topnav (removed in v2 review).
+     Streamlit's [data-testid="stMain"] / `section.main > div`
+     containers do not give a clean selector for "the element
+     immediately below the topnav row" without runtime JS. Without
+     a robust selector, a border here risks floating above the
+     topnav or colliding with hero content on different layouts.
+     The hairline idea is parked for a follow-up that includes a
+     stable topnav-bar class (e.g. `.stMainBlockContainer` probe
+     + explicit `.or-topnav` wrapper). The radar atmosphere and
+     phosphor glow already cover the OpenRadar identity ask. */
+
+  /* ── Hero atmosphere — very subtle phosphor glow centered behind
+     the page's headline area. Scoped to the main content container,
+     does NOT leak into cards or nav. Uses the existing radial-gradient
+     composition pattern from .stApp so it integrates with the warm
+     radial already on the body. */
+  [data-testid="stAppViewContainer"]::before {{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(900px 380px at 20% 8%, rgba(166, 255, 186, 0.06), transparent 65%),
+      radial-gradient(700px 280px at 78% 4%, rgba(166, 255, 186, 0.04), transparent 70%);
+  }}
+
+  /* Respect users that prefer reduced motion — sweep stops, static
+     arcs remain. Closes the existing missing-prefers-reduced-motion
+     gap while we're here. */
+  @media (prefers-reduced-motion: reduce) {{
+    .or-mark .or-mark-sweep {{ animation: none !important; }}
+    .or-topnav-status .or-status-dot,
+    .or-tip-line {{ animation: none !important; opacity: 1 !important; }}
   }}
 </style>"""

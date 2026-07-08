@@ -362,6 +362,29 @@ def render_top_nav() -> str:
     with cols[0]:
         st.markdown(
             '<a class="or-topnav-brand" href="?section=groq">'
+            '<span class="or-mark" aria-hidden="true">'
+            '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round">'
+              # outer bezel
+              '<circle cx="16" cy="16" r="15" stroke="var(--border-strong)" stroke-width="0.6"/>'
+              # concentric range rings — equal spacing, calm opacity
+              '<circle cx="16" cy="16" r="11.5" stroke="var(--radar)" stroke-opacity="0.35" stroke-width="0.7"/>'
+              '<circle cx="16" cy="16" r="8"    stroke="var(--radar)" stroke-opacity="0.45" stroke-width="0.7"/>'
+              '<circle cx="16" cy="16" r="4.5"  stroke="var(--radar)" stroke-opacity="0.55" stroke-width="0.7"/>'
+              # cross-hair guides
+              '<line x1="16" y1="1" x2="16" y2="31" stroke="var(--border-strong)" stroke-width="0.5"/>'
+              '<line x1="1"  y1="16" x2="31" y2="16" stroke="var(--border-strong)" stroke-width="0.5"/>'
+              # center blip with subtle glow
+              '<circle cx="16" cy="16" r="1.4" fill="var(--radar)"/>'
+              # rotating sweep (circular wedge)
+              '<g class="or-mark-sweep">'
+                '<path d="M16 16 L31 16 A15 15 0 0 0 25.41 5.18 Z" '
+                  'fill="var(--radar)" fill-opacity="0.30" stroke="var(--radar)" stroke-opacity="0.9" stroke-width="0.7"/>'
+              '</g>'
+              # fixed contact blips — calmer than rotating, anchors identity
+              '<circle cx="9.5"  cy="11"   r="0.9" fill="var(--radar)" fill-opacity="0.85"/>'
+              '<circle cx="22.5" cy="20.5" r="0.9" fill="var(--sand)"  fill-opacity="0.75"/>'
+            '</svg>'
+            '</span>'
             '<span class="or-name-stack">'
             '<span class="or-name">OpenRadar</span>'
             '<span class="or-name-kicker">AI&nbsp;tools&nbsp;·&nbsp;prompts&nbsp;·&nbsp;learn&nbsp;·&nbsp;jobs</span>'
@@ -1141,6 +1164,8 @@ section.main > div { padding-top: 0.35rem !important; }
 .or-topnav-brand {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1 !important;
+  align-items: center !important;
+  gap: 0.85rem !important;
 }
 .or-topnav-brand .or-name {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
@@ -1170,7 +1195,11 @@ section.main > div { padding-top: 0.35rem !important; }
   text-overflow: ellipsis !important;
   max-width: 100% !important;
 }
-.or-topnav-brand .or-mark { display: none !important; }
+
+/* PR radar-extraction: .or-mark is now an active brand element
+   (animated radar). The previous "display:none" comes from PR15 chrome
+   cleanup — explicitly overridden below via animation-gated reveal so
+   the new mark is shown. Theme CSS re-enables via .display: inline-flex. */
 
 /* Nav shell — no decorative frame, single row, even gaps. */
 div.or-nav-shell {
