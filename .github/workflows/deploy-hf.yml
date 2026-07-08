@@ -51,7 +51,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # PR #31 fix: install uv on the runner. The direct upload step
+      # PR #30 follow-up: install uv on the runner. The direct upload step
       # calls `uvx hf upload`, but ubuntu-latest does not ship uv/uvx
       # by default. The old hub-sync action bootstrapped uv internally;
       # our inline replacement must install uv explicitly so `uvx` is
