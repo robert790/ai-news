@@ -51,24 +51,51 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync main to Hugging Face Space
-        # PR #29 fix: pass repo_type + space_sdk explicitly. The
-        # huggingface/hub-sync@v0.1.0 action defaults space_sdk to
-        # 'gradio'. Our Space vrobert94/ai-news was created as a
-        # Streamlit Space. HF's `repos create` API treats an SDK
-        # mismatch against a free cpu-basic Space as an upgrade
-        # request and returns HTTP 402 Payment Required. Forcing
-        # the SDK match makes `hf repos create --exist-ok` a no-op
-        # and lets `hf upload` actually run.
-        uses: huggingface/hub-sync@v0.1.0
-        with:
-          github_repo_id: ${{ github.repository }}
-          huggingface_repo_id: vrobert94/ai-news
-          hf_token: ${{ secrets.HF_TOKEN }}
-          repo_type: space
-          space_sdk: streamlit
+      # PR #30 (final attempt): replace hub-sync + hf upload with git push.
+      # Both the old huggingface/hub-sync@v0.1.0 action AND `hf upload`
+      # internally hit the HF repos/create endpoint (the action explicitly,
+      # the CLI implicitly via the upload API handshake). HF's repos/create
+      # is permanently blocked for this Space:
+      #   - streamlit SDK rejected as invalid (HTTP 400, SDK whitelist
+      #     is gradio|docker|static)
+      #   - gradio/docker SDK mismatch against the existing streamlit Space
+      #     on free cpu-basic returns HTTP 402 (treated as upgrade request)
+      # No SDK value satisfies the repos/create call. Git push bypasses
+      # this entirely: it pushes commits to the existing Space repository
+      # without touching repos/create at all. Same outcome (file sync to
+      # an existing Space) via a different transport.
+      - name: Sync main to Hugging Face Space (git push)
         env:
-          # Belt-and-braces: even if the action logs the input, the
-          # token is sourced only from secrets (never from a literal
-          # in the workflow file) and masked via the step above.
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO_ID: vrobert94/ai-news
+        run: |
+          set -euo pipefail
+
+          DEPLOY_DIR="$(mktemp -d)"
+          trap 'rm -rf "${DEPLOY_DIR}"' EXIT
+
+          echo "Cloning existing HF Space repository..."
+          git clone "https://x-access-token:${HF_TOKEN}@huggingface.co/spaces/${HF_REPO_ID}" "${DEPLOY_DIR}"
+
+          echo "Syncing repository files, excluding GitHub workflow internals..."
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            ./ "${DEPLOY_DIR}/"
+
+          cd "${DEPLOY_DIR}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to sync."
+            exit 0
+          fi
+
+          git commit -m "Sync from GitHub ${GITHUB_SHA}"
+          git push origin HEAD:main
+
+          echo "✓ Git push sync completed successfully"
+          echo "View at: https://huggingface.co/spaces/${HF_REPO_ID}"
