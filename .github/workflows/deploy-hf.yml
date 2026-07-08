@@ -51,6 +51,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # PR #31 fix: install uv on the runner. The direct upload step
+      # calls `uvx hf upload`, but ubuntu-latest does not ship uv/uvx
+      # by default. The old hub-sync action bootstrapped uv internally;
+      # our inline replacement must install uv explicitly so `uvx` is
+      # on PATH when the upload step runs.
+      - name: Install uv for HF CLI upload
+        uses: astral-sh/setup-uv@v8.1.0
+
       - name: Sync main to Hugging Face Space (direct upload)
         # PR #30 fix: drop huggingface/hub-sync@v0.1.0.
         # The action unconditionally runs `hf repos create --space-sdk
