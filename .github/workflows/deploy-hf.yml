@@ -52,11 +52,21 @@ jobs:
           fetch-depth: 0
 
       - name: Sync main to Hugging Face Space
+        # PR #29 fix: pass repo_type + space_sdk explicitly. The
+        # huggingface/hub-sync@v0.1.0 action defaults space_sdk to
+        # 'gradio'. Our Space vrobert94/ai-news was created as a
+        # Streamlit Space. HF's `repos create` API treats an SDK
+        # mismatch against a free cpu-basic Space as an upgrade
+        # request and returns HTTP 402 Payment Required. Forcing
+        # the SDK match makes `hf repos create --exist-ok` a no-op
+        # and lets `hf upload` actually run.
         uses: huggingface/hub-sync@v0.1.0
         with:
           github_repo_id: ${{ github.repository }}
           huggingface_repo_id: vrobert94/ai-news
           hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: streamlit
         env:
           # Belt-and-braces: even if the action logs the input, the
           # token is sourced only from secrets (never from a literal
