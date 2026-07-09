@@ -1285,87 +1285,11 @@ def render_css() -> str:
   }}
   .ort-page .ort-screen > *{{position:relative;z-index:3}}
 
-  /* ── topnav ─────────────────────────────────────────────────── */
-  .ort-page .ort-topnav{{
-    position:relative;display:grid;
-    grid-template-columns:minmax(0,auto) minmax(0,1fr) auto;
-    align-items:center;gap:18px;
-    padding:14px 22px 12px;
-    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,0));
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:8px;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.05),
-      inset 0 -1px 0 rgba(0,0,0,.55),
-      0 6px 16px rgba(0,0,0,.30);
-  }}
-  .ort-page .ort-topnav::after{{
-    content:"";position:absolute;left:18px;right:18px;bottom:-1px;height:1px;
-    background:linear-gradient(90deg, transparent 0%, var(--ort-line-strong) 50%, transparent 100%);
-    pointer-events:none;
-  }}
-  .ort-page .ort-brand{{display:inline-flex;align-items:center;gap:14px;
-    text-decoration:none !important;color:inherit !important;min-width:0}}
-  .ort-page .ort-brand .ort-mark{{width:36px;height:36px;flex-shrink:0;color:var(--ort-radar);
-    filter:drop-shadow(0 0 5px rgba(166,255,138,.55)) drop-shadow(0 0 16px rgba(166,255,138,.18))}}
-  .ort-page .ort-brand .ort-mark svg{{width:100%;height:100%;display:block}}
-  .ort-page .ort-brand-stack{{display:inline-flex;flex-direction:column;line-height:1;gap:5px;min-width:0}}
-  .ort-page .ort-name{{
-    font-family:var(--ort-font-display);font-weight:700;font-size:1.18rem;
-    letter-spacing:0.20em;color:var(--ort-ink);text-transform:uppercase;
-    white-space:nowrap;display:flex;align-items:center;gap:10px;
-  }}
-  .ort-page .ort-name .ort-name-dot{{color:var(--ort-radar);font-size:1.1em;line-height:1;padding:0 1px}}
-  .ort-page .ort-name .ort-mark-glow{{
-    display:inline-block;width:7px;height:7px;border-radius:50%;
-    background:var(--ort-radar);box-shadow:0 0 8px rgba(166,255,138,.7);
-    animation:ort-pulse 2.4s ease-in-out infinite;
-  }}
-  .ort-page .ort-kicker{{
-    font-family:var(--ort-font-mono);font-size:.62rem;letter-spacing:0.18em;
-    text-transform:uppercase;color:var(--ort-ink-dim);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:32ch;
-  }}
-
-  .ort-page .ort-nav{{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}}
-  .ort-page .ort-tab{{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:9px 14px;border-radius:5px;
-    background:transparent !important;color:var(--ort-ink-mid) !important;
-    font-family:var(--ort-font-mono);font-size:.72rem;letter-spacing:0.16em;
-    text-transform:uppercase;text-decoration:none !important;
-    border:1px solid transparent;white-space:nowrap;
-    transition:color .18s ease, background .18s ease, border-color .18s ease;
-  }}
-  .ort-page .ort-tab:hover{{color:var(--ort-ink) !important;background:rgba(166,255,138,.04) !important}}
-  .ort-page .ort-tab.is-active{{
-    color:var(--ort-radar) !important;background:rgba(166,255,138,.10) !important;
-    border-color:var(--ort-line-strong) !important;
-    box-shadow:inset 0 0 0 1px rgba(166,255,138,.10);
-  }}
-  .ort-page .ort-tab .ort-tab-dot{{display:inline-block;width:5px;height:5px;border-radius:50%;
-    background:transparent;flex-shrink:0}}
-  .ort-page .ort-tab.is-active .ort-tab-dot{{background:var(--ort-radar);
-    box-shadow:0 0 6px rgba(166,255,138,.6)}}
-
-  /* nav-action slot — left as an empty column on desktop so the
-     grid layout reads as brand + tabs + status. Refresh button
-     lives outside this integration (deferred follow-up). */
-  .ort-page .ort-nav-action{{display:inline-flex;align-items:center;justify-content:flex-end;gap:10px;min-height:1px}}
-  .ort-page .ort-sys-pill{{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:7px 12px;border-radius:999px;
-    border:1px solid var(--ort-line-strong);
-    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,0));
-    font-family:var(--ort-font-mono);font-size:.6rem;letter-spacing:0.18em;
-    text-transform:uppercase;color:var(--ort-ink-dim);white-space:nowrap;
-  }}
-  .ort-page .ort-sys-pill .ort-led{{
-    display:inline-block;width:6px;height:6px;border-radius:50%;
-    background:var(--ort-radar);box-shadow:0 0 8px rgba(166,255,138,.7);
-    animation:ort-pulse 2.4s ease-in-out infinite;
-  }}
-  .ort-page .ort-sys-pill .live{{color:var(--ort-radar)}}
+  /* ── topnav ───────────────────────────────────────────────────
+       Topnav lives outside .ort-page (rendered by render_top_nav,
+       not render_groq). The working rules live below this comment
+       as unprefixed selectors. The .ort-page-prefixed duplicates
+       that previously lived here never matched and were dead code. */
 
   /* ── status bezel (telemetry strip) ───────────────────────── */
   .ort-page .ort-screen-status{{
@@ -1657,9 +1581,12 @@ def render_css() -> str:
   }}
 
   /* very narrow (414 / 393): collapse topnav to 2-row, all 5 tabs
-     on a single line at the bottom, brand + status pill on row 1 */
+     on a single line at the bottom, brand + status pill on row 1.
+     Topnav is outside .ort-page, so use unprefixed selectors to
+     match the actual rendered elements. The .ort-page-prefixed
+     duplicates that previously lived here never matched. */
   @media (max-width:480px){{
-    .ort-page .ort-topnav{{
+    .ort-topnav{{
       grid-template-columns:1fr auto;
       grid-template-areas:
         "brand action"
@@ -1667,16 +1594,16 @@ def render_css() -> str:
       column-gap:10px;row-gap:10px;
       padding:10px 14px;
     }}
-    .ort-page .ort-brand{{grid-area:brand;min-width:0}}
-    .ort-page .ort-nav{{grid-area:tabs;min-width:0;justify-content:space-between;gap:2px;flex-wrap:nowrap}}
-    .ort-page .ort-nav-action{{grid-area:action}}
-    .ort-page .ort-kicker{{display:none}}
-    .ort-page .ort-name{{font-size:0.98rem;letter-spacing:0.18em}}
-    .ort-page .ort-brand .ort-mark{{width:30px;height:30px}}
-    .ort-page .ort-sys-pill{{padding:5px 9px;font-size:0.55rem;letter-spacing:0.14em}}
-    .ort-page .ort-sys-pill .label-wide{{display:none}}
-    .ort-page .ort-tab{{padding:6px 6px;gap:5px;font-size:0.6rem;letter-spacing:0.10em;min-width:0}}
-    .ort-page .ort-tab .ort-tab-dot{{display:none}}
+    .ort-brand{{grid-area:brand;min-width:0}}
+    .ort-nav{{grid-area:tabs;min-width:0;justify-content:space-between;gap:2px;flex-wrap:nowrap}}
+    .ort-nav-action{{grid-area:action}}
+    .ort-kicker{{display:none}}
+    .ort-name{{font-size:0.98rem;letter-spacing:0.18em}}
+    .ort-brand .ort-mark{{width:30px;height:30px}}
+    .ort-sys-pill{{padding:5px 9px;font-size:0.55rem;letter-spacing:0.14em}}
+    .ort-sys-pill .label-wide{{display:none}}
+    .ort-tab{{padding:6px 6px;gap:5px;font-size:0.6rem;letter-spacing:0.10em;min-width:0}}
+    .ort-tab .ort-tab-dot{{display:none}}
     .ort-page .ort-h1{{font-size:1.25rem}}
     .ort-page .ort-radar-frame{{max-width:240px}}
     .ort-page .ort-cta{{padding:9px 14px;font-size:0.7rem;letter-spacing:0.16em;gap:8px}}
@@ -1694,11 +1621,15 @@ def render_css() -> str:
     .ort-page .ort-radar-frame{{max-width:210px}}
   }}
 
-  /* ── reduced motion (scoped to .ort-* selectors only) ───── */
+  /* ── reduced motion (scoped to .ort-* selectors only) ─────
+     .ort-sweep / .ort-screen-status / .ort-card-label live inside
+     .ort-page (Home only) so they keep the prefix.
+     .ort-name .ort-mark-glow and .ort-sys-pill .ort-led live in
+     the topnav (outside .ort-page) so they are unprefixed. */
   @media (prefers-reduced-motion: reduce){{
     .ort-page .ort-sweep,
-    .ort-page .ort-name .ort-mark-glow,
-    .ort-page .ort-sys-pill .ort-led,
+    .ort-name .ort-mark-glow,
+    .ort-sys-pill .ort-led,
     .ort-page .ort-screen-status .led,
     .ort-page .ort-card-label .ort-led{{
       animation:none !important;opacity:0.85 !important;
