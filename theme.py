@@ -1734,7 +1734,7 @@ def render_css() -> str:
 
   /* mobile 2-row collapse for the topnav (topnav is the only place
      these classes are emitted, so unprefixed is safe) */
-  @media (max-width:480px){{
+  @media (max-width:640px){{
     .ort-topnav{{
       grid-template-columns:1fr auto;
       grid-template-areas:"brand action" "tabs tabs";
