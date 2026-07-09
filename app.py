@@ -3049,20 +3049,70 @@ def render_prompts() -> None:
     elif sort_label == "Expert → Beginner":
         results.sort(key=lambda p: -diffs.index(p.get("difficulty", "intermediate")))
 
+    # ── PR #35: cap initial render at PROMPTS_PAGE_SIZE (24). The Prompt
+    # Bible ships 1,137 prompts. Rendering the full list on every cold
+    # load produces ~8k downstream Streamlit widgets, which delays
+    # hydration of the top action-card Open buttons to ~20s (the 4 action
+    # cards are the FIRST widgets emitted, but Streamlit's React frontend
+    # processes widgets in DOM order — they wait behind the 8k widget
+    # queue). Capping at 24 + "Show 24 more" pagination keeps the page
+    # interactive immediately and lets users opt into the full list.
+    PAGE_SIZE = 24
     n = len(results)
     any_filter = bool(text_q or selected_cats or selected_diffs or selected_models)
+    # Reset visible_count when search/filter/sort inputs change, so the
+    # user lands on the first page of the new result set instead of
+    # staying scrolled deep into a stale list. Cheap fingerprint of
+    # the four inputs the user can change.
+    _filter_fingerprint = (
+        (text_q or "").strip().lower(),
+        tuple(sorted(selected_cats)),
+        tuple(sorted(selected_diffs)),
+        tuple(sorted(selected_models)),
+        sort_label,
+    )
+    if "prompts_visible_count" not in st.session_state:
+        st.session_state["prompts_visible_count"] = PAGE_SIZE
+    if st.session_state.get("prompts_filter_fingerprint") != _filter_fingerprint:
+        st.session_state["prompts_visible_count"] = PAGE_SIZE
+        st.session_state["prompts_filter_fingerprint"] = _filter_fingerprint
+    # Clamp visible_count to current result size (in case filters shrank
+    # the list and visible_count is now stale).
+    visible_count = min(st.session_state["prompts_visible_count"], n)
+    if n > 0:
+        visible_count = max(visible_count, 1)
+    results_view = results[:visible_count]
+    has_more = visible_count < n
+
     st.markdown(
         f'<div style="display:flex;align-items:baseline;gap:.6rem;margin:1.4rem 0 .6rem;'
         f'font-family:Newsreader,serif;">'
-        f'<span style="font-size:1.8rem;color:var(--text);font-weight:500;">{n}</span>'
+        f'<span style="font-size:1.8rem;color:var(--text);font-weight:500;">'
+        f'{min(visible_count, n)}</span>'
         f'<span style="font-family:JetBrains Mono,monospace;font-size:.7rem;color:var(--muted);'
         f'text-transform:uppercase;letter-spacing:.08em;">'
-        f'/ {n_total} prompturi'
+        f'of {n_total} prompturi'
         f'{" · filtrat" if any_filter else ""}</span></div>',
         unsafe_allow_html=True,
     )
 
-    # ── Results ──
+    # ── Show more — only emitted when there are more results to reveal.
+    # The button hydrates with the rest of the page; clicking it bumps
+    # visible_count by PAGE_SIZE and reruns. Above the results loop to
+    # keep the pagination affordance close to the count line.
+    if has_more:
+        remaining = n - visible_count
+        step = min(PAGE_SIZE, remaining)
+        if st.button(
+            f"Show {step} more",
+            key="prompts_show_more",
+            use_container_width=False,
+            type="secondary",
+        ):
+            st.session_state["prompts_visible_count"] = visible_count + step
+            st.rerun()
+
+    # ── Results (PR #35: iterate results_view, capped at visible_count) ──
     if n == 0:
         st.markdown(
             '<div style="padding:2rem;text-align:center;color:var(--muted);'
@@ -3073,7 +3123,7 @@ def render_prompts() -> None:
         )
         return
 
-    for p in results:
+    for p in results_view:
         cat_id = p.get("category", "")
         cat_lbl = category_label(bible, cat_id)
         cat_clr = category_color(bible, cat_id)
