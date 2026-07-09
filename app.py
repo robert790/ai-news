@@ -197,10 +197,16 @@ def live_badge(text: str = "LIVE FEED") -> str:
 
 
 def section_head(eyebrow: str, title: str, caption: str = "") -> None:
-    """Standard top-of-section header. Used on News / Jobs / Prompts."""
+    """Standard top-of-section header. Used on News / Jobs / Prompts.
+
+    PR34 v1: adds `ort-module-head` class so the section_head picks up
+    the terminal-module header treatment (recessed panel + small
+    kicker accent + thin border). Adds the class to the existing
+    wrapper; no copy / structure / h1 changes.
+    """
     cap = f'<p class="or-caption">{esc(caption)}</p>' if caption else ""
     st.markdown(
-        f'<div class="or-section-head or-reveal">'
+        f'<div class="or-section-head or-reveal ort-module-head">'
         f'<span class="or-eyebrow">{esc(eyebrow)}</span>'
         f'<div><h1>{esc(title)}</h1></div>'
         f'{cap}'
@@ -1476,7 +1482,7 @@ def _render_action_cards(items: list, state_key: str, action_label: str = "Open"
         with col:
             with st.container(border=True):
                 st.markdown(
-                    f"<div class='or-static-action'><div class='or-static-label'>"
+                    f"<div class='or-static-action ort-module-card'><div class='or-static-label'>"
                     f"{esc(label)}</div>"
                     f"<div class='or-static-title'>{esc(title)}</div>"
                     f"<p class='or-static-body'>{esc(body)}</p></div>",
@@ -3144,7 +3150,16 @@ DISPATCH = {
 # Fallback for unknown section values coming from the URL or stale state
 SECTION = SECTION if SECTION in DISPATCH else "groq"
 
-# Run the chosen renderer
+# Run the chosen renderer. Non-Home page sections (section_head and
+# path-kit cards) get the terminal-module primitives (.ort-module-head,
+# .ort-module-card) added in their respective helpers. We do NOT wrap
+# the whole page in a single .ort-section-shell wrapper because Streamlit
+# renders each st.markdown call as a sibling, not nested — a top-level
+# <div>...</div> doesn't visually wrap the page content. Instead, the
+# module primitives are applied to the elements that actually frame the
+# page (the section header at the top, the 4 path-kit cards below it),
+# which gives the visible terminal-module look without the wrapper hack.
+# Home (groq) renders its own v2.1 chassis and is not touched.
 DISPATCH[SECTION]()
 
 

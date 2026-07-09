@@ -1636,6 +1636,133 @@ def render_css() -> str:
     }}
   }}
 
+  /* ── PR34 v1: non-Home section shell (real wrappers, real borders) ──
+     Lesson from the rejected spike: do not rely on subtle global
+     primitives, scanline overlays, or background-image corner hacks.
+     This block is intentionally simple — three classes, visible
+     borders, no gradient tricks, easy to read and reverse. */
+
+  /* 2. .ort-module-head — applied to the section_head() wrapper on
+        non-Home pages. Tightens the existing .or-section-head styles
+        so the eyebrow + h1 + caption sit inside a clear recessed
+        module panel, with a phosphor left-edge accent. */
+  .ort-module-head{{
+    position: relative;
+    padding: 1.1rem 1.2rem 1rem 1.45rem;
+    margin: 0 0 1.4rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(0,0,0,0) 50%);
+    border: 1px solid rgba(166,255,138,0.18);
+    border-radius: 4px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.07),
+      inset 0 -1px 0 rgba(0,0,0,0.55),
+      0 1px 0 rgba(0,0,0,0.4);
+  }}
+  /* Phosphor left-edge accent (a vertical bar on the left of the head) */
+  .ort-module-head::before{{
+    content: "";
+    position: absolute;
+    top: 0.5rem; bottom: 0.5rem; left: 0;
+    width: 3px;
+    background: linear-gradient(180deg,
+      rgba(166,255,138,0) 0%,
+      rgba(166,255,138,0.90) 20%,
+      rgba(166,255,138,0.90) 80%,
+      rgba(166,255,138,0) 100%);
+    border-radius: 1px;
+    box-shadow: 0 0 4px rgba(166,255,138,0.4);
+  }}
+  /* Phosphor underline accent (1px line at the bottom) */
+  .ort-module-head::after{{
+    content: "";
+    position: absolute;
+    left: 1.45rem; right: 1.2rem; bottom: -1px; height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(166,255,138,0.30) 30%,
+      rgba(166,255,138,0.30) 70%,
+      transparent 100%);
+    pointer-events: none;
+  }}
+  /* Inside the module head, tighten the eyebrow + h1 + caption to read
+     as a module label, not a hero. The existing .or-section-head rules
+     at line 526 set h1 to 2.4rem and font-style italic; we override those
+     for the module-head context (smaller h1, no italic, no top border). */
+  .ort-module-head h1{{
+    font-size: 1.6rem !important;
+    font-weight: 600 !important;
+    font-style: normal !important;
+    line-height: 1.2;
+    margin: 0.15rem 0 0.35rem;
+    color: var(--text, #DDE6DC);
+  }}
+  .ort-module-head .or-eyebrow{{
+    font-size: 0.62rem !important;
+    letter-spacing: 0.2em !important;
+    color: var(--sage, #A6FF8A) !important;
+    margin: 0 0 0.2rem !important;
+  }}
+  .ort-module-head .or-caption{{
+    font-size: 0.92rem !important;
+    font-style: italic;
+    color: var(--text-2, rgba(221,230,220,0.78));
+    margin: 0.2rem 0 0;
+  }}
+  /* Override the legacy .or-section-head border-bottom (it draws a
+     1px solid line which would double up with our 1px border). */
+  .ort-module-head{{
+    border-bottom: 1px solid rgba(166,255,138,0.18) !important;
+  }}
+
+  /* 3. .ort-module-card — applied to the path-kit cards (4 cards at the
+        top of every non-Home section, rendered via _render_action_cards
+        → .or-static-action). The card already has a Streamlit
+        container border; we add a tighter inner highlight + phosphor
+        hover lift. No border-color override (Streamlit border stays). */
+  .ort-module-card{{
+    position: relative;
+    padding: 0.85rem 1rem 0.5rem !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.022), rgba(0,0,0,0) 50%),
+      rgba(255,255,255,0.012) !important;
+    border-radius: 5px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.45) !important;
+    transition: box-shadow .18s ease, background .18s ease;
+  }}
+  /* Phosphor left-edge accent (thin vertical line) */
+  .ort-module-card::before{{
+    content: "";
+    position: absolute;
+    top: 0.5rem; bottom: 0.5rem; left: 0;
+    width: 2px;
+    background: rgba(166,255,138,0.50);
+    border-radius: 1px;
+  }}
+  .ort-module-card:hover{{
+    background:
+      linear-gradient(180deg, rgba(166,255,138,0.05), rgba(0,0,0,0) 50%),
+      rgba(255,255,255,0.022) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(166,255,138,0.16),
+      inset 0 -1px 0 rgba(0,0,0,0.5) !important;
+  }}
+  .ort-module-card:hover::before{{
+    background: rgba(166,255,138,0.85);
+  }}
+  /* Inner label/title polish: tighten letter-spacing for the label, add
+     a small chevron-like treatment to the title. The legacy .or-static-label
+     / .or-static-title rules at line 1199+ already set the typography; we
+     only add a tiny tightening. */
+  .ort-module-card .or-static-label{{
+    margin-bottom: 0.35rem !important;
+  }}
+  .ort-module-card .or-static-title{{
+    color: var(--text, #DDE6DC) !important;
+  }}
+
+
   /* ── v2.1 NARROW REPAIR · topnav-only selectors (no .ort-page prefix)
      Reason: .ort-topnav / .ort-nav / .ort-tab etc are NOT inside
      `.ort-page` (the chassis lives in render_groq, but the topnav lives
