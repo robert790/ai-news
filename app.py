@@ -336,83 +336,85 @@ def tips_strip(n: int = 4) -> None:
 def render_top_nav() -> str:
     """Render the top nav row. Returns the active section id.
 
-    Layout (PR16 header cleanup):
-      ┌────────────┬────────────────────────────┬─────────┐
-      │ brand      │ 5 button nav (single line) │ refresh │
-      └────────────┴────────────────────────────┴─────────┘
+    Radar Terminal Home Integration v2.1 — one complete controlled
+    HTML block. No st.columns for nav, no st.button for routing, no
+    Emotion-cache hash selectors. Anchor links use the existing
+    ?section= deep-link contract that main() already validates against
+    _valid = {"groq", "news", "learning", "jobs", "prompts"}.
 
-    Brand block stacks "OpenRadar" + a one-line subtitle with `nowrap`
-    + tight letter-spacing so the subtitle never wraps mid-phrase.
-    Refresh action lives in the right column as a quiet text button.
+    Layout on the page is the v2.1 chassis hero — not this topnav.
+    This topnav is a slim chrome strip *above* the chassis.
+
+    Refresh button is deferred to a follow-up PR (per the v2.1 plan).
     """
     if "section" not in st.session_state:
-        # Allow `?section=learning` deep-link via query params
         _qp = st.query_params.get("section", "groq")
         _valid = {"groq", "news", "learning", "jobs", "prompts"}
         st.session_state.section = _qp if _qp in _valid else "groq"
 
-    # Tighter column ratios so brand is compact, nav gets the room it
-    # actually needs, and refresh button gets a narrow dedicated slot.
-    cols = _columns([1.05, 3.55, 0.4], gap="small")
+    active = st.session_state.section
+    section_labels = [
+        ("groq",     "Home"),
+        ("news",     "Tools"),
+        ("prompts",  "Prompt Kits"),
+        ("learning", "Learn"),
+        ("jobs",     "Jobs"),
+    ]
 
-    # Brand — plain text identity. Subtitle uses non-breaking spaces
-    # between dots so the phrase "AI tools · prompts · learn · jobs"
-    # never wraps mid-phrase on a desktop viewport. CSS .or-name-kicker
-    # enforces nowrap + tight letter-spacing.
-    with cols[0]:
-        st.markdown(
-            '<a class="or-topnav-brand" href="?section=groq">'
-            '<span class="or-name-stack">'
-            '<span class="or-name">OpenRadar</span>'
-            '<span class="or-name-kicker">AI&nbsp;tools&nbsp;·&nbsp;prompts&nbsp;·&nbsp;learn&nbsp;·&nbsp;jobs</span>'
-            '</span>'
-            '</a>',
-            unsafe_allow_html=True,
+    def _tab(key, label):
+        if active == key:
+            cls = "ort-tab is-active"
+            aria = ' aria-current="page"'
+        else:
+            cls = "ort-tab"
+            aria = ""
+        return (
+            f'<a class="{cls}" href="?section={key}"{aria}>'
+            f'<span class="ort-tab-dot"></span>{esc(label)}</a>'
         )
 
-    # 5 nav buttons — each renders as a Streamlit `st.button` in its
-    # own column. CSS handles the pill styling via [class*="st-key-nav_"].
-    # Display labels are user-facing; internal section keys stay the
-    # same so `?section=groq` deep-links and the DISPATCH dict keep
-    # working without rename risk.
-    #
-    # PR10 positioning labels: Today / Tools / Learn / Jobs / Prompt Kits.
-    # NOTE — internal key `news` is temporarily retained for the Tools tab
-    # to avoid a risky deep-link rename. Tracked as follow-up debt.
-    with cols[1]:
-        section_labels = [
-            ("groq",     "Home"),
-            ("news",     "Tools"),
-            ("prompts",  "Prompt Kits"),
-            ("learning", "Learn"),
-            ("jobs",     "Jobs"),
-        ]
-        st.markdown('<div class="or-nav-shell">', unsafe_allow_html=True)
-        btn_cols = st.columns(5, gap="small")
-        for (key, label), col in zip(section_labels, btn_cols):
-            with col:
-                if st.button(
-                    label,
-                    key=f"nav_{key}",
-                    use_container_width=True,
-                    type="primary" if st.session_state.section == key else "secondary",
-                ):
-                    st.session_state.section = key
-                    st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+    nav_tabs_html = "".join(_tab(k, lbl) for k, lbl in section_labels)
 
-    # Quiet refresh action — narrow column, no icon, just a plain
-    # text button. Clears Streamlit cache and reruns. Visually quiet
-    # so the header reads as a workbench chrome, not a dashboard
-    # toolbar.
-    with cols[2]:
-        if st.button("Refresh", key="nav_refresh", use_container_width=True,
-                     help="Refresh feeds (clear cache)"):
-            st.cache_data.clear()
-            st.toast("Cache cleared.")
-            st.rerun()
+    # The whole topnav — brand + 5 tabs + Live status pill — is one
+    # single st.markdown block. Streamlit may wrap it in a div, but
+    # the inner HTML is intact and the .ort-page prefix on every
+    # CSS selector keeps the cascade owned by us.
+    st.markdown(
+        f'<nav class="ort-topnav" role="navigation" aria-label="Primary">'
+          '<a class="ort-brand" href="?section=groq" aria-label="OpenRadar home">'
+            '<span class="ort-mark" aria-hidden="true">'
+              '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-linecap="round">'
+                '<circle cx="16" cy="16" r="14" stroke-opacity="0.55" stroke-width="0.8"/>'
+                '<circle cx="16" cy="16" r="9"  stroke-opacity="0.70" stroke-width="0.6"/>'
+                '<circle cx="16" cy="16" r="4"  stroke-opacity="0.45" stroke-width="0.5"/>'
+                '<line x1="16" y1="2"  x2="16" y2="30" stroke-opacity="0.30" stroke-width="0.4"/>'
+                '<line x1="2"  y1="16" x2="30" y2="16" stroke-opacity="0.30" stroke-width="0.4"/>'
+                '<g class="ort-sweep">'
+                  '<path d="M16 16 L30 16 A14 14 0 0 0 24.41 6.18 Z" '
+                  'fill="currentColor" fill-opacity="0.30" '
+                  'stroke="currentColor" stroke-opacity="0.95" stroke-width="0.6"/>'
+                '</g>'
+                '<circle cx="16" cy="16" r="1.4" fill="currentColor"/>'
+              '</svg>'
+            '</span>'
+            '<span class="ort-brand-stack">'
+              '<span class="ort-name">Open<span class="ort-name-dot">·</span>Radar'
+                '<span class="ort-mark-glow" aria-hidden="true"></span>'
+              '</span>'
+              '<span class="ort-kicker">AI tools · prompts · learn · jobs</span>'
+            '</span>'
+          '</a>'
+          f'<nav class="ort-nav" aria-label="Sections">{nav_tabs_html}</nav>'
+          # Refresh is deferred per the v2.1 integration plan. The
+          # .ort-nav-action slot is intentionally left empty so the
+          # desktop grid still reserves the third column. No
+          # placeholder text, no raw Streamlit button.
+          '<span class="ort-nav-action" aria-hidden="true"></span>'
+        '</nav>',
+        unsafe_allow_html=True,
+    )
 
-    return st.session_state.section
+    return active
 
 
 SECTION = render_top_nav()
@@ -1837,69 +1839,244 @@ def _render_english_chapter(selected_id: str, ch_list: list, completed: set) -> 
     )
 
 
-def _render_today_picks() -> None:
-    cols = st.columns(4, gap="small")
-    for col, pick in zip(cols, _TODAY_PICKS):
+def _render_today_picks(*, as_html: bool = False) -> str:
+    """Today picks rendered as one controlled HTML grid.
+
+    Radar Terminal Home Integration v2.1 — replaces the old
+    `st.columns(4) + st.container(border=True)` block with a single
+    `st.markdown` call so Streamlit cannot break the grid by wrapping
+    each card in its own emotion-cache div.
+
+    Each card carries: instrument-frame corner brackets, a phosphor
+    label, a display title, a mono body, and a CTA arrow link pinned
+    to the bottom via flex (margin-top: auto on .ort-card-foot).
+    CTA is an anchor <a href="?section=..."> — the existing
+    ?section= deep-link contract that main() already validates.
+
+    If `as_html=True`, returns the HTML string instead of emitting it.
+    This lets `render_groq` embed the entire Home body — chassis +
+    status bezel + hero + radar + Today head + Today grid + screen
+    footer — inside one single st.markdown block, as required by the
+    v2.1 integration plan rule: do not split one HTML container
+    across multiple st.markdown calls.
+    """
+    cells_html = ""
+    for pick in _TODAY_PICKS:
         label, title, body, target, action = pick
-        with col:
-            with st.container(border=True):
-                st.markdown(
-                    f"<div style='font-family:\"JetBrains Mono\",\"SF Mono\",Menlo,monospace;"
-                    f"font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;"
-                    f"color:var(--muted);'>{esc(label)}</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<div style='font-size:0.98rem;font-weight:600;color:var(--text);"
-                    f"margin:0.25rem 0 0.4rem 0;line-height:1.25;'>{esc(title)}</div>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<p style='font-size:0.82rem;color:var(--text-2);"
-                    f"line-height:1.4;margin:0 0 0.6rem 0;'>{esc(body)}</p>",
-                    unsafe_allow_html=True,
-                )
-                if st.button(
-                    action,
-                    key=f"today_open_{target}",
-                    use_container_width=True,
-                    type="primary",
-                ):
-                    st.session_state.section = target
-                    st.query_params["section"] = target
-                    st.rerun()
+        cells_html += (
+        '<article class="ort-card">'
+        f'<div class="ort-card-label">'
+        '<span class="ort-led" aria-hidden="true"></span>'
+        f'{esc(label)}'
+        '</div>'
+        f'<h3 class="ort-card-title">{esc(title)}</h3>'
+        f'<p class="ort-card-body">{esc(body)}</p>'
+        '<div class="ort-card-foot">'
+        f'<a class="ort-card-cta" href="?section={esc(target)}">'
+        f'{esc(action)}'
+        '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">'
+        '<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+        '</svg>'
+        '</a>'
+        '</div>'
+        '</article>'
+        )
+
+    if as_html:
+        return cells_html
+
+    st.markdown(
+        '<div class="ort-today-grid">' + cells_html + '</div>',
+        unsafe_allow_html=True,
+    )
+    return ""  # unreachable; satisfies the type checker
 
 
 def render_groq() -> None:
-    """The default landing: compact workbench hero, then the Today picks row,
-    then the existing live bento of News / Tools / Jobs."""
+    """The default landing: a single complete v2.1 chassis block
+    (topnav handled separately, then the chassis hero with status
+    bezel + headline + radar + Today head + Today cards + screen
+    footer, all inside one .ort-page > .ort-chassis shell), then
+    the existing live bento of News / Tools / Jobs.
+
+    Per the v2.1 integration plan rule: do not split one HTML
+    container across multiple st.markdown calls. Everything inside
+    the chassis shell is emitted by ONE st.markdown call so
+    Streamlit cannot break the HTML nesting.
+    """
 
     # PR15 chrome cleanup: inject the workbench CSS (global suppressors +
     # .or-workbench-hero style) early so the chrome applies on Home even
     # when no action card row is rendered.
     st.markdown(_STATIC_CSS, unsafe_allow_html=True)
 
-    # PR15 chrome cleanup: compact workbench hero instead of the old
-    # cinematic serif hero. Modern system sans, no eyebrow line, no fake
-    # status pill. The .or-workbench-hero class is the single source of
-    # truth for the new hero styling — it overrides .or-hero below in
-    # theme.py.
-    st.markdown(
-        '<section class="or-workbench-hero">'
-        '<h1>Your AI workbench for tools, prompts, learning, and jobs.</h1>'
-        '<p>Find useful AI tools, reusable prompt kits, practical '
-        'learning paths, and career signals without drowning in noise.</p>'
-        '</section>',
-        unsafe_allow_html=True,
+    # The today cards come from the existing _TODAY_PICKS list but we
+    # render them inside the chassis shell as one HTML chunk.
+    today_cards_html = _render_today_picks(as_html=True)
+    today_head_html = (
+            '<div class="ort-today-head">'
+            '<div>'
+            '<div class="ort-eyebrow">Today · Static Picks</div>'
+            '<h2>Four practical picks for today’s workbench session.</h2>'
+            '</div>'
+            '<div class="ort-pager">'
+            '<a class="ort-nav-arrow" href="#" aria-label="Previous">‹</a>'
+            '<a class="ort-nav-arrow" href="#" aria-label="Next">›</a>'
+            '<span style="margin-left:6px">01 / 04</span>'
+            '</div>'
+            '</div>'
+        )
+    today_grid_html = (
+        '<div class="ort-today-grid">' + today_cards_html + '</div>'
     )
 
-    # PR15: explicit Today picks — small static module, no glued text.
-    section_head(
-        "TODAY · STATIC PICKS",
-        "Today",
-        "Four practical picks for today’s workbench session.",
+    # ONE single st.markdown call emits the entire Home body — chassis +
+    # screws + stamp + screen frame + screen face + top status bezel +
+    # hero body + Today head + Today grid + screen footer + chassis
+    # nameplate + feet, then closing tags for chassis + screen-frame +
+    # screen + .ort-page.
+    ort_page_html = (
+        '<div class="ort-page">'
+        + '<section class="ort-chassis" role="region" aria-label="OpenRadar terminal">'
+        + '<span class="ort-screw ort-screw--tl" aria-hidden="true"></span>'
+        + '<span class="ort-screw ort-screw--tr" aria-hidden="true"></span>'
+        + '<span class="ort-screw ort-screw--bl" aria-hidden="true"></span>'
+        + '<span class="ort-screw ort-screw--br" aria-hidden="true"></span>'
+        + '<span class="ort-stamp" aria-hidden="true">OpenRadar · <b>v0.3</b></span>'
+        + '<div class="ort-screen-frame">'
+        + '<span class="ort-rivet ort-rivet--tl" aria-hidden="true"></span>'
+        + '<span class="ort-rivet ort-rivet--tr" aria-hidden="true"></span>'
+        + '<span class="ort-rivet ort-rivet--bl" aria-hidden="true"></span>'
+        + '<span class="ort-rivet ort-rivet--br" aria-hidden="true"></span>'
+        + '<div class="ort-screen">'
+        + '<div class="ort-screen-status" role="group" aria-label="System telemetry">'
+        + '<div class="left">'
+        + '<span class="item"><span class="led led--rec" aria-hidden="true"></span>REC</span>'
+        + '<span class="sep">│</span>'
+        + '<span class="item"><span class="led led--green" aria-hidden="true"></span><span class="v-acc">4 SIGNALS</span></span>'
+        + '<span class="sep">│</span>'
+        + '<span class="item"><span class="led led--green" aria-hidden="true"></span><span class="v-acc">3 TOOLS</span></span>'
+        + '<span class="sep">│</span>'
+        + '<span class="item"><span class="led led--amber" aria-hidden="true"></span><span class="v">3 JOBS</span></span>'
+        + '</div>'
+        + '<div class="right"><span class="live">Mode · Live</span></div>'
+        + '</div>'
+        + '<div class="ort-screen-body">'
+        + '<div class="ort-screen-copy">'
+        + '<span class="ort-eyebrow">OpenRadar / Workbench</span>'
+        + '<h1 class="ort-h1">'
+        + '<span class="lead">Find what works,</span><br>'
+        + '<span class="accent">scan · build · ship · repeat.</span>'
+        + '</h1>'
+        + '<p class="ort-sub">Four practical picks, refreshed daily, for engineers building with AI tools and prompts. No feed. No noise. Just signal.</p>'
+        + '<div class="ort-ctas">'
+        + '<a class="ort-cta ort-cta--primary" href="?section=news">'
+        + 'Explore Tools'
+        + '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">'
+        + '<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '</svg>'
+        + '</a>'
+        + '<a class="ort-cta ort-cta--ghost" href="#today">'
+        + 'Today’s Picks'
+        + '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">'
+        + '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>'
+        + '</svg>'
+        + '</a>'
+        + '<a class="ort-cta ort-cta--amber" href="?section=prompts" title="Open prompt kits">'
+        + 'Prompt kits'
+        + '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">'
+        + '<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '</svg>'
+        + '</a>'
+        + '</div>'
+        + '</div>'
+        + '<div class="ort-radar-wrap">'
+        + '<div class="ort-radar-frame">'
+        + '<div class="ort-radar-shell" role="img" aria-label="Live radar scope with concentric range rings, a sweeping arm, and four plotted contact blips">'
+        + '<span class="ort-radar-anno ort-radar-anno--tl"><span class="k">RNG</span><span class="v">200</span></span>'
+        + '<span class="ort-radar-anno ort-radar-anno--tr"><span class="k">BRG</span><span class="v">060°</span></span>'
+        + '<span class="ort-radar-anno ort-radar-anno--bl"><span class="k">SWP</span><span class="v">05.0s</span></span>'
+        + '<span class="ort-radar-anno ort-radar-anno--br"><span class="k">CHN</span><span class="v">A</span></span>'
+        + '<svg viewBox="0 0 320 320" role="presentation" aria-hidden="true">'
+        + '<defs>'
+        + '<radialGradient id="glassGrad" cx="50%" cy="50%" r="50%">'
+        + '<stop offset="50%" stop-color="rgba(0,0,0,0)"/>'
+        + '<stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>'
+        + '</radialGradient>'
+        + '<radialGradient id="ringGlow" cx="50%" cy="50%" r="50%">'
+        + '<stop offset="80%" stop-color="rgba(166,255,138,0)"/>'
+        + '<stop offset="100%" stop-color="rgba(166,255,138,.12)"/>'
+        + '</radialGradient>'
+        + '</defs>'
+        + '<circle cx="160" cy="160" r="156" fill="url(#ringGlow)"/>'
+        + '<circle cx="160" cy="160" r="148" fill="url(#glassGrad)"/>'
+        + '<circle cx="160" cy="160" r="148" fill="none" stroke="rgba(166,255,138,0.20)" stroke-width="1"/>'
+        + '<circle cx="160" cy="160" r="152" fill="none" stroke="rgba(166,255,138,0.05)" stroke-width="6"/>'
+        + '<circle cx="160" cy="160" r="120" fill="none" stroke="#A6FF8A" stroke-opacity="0.32" stroke-width="0.8"/>'
+        + '<circle cx="160" cy="160" r="90"  fill="none" stroke="#A6FF8A" stroke-opacity="0.46" stroke-width="0.8"/>'
+        + '<circle cx="160" cy="160" r="60"  fill="none" stroke="#A6FF8A" stroke-opacity="0.58" stroke-width="0.8"/>'
+        + '<circle cx="160" cy="160" r="30"  fill="none" stroke="#A6FF8A" stroke-opacity="0.42" stroke-width="0.8"/>'
+        + '<line x1="160" y1="14" x2="160" y2="306" stroke="rgba(166,255,138,0.30)" stroke-width="0.7"/>'
+        + '<line x1="14"  y1="160" x2="306" y2="160" stroke="rgba(166,255,138,0.30)" stroke-width="0.7"/>'
+        + '<g stroke="rgba(166,255,138,0.32)" stroke-width="0.5">'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(30 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(60 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(120 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(150 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(210 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(240 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(300 160 160)"/>'
+        + '<line x1="160" y1="17" x2="160" y2="22" transform="rotate(330 160 160)"/>'
+        + '</g>'
+        + '<g font-family="JetBrains Mono, monospace" font-size="10" fill="#5FBE7A" text-anchor="middle" letter-spacing="0.20em">'
+        + '<text x="160" y="14">000°</text>'
+        + '<text x="312" y="163">090°</text>'
+        + '<text x="160" y="316">180°</text>'
+        + '<text x="14"  y="164">270°</text>'
+        + '</g>'
+        + '<g font-family="JetBrains Mono, monospace" font-size="9" fill="rgba(221,230,220,0.42)" letter-spacing="0.10em">'
+        + '<text x="160" y="172" text-anchor="middle">50</text>'
+        + '<text x="160" y="142" text-anchor="middle">100</text>'
+        + '<text x="160" y="112" text-anchor="middle">150</text>'
+        + '<text x="160" y="82"  text-anchor="middle">200</text>'
+        + '</g>'
+        + '<g class="ort-sweep">'
+        + '<path d="M160 160 L160 12 A148 148 0 0 1 287.4 84 Z" fill="#A6FF8A" fill-opacity="0.10"/>'
+        + '<path d="M160 160 L287.4 84 A148 148 0 0 1 295 102 L160 160 Z" fill="#A6FF8A" fill-opacity="0.30"/>'
+        + '<line x1="160" y1="160" x2="287.4" y2="84" stroke="#A6FF8A" stroke-opacity="0.92" stroke-width="1.4"/>'
+        + '</g>'
+        + '<circle cx="96"  cy="119" r="3.6" fill="#A6FF8A"/>'
+        + '<circle cx="96"  cy="119" r="6.5" fill="none" stroke="#A6FF8A" stroke-opacity="0.32"/>'
+        + '<circle cx="228" cy="91"  r="3.2" fill="#A6FF8A"/>'
+        + '<circle cx="98"  cy="228" r="3.0" fill="#A6FF8A" fill-opacity="0.55"/>'
+        + '<circle cx="206" cy="222" r="2.8" fill="#A6FF8A" fill-opacity="0.78"/>'
+        + '<circle cx="160" cy="160" r="6"  fill="#A6FF8A" fill-opacity="0.40"/>'
+        + '<circle cx="160" cy="160" r="12" fill="#A6FF8A" fill-opacity="0.18"/>'
+        + '</svg>'
+        + '</div>'
+        + '</div>'
+        + '<p class="ort-radar-caption">Scanning the signal. <b>Finding what matters.</b></p>'
+        + '</div>'
+        + '</div>'
+        + today_head_html
+        + today_grid_html
+        + '<div class="ort-screen-foot">'
+        + '<span>Source · Static Workbench Picks</span>'
+        + '<span>Updated Daily · v0.3</span>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="ort-nameplate">'
+        + '<span class="ort-stencil">OpenRadar Atomic Intelligence</span>'
+        + '<span>Model · v0.3 · Workbench</span>'
+        + '</div>'
+        + '<div class="ort-feet" aria-hidden="true">'
+        + '<span></span><span></span>'
+        + '</div>'
+        + '</section>'
+        + '</div>'
     )
-    _render_today_picks()
+    st.markdown(ort_page_html, unsafe_allow_html=True)
 
     # ── Bento: News / Tools / Jobs (one cell each) ──
     hn = load_hn()[:3]

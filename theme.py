@@ -237,7 +237,7 @@ def render_css() -> str:
     m = MOTION
 
     return f"""<style>
-  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap');
 
   :root {{
     --bg: {c['bg']};
@@ -1136,5 +1136,618 @@ def render_css() -> str:
       padding-left: 1.2rem;
       padding-right: 1.2rem;
     }}
+  }}
+
+  /* ╔══════════════════════════════════════════════════════════════════╗
+     ║ RADAR TERMINAL HOME — v2.1 design integration                         ║
+     ║ Approved visual target: /tmp/openradar-fallout-terminal-concept-v2-1.html.       ║
+     ║ All selectors prefixed with `.ort-page` so they cannot leak onto        ║
+     ║ Tools / Prompt Kits / Learn / Jobs (those sections do not emit         ║
+     ║ `.ort-page` in their HTML).                                             ║
+     ║ No emotion-cache selectors. No raw Streamlit column references.         ║
+     ╚══════════════════════════════════════════════════════════════════╝ */
+
+  /* ── tokens (shared with the standalone v2.1 concept) ────── */
+  .ort-page{{
+    --ort-bg-room:        #0B0D0E;
+    --ort-bg-room-2:      #05080A;
+    --ort-bg-chassis:     #0F1416;
+    --ort-bg-panel:       #0A1110;
+    --ort-radar:          #A6FF8A;
+    --ort-radar-dim:      #5FBE7A;
+    --ort-cyan-crt:       #7EE7DF;
+    --ort-amber-rec:      #F0A040;
+    --ort-red-rec:        #E25822;
+    --ort-ink:            #DDE6DC;
+    --ort-ink-mid:        rgba(221, 230, 220, 0.78);
+    --ort-ink-dim:        rgba(221, 230, 220, 0.50);
+    --ort-ink-deep:       rgba(221, 230, 220, 0.32);
+    --ort-line:           rgba(166, 255, 138, 0.20);
+    --ort-line-strong:    rgba(166, 255, 138, 0.40);
+    --ort-font-display:   'Space Grotesk', system-ui, sans-serif;
+    --ort-font-editorial: 'Newsreader', Georgia, serif;
+    --ort-font-body:      'Inter', system-ui, -apple-system, sans-serif;
+    --ort-font-mono:      'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }}
+
+  /* ── the chassis (three-layer device shell) ───────────────── */
+  .ort-page .ort-chassis{{
+    position:relative;
+    margin-top:18px;
+    background:
+      linear-gradient(180deg, #232930 0%, #1A1F23 30%, #13181B 65%, #181D21 100%),
+      radial-gradient(ellipse at 30% 10%, rgba(255,255,255,.045), transparent 60%);
+    border-radius:20px;
+    padding:22px 22px 24px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.08) inset,
+      0 1px 0 rgba(166,255,138,.05) inset,
+      0 -1px 0 rgba(0,0,0,.7) inset,
+      0 2px 6px rgba(0,0,0,.55),
+      0 16px 32px rgba(0,0,0,.55),
+      0 40px 80px rgba(0,0,0,.45);
+  }}
+  .ort-page .ort-chassis::before{{
+    content:"";position:absolute;inset:0;border-radius:20px;
+    pointer-events:none;z-index:0;
+    background-image:repeating-linear-gradient(135deg,
+      rgba(255,255,255,.022) 0 1px, transparent 1px 5px);
+  }}
+  .ort-page .ort-chassis::after{{
+    content:"";position:absolute;inset:0;border-radius:20px;
+    pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse 200px 60px at 18% 92%, rgba(0,0,0,.20), transparent 60%),
+      radial-gradient(ellipse 280px 50px at 82% 8%, rgba(255,255,255,.030), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.018) 0%, transparent 5%, transparent 95%, rgba(0,0,0,.18) 100%);
+  }}
+
+  /* corner screws */
+  .ort-page .ort-screw{{position:absolute;width:14px;height:14px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #5A6266, #2C3034 60%, #1A1E22 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.10) inset,
+      0 -1px 0 rgba(0,0,0,.5) inset,
+      0 0 0 1px rgba(0,0,0,.5),
+      0 1px 2px rgba(0,0,0,.6);
+    z-index:3}}
+  .ort-page .ort-screw::after{{
+    content:"";position:absolute;left:50%;top:50%;width:1.5px;height:7px;
+    background:rgba(0,0,0,.7);transform:translate(-50%,-50%) rotate(28deg);
+    box-shadow:0 0 0 0.5px rgba(0,0,0,.4);
+  }}
+  .ort-page .ort-screw--tl{{top:10px;left:10px}}
+  .ort-page .ort-screw--tr{{top:10px;right:10px}}
+  .ort-page .ort-screw--bl{{bottom:10px;left:10px}}
+  .ort-page .ort-screw--br{{bottom:10px;right:10px}}
+
+  /* STAMP between the top screws */
+  .ort-page .ort-stamp{{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    font-family:var(--ort-font-mono);font-size:0.52rem;letter-spacing:0.30em;
+    text-transform:uppercase;color:rgba(180, 195, 175, 0.45);
+    padding:2px 10px;border:1px solid rgba(180, 195, 175, 0.12);
+    border-radius:2px;background:rgba(0,0,0,.18);
+    z-index:2;pointer-events:none;
+  }}
+  .ort-page .ort-stamp b{{color:rgba(200, 210, 195, 0.6);font-weight:600}}
+
+  /* ── the screen frame (inner bezel between chassis and CRT) ── */
+  .ort-page .ort-screen-frame{{
+    position:relative;
+    border-radius:12px;
+    background:linear-gradient(180deg, #0C100E 0%, #080C0B 100%);
+    padding:18px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.05) inset,
+      0 -1px 0 rgba(166,255,138,.08) inset,
+      0 0 0 1px rgba(0,0,0,.6),
+      0 4px 16px rgba(0,0,0,.6) inset,
+      0 0 30px rgba(0,0,0,.4);
+  }}
+  .ort-page .ort-rivet{{position:absolute;width:6px;height:6px;border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, #6A7074, #2C3034 60%, #15181B 100%);
+    box-shadow:0 0 0 1px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08);
+    z-index:2}}
+  .ort-page .ort-rivet--tl{{top:6px;left:6px}}
+  .ort-page .ort-rivet--tr{{top:6px;right:6px}}
+  .ort-page .ort-rivet--bl{{bottom:6px;left:6px}}
+  .ort-page .ort-rivet--br{{bottom:6px;right:6px}}
+
+  /* ── the screen face (the CRT itself) ──────────────────────── */
+  .ort-page .ort-screen{{
+    position:relative;
+    border-radius:6px;
+    background:
+      radial-gradient(ellipse 70% 50% at 6% 2%, rgba(166,255,138,.10), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 94% 98%, rgba(126,231,223,.06), transparent 60%),
+      radial-gradient(ellipse 100% 80% at 50% 50%, rgba(166,255,138,.04), transparent 80%),
+      var(--ort-bg-panel);
+    padding:18px 22px 16px;
+    overflow:hidden;
+    box-shadow:
+      0 0 0 1px rgba(166,255,138,.18),
+      0 0 28px rgba(166,255,138,.06),
+      inset 0 0 90px rgba(0,0,0,.5);
+  }}
+  .ort-page .ort-screen::before{{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:repeating-linear-gradient(to bottom,
+      rgba(166,255,138,.05) 0 1px, transparent 1px 3px);
+    mix-blend-mode:screen;z-index:1;
+  }}
+  .ort-page .ort-screen::after{{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(166,255,138,.04) 0%, transparent 50%, rgba(0,0,0,.42) 100%),
+      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.025), transparent 50%);
+    z-index:2;
+  }}
+  .ort-page .ort-screen > *{{position:relative;z-index:3}}
+
+  /* ── topnav ───────────────────────────────────────────────────
+       Topnav lives outside .ort-page (rendered by render_top_nav,
+       not render_groq). The working rules live below this comment
+       as unprefixed selectors. The .ort-page-prefixed duplicates
+       that previously lived here never matched and were dead code. */
+
+  /* ── status bezel (telemetry strip) ───────────────────────── */
+  .ort-page .ort-screen-status{{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:11px 16px;
+    background:linear-gradient(180deg, #0A0D0F 0%, #06080A 100%);
+    border:1px solid var(--ort-line);
+    border-radius:5px;
+    margin-top:12px;
+  }}
+  .ort-page .ort-screen-status .left,
+  .ort-page .ort-screen-status .right{{
+    display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }}
+  .ort-page .ort-screen-status .led{{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    box-shadow:0 0 6px currentColor;
+    animation:ort-pulse 2.4s ease-in-out infinite;
+  }}
+  .ort-page .ort-screen-status .led--rec{{color:var(--ort-red-rec);background:var(--ort-red-rec);
+    animation:ort-pulse-fast 1.4s ease-in-out infinite}}
+  .ort-page .ort-screen-status .led--amber{{color:var(--ort-amber-rec);background:var(--ort-amber-rec)}}
+  .ort-page .ort-screen-status .led--green{{color:var(--ort-radar);background:var(--ort-radar)}}
+  .ort-page .ort-screen-status .item{{display:inline-flex;align-items:center;gap:6px}}
+  .ort-page .ort-screen-status .live{{color:var(--ort-radar);font-weight:600}}
+  .ort-page .ort-screen-status .v{{color:var(--ort-ink);font-weight:500}}
+  .ort-page .ort-screen-status .v-acc{{color:var(--ort-radar);font-weight:500}}
+  .ort-page .ort-screen-status .sep{{color:var(--ort-ink-deep);opacity:.55;margin:0 4px}}
+
+  /* ── hero (left copy + right radar) ──────────────────────── */
+  .ort-page .ort-screen-body{{
+    display:grid;
+    grid-template-columns:minmax(0, 1.18fr) minmax(0, 1fr);
+    gap:38px;align-items:stretch;
+    padding:30px 4px 22px;
+  }}
+  .ort-page .ort-screen-copy{{display:flex;flex-direction:column;justify-content:center;min-width:0}}
+  .ort-page .ort-eyebrow{{
+    font-family:var(--ort-font-mono);font-size:.66rem;letter-spacing:0.24em;
+    text-transform:uppercase;color:var(--ort-radar);margin:0 0 18px;
+    display:flex;align-items:center;gap:10px;
+  }}
+  .ort-page .ort-eyebrow::before{{
+    content:"";display:inline-block;width:24px;height:1px;background:var(--ort-line-strong);
+  }}
+  .ort-page .ort-h1{{
+    font-family:var(--ort-font-display);font-weight:700;
+    font-size:clamp(1.7rem, 3.4vw, 2.6rem);
+    line-height:1.06;letter-spacing:0;margin:0 0 18px;
+    color:var(--ort-ink);
+  }}
+  .ort-page .ort-h1 .lead{{color:var(--ort-ink);font-weight:600}}
+  .ort-page .ort-h1 .accent{{
+    color:var(--ort-radar);font-family:var(--ort-font-editorial);
+    font-style:italic;font-weight:500;letter-spacing:.005em;
+    text-shadow:0 0 18px rgba(166,255,138,.32);
+  }}
+  .ort-page .ort-sub{{
+    font-family:var(--ort-font-body);font-size:0.98rem;line-height:1.6;
+    color:var(--ort-ink-mid);margin:0 0 22px;max-width:46ch;
+  }}
+  .ort-page .ort-ctas{{display:flex;flex-wrap:wrap;gap:10px;margin-top:auto}}
+  .ort-page .ort-cta{{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:11px 18px;border-radius:5px;
+    font-family:var(--ort-font-display);font-size:0.78rem;letter-spacing:0.20em;
+    text-transform:uppercase;text-decoration:none !important;
+    border:1px solid var(--ort-line-strong);white-space:nowrap;
+    transition:all .15s ease;
+  }}
+  .ort-page .ort-cta svg{{width:14px;height:14px}}
+  .ort-page .ort-cta--primary{{
+    background:rgba(166,255,138,.14);color:var(--ort-radar) !important;
+    box-shadow:inset 0 0 0 1px rgba(166,255,138,.18),0 0 14px rgba(166,255,138,.10);
+  }}
+  .ort-page .ort-cta--primary:hover{{
+    background:rgba(166,255,138,.22);
+    box-shadow:inset 0 0 0 1px rgba(166,255,138,.30),0 0 22px rgba(166,255,138,.18);
+  }}
+  .ort-page .ort-cta--ghost{{color:var(--ort-ink) !important;background:transparent}}
+  .ort-page .ort-cta--ghost:hover{{color:var(--ort-radar) !important;border-color:var(--ort-line-strong)}}
+  .ort-page .ort-cta--amber{{
+    color:var(--ort-amber-rec) !important;border-color:rgba(240,160,64,.45);
+  }}
+  .ort-page .ort-cta--amber:hover{{
+    background:rgba(240,160,64,.10);border-color:rgba(240,160,64,.7);
+    color:var(--ort-amber-rec) !important;
+  }}
+
+  /* ── the radar (CRT scope, premium depth) ─────────────────── */
+  .ort-page .ort-radar-wrap{{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;
+  }}
+  .ort-page .ort-radar-frame{{
+    position:relative;aspect-ratio:1/1;width:100%;max-width:400px;
+    border-radius:50%;padding:16px;
+    background:linear-gradient(180deg, #1B2125 0%, #0D1216 50%, #161B1F 100%);
+    border:1px solid rgba(255,255,255,.05);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 -1px 0 rgba(0,0,0,.7),
+      0 0 0 1px rgba(0,0,0,.7),
+      0 14px 32px rgba(0,0,0,.6),
+      0 0 0 8px rgba(0,0,0,.55);
+  }}
+  .ort-page .ort-radar-frame::before{{
+    content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);
+    width:62%;height:14px;border-radius:50%;
+    background:radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.10), transparent 70%);
+    pointer-events:none;
+  }}
+  .ort-page .ort-radar-frame::after{{
+    content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 0%, transparent 9px, rgba(255,255,255,.06) 10px, transparent 11px),
+      radial-gradient(circle at 50% 100%, transparent 9px, rgba(255,255,255,.06) 10px, transparent 11px),
+      radial-gradient(circle at 0% 50%, transparent 9px, rgba(255,255,255,.06) 10px, transparent 11px),
+      radial-gradient(circle at 100% 50%, transparent 9px, rgba(255,255,255,.06) 10px, transparent 11px);
+  }}
+  .ort-page .ort-radar-shell{{
+    position:relative;width:100%;height:100%;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(166,255,138,.10) 0%, rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 50% 50%, #0E1812 0%, #06080A 100%);
+    box-shadow:
+      0 0 0 1px var(--ort-line-strong),
+      0 0 0 4px rgba(0,0,0,.5),
+      inset 0 0 70px rgba(0,0,0,.7),
+      inset 0 0 24px rgba(166,255,138,.06);
+  }}
+  .ort-page .ort-radar-shell svg{{width:100%;height:100%;display:block}}
+  .ort-page .ort-radar-anno{{
+    position:absolute;font-family:var(--ort-font-mono);
+    font-size:0.58rem;letter-spacing:0.20em;text-transform:uppercase;
+    color:var(--ort-radar-dim);pointer-events:none;line-height:1;
+  }}
+  .ort-page .ort-radar-anno .k{{color:var(--ort-ink-deep);margin-right:4px}}
+  .ort-page .ort-radar-anno .v{{color:var(--ort-radar);font-weight:600}}
+  .ort-page .ort-radar-anno--tl{{top:14px;left:22px}}
+  .ort-page .ort-radar-anno--tr{{top:14px;right:22px;text-align:right}}
+  .ort-page .ort-radar-anno--bl{{bottom:14px;left:22px}}
+  .ort-page .ort-radar-anno--br{{bottom:14px;right:22px;text-align:right}}
+  .ort-page .ort-radar-caption{{
+    margin-top:16px;text-align:center;
+    font-family:var(--ort-font-body);font-size:0.78rem;letter-spacing:0.10em;
+    text-transform:uppercase;color:var(--ort-ink-dim);max-width:360px;
+  }}
+  .ort-page .ort-radar-caption b{{color:var(--ort-ink);font-weight:600}}
+  .ort-page .ort-sweep{{transform-origin:50% 50%;animation:ort-sweep 5s linear infinite}}
+
+  /* ── Today section ─────────────────────────────────────────── */
+  .ort-page .ort-today-head{{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin:30px 0 14px;gap:14px;flex-wrap:wrap;
+  }}
+  .ort-page .ort-today-head .ort-eyebrow{{margin-bottom:0}}
+  .ort-page .ort-today-head h2{{
+    font-family:var(--ort-font-editorial);font-style:italic;font-weight:500;
+    font-size:1.45rem;line-height:1.2;color:var(--ort-ink);margin:6px 0 0;
+    letter-spacing:-0.005em;
+  }}
+  .ort-page .ort-today-head .ort-pager{{
+    font-family:var(--ort-font-mono);font-size:0.62rem;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--ort-ink-dim);
+    display:inline-flex;align-items:center;gap:6px;
+  }}
+  .ort-page .ort-today-head .ort-nav-arrow{{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:24px;height:22px;border:1px solid var(--ort-line);
+    border-radius:3px;color:var(--ort-ink) !important;
+    text-decoration:none !important;
+  }}
+
+  .ort-page .ort-today-grid{{
+    display:grid;gap:14px;
+    grid-template-columns:repeat(4, minmax(0,1fr));
+    align-items:stretch;grid-auto-rows:1fr;
+  }}
+  .ort-page .ort-card{{
+    display:flex;flex-direction:column;gap:10px;
+    background:linear-gradient(180deg, #0B0F0D 0%, #080C0B 100%);
+    border:1px solid var(--ort-line);border-radius:6px;
+    padding:16px 16px 14px;position:relative;min-height:230px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  }}
+  .ort-page .ort-card::before{{
+    content:"";position:absolute;top:6px;left:6px;width:10px;height:10px;
+    border-top:1px solid var(--ort-radar);border-left:1px solid var(--ort-radar);
+    opacity:0.65;
+  }}
+  .ort-page .ort-card::after{{
+    content:"";position:absolute;bottom:6px;right:6px;width:10px;height:10px;
+    border-bottom:1px solid var(--ort-radar);border-right:1px solid var(--ort-radar);
+    opacity:0.65;
+  }}
+  .ort-page .ort-card-label{{
+    font-family:var(--ort-font-mono);font-size:0.66rem;letter-spacing:0.20em;
+    text-transform:uppercase;color:var(--ort-radar);margin:0;
+    display:flex;align-items:center;gap:8px;padding-left:14px;
+  }}
+  .ort-page .ort-card-label .ort-led{{
+    display:inline-block;width:5px;height:5px;border-radius:50%;
+    background:var(--ort-radar);box-shadow:0 0 4px rgba(166,255,138,.6);
+  }}
+  .ort-page .ort-card-title{{
+    font-family:var(--ort-font-display);font-weight:600;font-size:1.05rem;
+    line-height:1.28;color:var(--ort-ink);margin:0;padding-left:14px;
+    letter-spacing:0.005em;
+  }}
+  .ort-page .ort-card-body{{
+    font-family:var(--ort-font-mono);font-size:0.76rem;line-height:1.55;
+    color:var(--ort-ink-dim);margin:0;padding-left:14px;flex:1;
+  }}
+  .ort-page .ort-card-foot{{
+    margin-top:auto;padding:10px 0 0 14px;
+    border-top:1px dashed rgba(166,255,138,.10);
+    display:flex;align-items:center;justify-content:flex-end;
+  }}
+  .ort-page .ort-card-cta{{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--ort-font-mono);font-size:0.66rem;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--ort-radar) !important;
+    text-decoration:none !important;
+  }}
+  .ort-page .ort-card-cta svg{{width:11px;height:11px;transition:transform .15s}}
+  .ort-page .ort-card-cta:hover svg{{transform:translateX(2px)}}
+
+  .ort-page .ort-screen-foot{{
+    margin-top:18px;padding-top:12px;
+    border-top:1px dashed var(--ort-line);
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--ort-font-mono);font-size:0.6rem;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--ort-ink-dim);
+    flex-wrap:wrap;gap:10px;
+  }}
+  .ort-page .ort-nameplate{{
+    margin-top:18px;display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--ort-font-mono);font-size:0.58rem;letter-spacing:0.22em;
+    text-transform:uppercase;color:rgba(180, 195, 175, 0.4);
+    flex-wrap:wrap;gap:8px;
+  }}
+  .ort-page .ort-nameplate .ort-stencil{{
+    display:inline-flex;align-items:center;gap:8px;
+    color:rgba(200, 210, 195, 0.5);
+  }}
+  .ort-page .ort-nameplate .ort-stencil::before{{
+    content:"";display:inline-block;width:14px;height:1px;
+    background:rgba(180, 195, 175, 0.4);
+  }}
+  .ort-page .ort-feet{{margin-top:14px;display:flex;justify-content:space-between}}
+  .ort-page .ort-feet span{{
+    display:inline-block;width:64px;height:6px;border-radius:3px;
+    background:linear-gradient(180deg, #1E2428 0%, #0A0D10 100%);
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 0 6px rgba(0,0,0,.5);
+  }}
+
+  /* ── animations ───────────────────────────────────────────── */
+  @keyframes ort-pulse{{0%,100%{{opacity:1;transform:scale(1)}}50%{{opacity:.35;transform:scale(.78)}}}}
+  @keyframes ort-pulse-fast{{0%,100%{{opacity:1}}50%{{opacity:.2}}}}
+  @keyframes ort-sweep{{from{{transform:rotate(0deg)}}to{{transform:rotate(360deg)}}}}
+
+  /* ── responsive ──────────────────────────────────────────── */
+  @media (max-width:1180px){{
+    .ort-page .ort-screen-body{{grid-template-columns:1fr;gap:24px;padding:24px 8px 18px}}
+    .ort-page .ort-radar-frame{{max-width:340px;margin:0 auto}}
+  }}
+  @media (max-width:720px){{
+    .ort-page .ort-chassis{{padding:14px;border-radius:14px}}
+    .ort-page .ort-stamp{{font-size:0.46rem;letter-spacing:0.20em;padding:2px 8px}}
+    .ort-page .ort-screen-frame{{padding:12px;border-radius:8px}}
+    .ort-page .ort-screen{{padding:14px 14px 12px}}
+    .ort-page .ort-screen-body{{padding:18px 6px 12px;gap:18px}}
+    .ort-page .ort-h1{{font-size:1.45rem;line-height:1.08}}
+    .ort-page .ort-eyebrow{{font-size:.55rem;letter-spacing:0.22em;margin-bottom:12px}}
+    .ort-page .ort-eyebrow::before{{width:14px}}
+    .ort-page .ort-radar-frame{{max-width:300px;padding:12px}}
+    .ort-page .ort-radar-anno{{font-size:0.5rem;letter-spacing:0.16em}}
+    .ort-page .ort-radar-anno--tl{{left:14px}}
+    .ort-page .ort-radar-anno--tr{{right:14px}}
+    .ort-page .ort-radar-anno--bl{{left:14px}}
+    .ort-page .ort-radar-anno--br{{right:14px}}
+    .ort-page .ort-radar-caption{{font-size:0.7rem}}
+    .ort-page .ort-today-grid{{grid-template-columns:repeat(2, minmax(0,1fr))}}
+    .ort-page .ort-screen-status{{font-size:0.55rem;gap:8px;padding:11px 14px}}
+    .ort-page .ort-screen-status .left,
+    .ort-page .ort-screen-status .right{{gap:8px}}
+    .ort-page .ort-nameplate{{font-size:0.5rem;letter-spacing:0.18em}}
+    .ort-page .ort-feet span{{width:48px}}
+  }}
+
+  /* very narrow (414 / 393): collapse topnav to 2-row, all 5 tabs
+     on a single line at the bottom, brand + status pill on row 1.
+     Topnav is outside .ort-page, so use unprefixed selectors to
+     match the actual rendered elements. The .ort-page-prefixed
+     duplicates that previously lived here never matched. */
+  @media (max-width:480px){{
+    .ort-topnav{{
+      grid-template-columns:1fr auto;
+      grid-template-areas:
+        "brand action"
+        "tabs   tabs";
+      column-gap:10px;row-gap:10px;
+      padding:10px 14px;
+    }}
+    .ort-brand{{grid-area:brand;min-width:0}}
+    .ort-nav{{grid-area:tabs;min-width:0;justify-content:space-between;gap:2px;flex-wrap:nowrap}}
+    .ort-nav-action{{grid-area:action}}
+    .ort-kicker{{display:none}}
+    .ort-name{{font-size:0.98rem;letter-spacing:0.18em}}
+    .ort-brand .ort-mark{{width:30px;height:30px}}
+    .ort-sys-pill{{padding:5px 9px;font-size:0.55rem;letter-spacing:0.14em}}
+    .ort-sys-pill .label-wide{{display:none}}
+    .ort-tab{{padding:6px 6px;gap:5px;font-size:0.6rem;letter-spacing:0.10em;min-width:0}}
+    .ort-tab .ort-tab-dot{{display:none}}
+    .ort-page .ort-h1{{font-size:1.25rem}}
+    .ort-page .ort-radar-frame{{max-width:240px}}
+    .ort-page .ort-cta{{padding:9px 14px;font-size:0.7rem;letter-spacing:0.16em;gap:8px}}
+    .ort-page .ort-radar-anno{{font-size:0.42rem;letter-spacing:0.10em}}
+    .ort-page .ort-radar-anno--tl{{left:6px;top:6px}}
+    .ort-page .ort-radar-anno--tr{{right:6px;top:6px}}
+    .ort-page .ort-radar-anno--bl{{left:6px;bottom:6px}}
+    .ort-page .ort-radar-anno--br{{right:6px;bottom:6px}}
+    .ort-page .ort-radar-caption{{font-size:0.66rem;margin-top:12px}}
+  }}
+  @media (max-width:560px){{
+    .ort-page .ort-today-grid{{grid-template-columns:1fr}}
+  }}
+  @media (max-width:380px){{
+    .ort-page .ort-radar-frame{{max-width:210px}}
+  }}
+
+  /* ── reduced motion (scoped to .ort-* selectors only) ─────
+     .ort-sweep / .ort-screen-status / .ort-card-label live inside
+     .ort-page (Home only) so they keep the prefix.
+     .ort-name .ort-mark-glow and .ort-sys-pill .ort-led live in
+     the topnav (outside .ort-page) so they are unprefixed. */
+  @media (prefers-reduced-motion: reduce){{
+    .ort-page .ort-sweep,
+    .ort-name .ort-mark-glow,
+    .ort-sys-pill .ort-led,
+    .ort-page .ort-screen-status .led,
+    .ort-page .ort-card-label .ort-led{{
+      animation:none !important;opacity:0.85 !important;
+    }}
+  }}
+
+  /* ── v2.1 NARROW REPAIR · topnav-only selectors (no .ort-page prefix)
+     Reason: .ort-topnav / .ort-nav / .ort-tab etc are NOT inside
+     `.ort-page` (the chassis lives in render_groq, but the topnav lives
+     in render_top_nav() which does NOT emit `.ort-page`). So all
+     `.ort-page .ort-topnav*` selectors in the v2.1 CSS block above
+     never match. We add unprefixed selectors for the topnav row
+     only (topnav is the only place these classes are emitted, so
+     it doesn't bleed onto other sections). The rest of the chassis
+     CSS keeps the `.ort-page` prefix and is unaffected. */
+  .ort-topnav{{
+    position:relative;display:grid;
+    grid-template-columns:minmax(0,auto) minmax(0,1fr) auto;
+    align-items:center;gap:18px;
+    padding:14px 22px 12px;
+    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,0));
+    border:1px solid rgba(255, 255, 255, 0.06);
+    border-radius:8px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      inset 0 -1px 0 rgba(0,0,0,.55),
+      0 6px 16px rgba(0, 0, 0, 0.30);
+  }}
+  .ort-topnav::after{{
+    content:"";position:absolute;left:18px;right:18px;bottom:-1px;height:1px;
+    background:linear-gradient(90deg, transparent 0%, var(--ort-line-strong) 50%, transparent 100%);
+    pointer-events:none;
+  }}
+  .ort-brand{{
+    display:inline-flex;align-items:center;gap:14px;
+    text-decoration:none !important;color:inherit !important;min-width:0;
+  }}
+  .ort-brand .ort-mark{{
+    width:36px;height:36px;flex-shrink:0;color:var(--ort-radar);
+    filter:drop-shadow(0 0 5px rgba(166,255,138,.55)) drop-shadow(0 0 16px rgba(166,255,138,.18));
+  }}
+  .ort-brand .ort-mark svg{{width:100%;height:100%;display:block}}
+  .ort-brand-stack{{display:inline-flex;flex-direction:column;line-height:1;gap:5px;min-width:0}}
+  .ort-name{{
+    font-family:var(--ort-font-display);font-weight:700;font-size:1.18rem;
+    letter-spacing:0.20em;color:var(--ort-ink);text-transform:uppercase;
+    white-space:nowrap;display:flex;align-items:center;gap:10px;
+  }}
+  .ort-name .ort-name-dot{{color:var(--ort-radar);font-size:1.1em;line-height:1;padding:0 1px}}
+  .ort-name .ort-mark-glow{{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--ort-radar);box-shadow:0 0 8px rgba(166,255,138,.7);
+    animation:ort-pulse 2.4s ease-in-out infinite;
+  }}
+  .ort-kicker{{
+    font-family:var(--ort-font-mono);font-size:.62rem;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--ort-ink-dim);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:32ch;
+  }}
+  .ort-nav{{
+    display:flex;align-items:center;justify-content:center;gap:4px;
+    min-width:0;min-height:0;align-self:center;
+  }}
+  .ort-tab{{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:9px 14px;border-radius:5px;
+    background:transparent !important;color:var(--ort-ink-mid) !important;
+    font-family:var(--font-mono);font-size:.72rem;letter-spacing:0.16em;
+    text-transform:uppercase;text-decoration:none !important;
+    border:1px solid transparent;white-space:nowrap;
+    transition:color .18s ease, background .18s ease, border-color .18s ease;
+  }}
+  .ort-tab:hover{{color:var(--ort-ink) !important;background:rgba(166,255,138,.04) !important}}
+  .ort-tab.is-active{{
+    color:var(--ort-radar) !important;background:rgba(166,255,138,.10) !important;
+    border-color:var(--ort-line-strong) !important;
+    box-shadow:inset 0 0 0 1px rgba(166,255,138,.10);
+  }}
+  .ort-tab .ort-tab-dot{{
+    display:inline-block;width:5px;height:5px;border-radius:50%;
+    background:transparent;flex-shrink:0;
+  }}
+  .ort-tab.is-active .ort-tab-dot{{background:var(--ort-radar);box-shadow:0 0 6px rgba(166,255,138,.6)}}
+  .ort-nav-action{{
+    display:inline-flex;align-items:center;justify-content:flex-end;gap:10px;
+    min-height:0;min-width:0;width:auto;height:auto;
+  }}
+  .ort-sys-pill{{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 12px;border-radius:999px;
+    border:1px solid var(--ort-line-strong);
+    background:linear-gradient(180deg, rgba(255,255,255,.025), rgba(0,0,0,0));
+    font-family:var(--ort-font-mono);font-size:.6rem;letter-spacing:0.18em;
+    text-transform:uppercase;color:var(--ort-ink-dim);white-space:nowrap;
+  }}
+  .ort-sys-pill .ort-led{{
+    display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--ort-radar);box-shadow:0 0 8px rgba(166,255,138,.7);
+    animation:ort-pulse 2.4s ease-in-out infinite;
+  }}
+  .ort-sys-pill .live{{color:var(--ort-radar)}}
+
+  /* mobile 2-row collapse for the topnav (topnav is the only place
+     these classes are emitted, so unprefixed is safe) */
+  @media (max-width:480px){{
+    .ort-topnav{{
+      grid-template-columns:1fr auto;
+      grid-template-areas:"brand action" "tabs tabs";
+      column-gap:10px;row-gap:10px;padding:10px 14px;
+    }}
+    .ort-brand{{grid-area:brand;min-width:0}}
+    .ort-nav{{grid-area:tabs;min-width:0;justify-content:space-between;gap:2px;flex-wrap:nowrap}}
+    .ort-nav-action{{grid-area:action}}
+    .ort-kicker{{display:none}}
+    .ort-name{{font-size:0.98rem;letter-spacing:0.18em}}
+    .ort-brand .ort-mark{{width:30px;height:30px}}
+    .ort-sys-pill{{padding:5px 9px;font-size:0.55rem;letter-spacing:0.14em}}
+    .ort-tab{{padding:6px 6px;gap:5px;font-size:0.6rem;letter-spacing:0.10em;min-width:0}}
+    .ort-tab .ort-tab-dot{{display:none}}
   }}
 </style>"""
