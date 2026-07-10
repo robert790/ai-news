@@ -110,6 +110,11 @@ git push --force-with-lease origin main
 
 ## 6. Product state
 
+> **Visual contract:** the locked OpenRadar visual language (colors, materials,
+> typography, motion, component rules) lives in [`docs/THEME.md`](docs/THEME.md).
+> That document is the source of truth for any visual PR. This section only
+> tracks the user-facing section list and runtime keys.
+
 ### User-facing sections (PR #19 onwards)
 
 | Section | What it is |
