@@ -32,6 +32,10 @@ Explicitly **not**:
 The feel should read like a **field instrument that has been in service for a
 while** — calm, deliberate, slightly worn — not a synthwave poster.
 
+**Utility before aesthetics.** A visual decision that makes the app
+easier to use beats one that just looks nicer. Decoration exists to
+reinforce function, never to replace it.
+
 ---
 
 ## B. Current accepted baseline (post-PR #35)
