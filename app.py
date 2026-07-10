@@ -2428,6 +2428,44 @@ def render_learning() -> None:
     total = len(ch_list)
     pct = int(done / total * 100) if total else 0
 
+    # ── PR #40: compact status / next-action strip ─────────────────
+    # Answers "What path am I on?" and "What should I do next?" from
+    # the top of the page. Uses the .ort-terminal-status-strip primitive
+    # from PR #37. Pure HTML in a single st.markdown call — no
+    # subsequent Streamlit widgets after this block, so the wrapper
+    # renders correctly (per the PR #39 guardrail).
+    #
+    # Logic:
+    # - Current path label = label of the item in _STATIC_LEARN whose
+    #   key matches learn_focus (set by the Start path button click
+    #   in render_action_cards). Falls back to the first item's label
+    #   if nothing is selected.
+    # - Next recommended chapter = first chapter (in order) whose id is
+    #   not in `completed`. Falls back to the current selected_id if
+    #   everything is complete (so the strip is never empty).
+    focus_key = st.session_state.get("learn_focus") or _STATIC_LEARN[0][0]
+    focus_label = next(
+        (it[1] for it in _STATIC_LEARN if it[0] == focus_key),
+        _STATIC_LEARN[0][1],
+    )
+    next_ch = next((c for c in ch_list if c.id not in completed), None)
+    if next_ch is None:
+        next_ch = ch_list[0]  # all complete: surface the first one
+    next_display = (_LOCALIZE.get(next_ch.id) or {}).get("title") or next_ch.title
+    st.markdown(
+        '<div class="ort-terminal-status-strip" style="margin:0.9rem 0 0.6rem;">'
+        f'<span>PATH</span><span class="sep">\u00b7</span>'
+        f'<span class="v">{esc(focus_label)}</span>'
+        f'<span class="sep">\u00b7</span>'
+        f'<span>PROGRESS</span><span class="sep">\u00b7</span>'
+        f'<span class="v">{done}/{total}</span>'
+        f'<span class="sep">\u00b7</span>'
+        f'<span>NEXT</span><span class="sep">\u00b7</span>'
+        f'<span class="live">{esc(next_display)}</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
     progress_cols = st.columns([1, 4])
     with progress_cols[0]:
         st.markdown(
