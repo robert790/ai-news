@@ -2428,12 +2428,20 @@ def render_learning() -> None:
     total = len(ch_list)
     pct = int(done / total * 100) if total else 0
 
-    # ── PR #40: compact status / next-action strip ─────────────────
-    # Answers "What path am I on?" and "What should I do next?" from
-    # the top of the page. Uses the .ort-terminal-status-strip primitive
-    # from PR #37. Pure HTML in a single st.markdown call — no
-    # subsequent Streamlit widgets after this block, so the wrapper
-    # renders correctly (per the PR #39 guardrail).
+    # ── PR #40 + PR #41: compact status / next-action strip ─────
+    # PR #40 added the strip. PR #41 refines it for clarity:
+    # - Dropped the redundant PROGRESS segment (the bar + label
+    #   below already show done/total).
+    # - Changed "NEXT" label to "NEXT UP" so it reads as
+    #   informational, not imperative-clickable.
+    # - Changed the next-chapter value from .live (phosphor
+    #   green + bold 600) to .v (regular value) so the value
+    #   reads as data, not as a clickable link.
+    # Answers "What path am I on?" and "What should I do next?"
+    # from the top of the page. Uses the .ort-terminal-status-strip
+    # primitive from PR #37. Pure HTML in a single st.markdown
+    # call — no subsequent Streamlit widgets after this block,
+    # so the wrapper renders correctly (per the PR #39 guardrail).
     #
     # Logic:
     # - Current path label = label of the item in _STATIC_LEARN whose
@@ -2457,11 +2465,8 @@ def render_learning() -> None:
         f'<span>PATH</span><span class="sep">\u00b7</span>'
         f'<span class="v">{esc(focus_label)}</span>'
         f'<span class="sep">\u00b7</span>'
-        f'<span>PROGRESS</span><span class="sep">\u00b7</span>'
-        f'<span class="v">{done}/{total}</span>'
-        f'<span class="sep">\u00b7</span>'
-        f'<span>NEXT</span><span class="sep">\u00b7</span>'
-        f'<span class="live">{esc(next_display)}</span>'
+        f'<span>NEXT UP</span><span class="sep">\u00b7</span>'
+        f'<span class="v">{esc(next_display)}</span>'
         '</div>',
         unsafe_allow_html=True,
     )
