@@ -2501,19 +2501,20 @@ def render_learning() -> None:
     # ── Path quick-links: small horizontal strip ────────────────────
     # Each card selects both the path detail panel AND the matching
     # chapter so the user lands in the guide immediately.
-    # PR #38: frame the section in .ort-terminal-panel so the
-    # "PICK A PATH" eyebrow + 4 path cards read as a single module
-    # (matches the PICK-A-PATH / PATH-NOTES pairing for the bottom
-    # detail panel).
+    # PR #38 follow-up: removed the .ort-terminal-panel wrapper that
+    # PR #38 originally added. Raw st.markdown HTML cannot reliably
+    # wrap the subsequent st.columns() / st.container() output in
+    # Streamlit (those render as sibling blocks, not children), so
+    # the panel visually framed only the eyebrow while the cards
+    # hung below it unframed. Reverted to the pre-PR-#38 form
+    # (bare eyebrow + cards) to avoid the empty-frame visual bug.
     st.markdown(
-        '<div class="ort-terminal-panel" style="margin-top:1rem;">'
-        '<div class="or-learn-eyebrow" style="margin-bottom:0.6rem;">'
+        '<div class="or-learn-eyebrow" style="margin-top:1rem;">'
         'PICK A PATH</div>',
         unsafe_allow_html=True,
     )
     _render_action_cards(_STATIC_LEARN, state_key="learn_focus",
                          action_label="Start path")
-    st.markdown('</div>', unsafe_allow_html=True)  # close ort-terminal-panel
 
     # ── Two-column guide: chapter list (left) + reading panel (right) ─
     st.markdown('<div class="or-learn-guide">', unsafe_allow_html=True)
@@ -2613,17 +2614,18 @@ def render_learning() -> None:
     # Renders the path's static guidance from _STATIC_LEARN. Kept for
     # users who want the high-level "why this path / common mistake /
     # next" view alongside the chapter detail.
-    # PR #38: frame in .ort-terminal-panel to match the PICK A PATH
-    # section above — both panels now share the same module chrome.
+    # PR #38 follow-up: removed the .ort-terminal-panel wrapper that
+    # PR #38 originally added. Same Streamlit rendering issue as
+    # PICK A PATH above — the raw st.markdown panel HTML did not
+    # visually contain the _render_selected_detail() output, so the
+    # panel framed only the eyebrow. Reverted to the pre-PR-#38 form.
     st.markdown(
-        '<div class="ort-terminal-panel" style="margin-top:1.4rem;">'
-        '<div class="or-learn-eyebrow" style="margin-bottom:0.6rem;">'
+        '<div class="or-learn-eyebrow" style="margin-top:1.4rem;">'
         'PATH NOTES</div>',
         unsafe_allow_html=True,
     )
     _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
                             panel_heading="SELECTED PATH")
-    st.markdown('</div>', unsafe_allow_html=True)  # close ort-terminal-panel
 
 
 # ─────────────────────────────────────────────────────────────────────────
