@@ -2380,9 +2380,15 @@ def render_learning() -> None:
     from theme import lecture_css
 
     # Header + subheadline (intro line the user sees first).
+    # PR #38: add the .ort-terminal-callout class alongside the existing
+    # .or-learn-hero so the intro reads as a framed module (phosphor
+    # left-edge accent + soft glow) while the existing h1/p typography
+    # from .or-learn-hero still applies. Matches Theme v0.1 field-manual
+    # feel without rewriting the hero styles.
     st.markdown(
-        '<section class="or-learn-hero">'
-        '<div class="or-learn-eyebrow">LEARN · GUIDED COURSE</div>'
+        '<section class="or-learn-hero ort-terminal-callout">'
+        '<div class="or-learn-eyebrow" style="margin-bottom:0.2rem;">'
+        'LEARN · GUIDED COURSE</div>'
         '<h1>Learn AI by building useful workflows.</h1>'
         '<p>Pick a path, read one short chapter, do a 20-minute '
         'exercise, mark it complete. No quiz, no certificate — just '
@@ -2440,12 +2446,16 @@ def render_learning() -> None:
     # the address is the only "save" mechanism. The reset button clears
     # every verifier/method/completed key, the private sync markers,
     # and the ?p= query param so the URL is clean again.
+    # PR #38: migrated from the legacy .or-mini .or-reveal combo to the
+    # new .ort-terminal-callout primitive (PR #37). Same content,
+    # phosphor left-edge accent now consistent with the rest of the page.
     st.markdown(
-        '<div class="or-mini or-reveal" '
-        'style="min-height:auto;margin:0.7rem 0 0.4rem;">'
-        '<div class="or-mini-tag" style="color:var(--sky);">'
+        '<div class="ort-terminal-callout" style="margin:0.7rem 0 0.4rem;">'
+        '<div class="or-learn-eyebrow" style="color:var(--sky);margin-bottom:0.35rem;">'
         '▸ HOW YOUR PROGRESS IS SAVED</div>'
-        '<p class="or-mini-body" style="margin-bottom:0.55rem;">'
+        '<p style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'
+        '&quot;Segoe UI&quot;,sans-serif;font-size:0.92rem;line-height:1.5;'
+        'color:var(--text-2);margin:0;">'
         'No account needed. Your progress is saved in this page address. '
         'Bookmark or copy the URL to continue later on any device.'
         '</p>'
@@ -2491,6 +2501,13 @@ def render_learning() -> None:
     # ── Path quick-links: small horizontal strip ────────────────────
     # Each card selects both the path detail panel AND the matching
     # chapter so the user lands in the guide immediately.
+    # PR #38 follow-up: removed the .ort-terminal-panel wrapper that
+    # PR #38 originally added. Raw st.markdown HTML cannot reliably
+    # wrap the subsequent st.columns() / st.container() output in
+    # Streamlit (those render as sibling blocks, not children), so
+    # the panel visually framed only the eyebrow while the cards
+    # hung below it unframed. Reverted to the pre-PR-#38 form
+    # (bare eyebrow + cards) to avoid the empty-frame visual bug.
     st.markdown(
         '<div class="or-learn-eyebrow" style="margin-top:1rem;">'
         'PICK A PATH</div>',
@@ -2597,6 +2614,11 @@ def render_learning() -> None:
     # Renders the path's static guidance from _STATIC_LEARN. Kept for
     # users who want the high-level "why this path / common mistake /
     # next" view alongside the chapter detail.
+    # PR #38 follow-up: removed the .ort-terminal-panel wrapper that
+    # PR #38 originally added. Same Streamlit rendering issue as
+    # PICK A PATH above — the raw st.markdown panel HTML did not
+    # visually contain the _render_selected_detail() output, so the
+    # panel framed only the eyebrow. Reverted to the pre-PR-#38 form.
     st.markdown(
         '<div class="or-learn-eyebrow" style="margin-top:1.4rem;">'
         'PATH NOTES</div>',
