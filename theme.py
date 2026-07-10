@@ -1859,6 +1859,183 @@ def render_css() -> str:
   }}
   .ort-sys-pill .live{{color:var(--ort-radar)}}
 
+  /* ───────────────────────────────────────────────────────────────────
+     PR #37 · OpenRadar terminal theme primitives v0.1
+
+     Reusable CSS classes for non-Home pages. Inspired by the
+     `.ort-module-head` / `.ort-module-card` block above (PR #34) and
+     the visual contract in docs/THEME.md.
+
+     Naming: `.ort-terminal-*` to distinguish from the Home chassis
+     (which lives under `.ort-page`).
+     Scope:    `.stApp` (Streamlit root) so they cannot leak onto
+     external surfaces.
+     No new f-string interpolations needed — the existing color/font
+     tokens from lines 1152-1170 are reused.
+
+     Future PRs (Learn module shell, Home material depth, action-card
+     button polish) should compose from these primitives instead of
+     writing one-off CSS. See docs/THEME.md §D and §F.1-F.3.
+     ─────────────────────────────────────────────────────────────────── */
+
+  /* 1. .ort-terminal-panel — a generic recessed panel surface.
+     Use for any block of content that should read as a "module" on
+     non-Home pages: info boxes, detail panels, callouts. The
+     panel itself does not impose a heading; pair with
+     .ort-terminal-kicker for an eyebrow. */
+  .stApp .ort-terminal-panel{{
+    position:relative;
+    padding:1rem 1.1rem;
+    background:linear-gradient(180deg, rgba(255,255,255,.022), rgba(0,0,0,0) 60%),
+               var(--ort-bg-panel, #0A1110);
+    border:1px solid var(--ort-line, rgba(166,255,138,.20));
+    border-radius:5px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      inset 0 -1px 0 rgba(0,0,0,.45);
+  }}
+
+  /* 2. .ort-terminal-card — a compact content card. Differs from
+     .ort-terminal-panel in that cards are meant to be tiled in a
+     row/grid (so they have smaller padding and no inset shadow
+     that would muddy the grid). */
+  .stApp .ort-terminal-card{{
+    position:relative;
+    padding:.85rem 1rem .7rem;
+    background:var(--ort-bg-panel, #0A1110);
+    border:1px solid var(--ort-line, rgba(166,255,138,.20));
+    border-radius:5px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .18s ease, background .18s ease;
+  }}
+  .stApp .ort-terminal-card:hover{{
+    border-color:var(--ort-line-strong, rgba(166,255,138,.40));
+  }}
+
+  /* 3. .ort-terminal-callout — a content block that should stand out
+     from the surrounding page (a tip, a "what's new" box, a
+     feature highlight). Phosphor left-edge accent + soft glow. */
+  .stApp .ort-terminal-callout{{
+    position:relative;
+    padding:.9rem 1.1rem .9rem 1.4rem;
+    background:linear-gradient(180deg, rgba(166,255,138,.05), rgba(0,0,0,0) 70%),
+               var(--ort-bg-chassis, #0F1416);
+    border:1px solid var(--ort-line-strong, rgba(166,255,138,.40));
+    border-radius:5px;
+  }}
+  .stApp .ort-terminal-callout::before{{
+    content:"";position:absolute;left:0;top:.5rem;bottom:.5rem;width:3px;
+    background:linear-gradient(180deg,
+      rgba(166,255,138,0) 0%, rgba(166,255,138,.9) 20%,
+      rgba(166,255,138,.9) 80%, rgba(166,255,138,0) 100%);
+    border-radius:1px;
+  }}
+
+  /* 4. .ort-terminal-kicker — a small uppercase mono label, used as
+     an eyebrow above a section title or callout body. Not
+     dependent on any container; safe to drop inline. */
+  .stApp .ort-terminal-kicker{{
+    display:inline-block;
+    font-family:var(--ort-font-mono);
+    font-size:.62rem;letter-spacing:.20em;text-transform:uppercase;
+    color:var(--ort-radar, #A6FF8A);
+    margin:0 0 .35rem 0;
+  }}
+
+  /* 5. .ort-terminal-status-strip — a one-line horizontal strip of
+     key/value pairs (e.g. "STATUS · READY · v0.1 · 2026-07-10").
+     Mono, low-contrast, scrolls horizontally on narrow viewports. */
+  .stApp .ort-terminal-status-strip{{
+    display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;
+    padding:.5rem .8rem;
+    font-family:var(--ort-font-mono);font-size:.62rem;
+    letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ort-ink-mid, rgba(221,230,220,.78));
+    background:rgba(255,255,255,.02);
+    border:1px solid var(--ort-line, rgba(166,255,138,.20));
+    border-radius:4px;
+  }}
+  .stApp .ort-terminal-status-strip .sep{{
+    color:var(--ort-ink-deep, rgba(221,230,220,.32));
+    margin:0 .25rem;
+  }}
+  .stApp .ort-terminal-status-strip .v{{color:var(--ort-ink,#DDE6DC);font-weight:500}}
+  .stApp .ort-terminal-status-strip .live{{color:var(--ort-radar,#A6FF8A);font-weight:600}}
+
+  /* 6. .ort-terminal-list-card — a vertical-list item that sits
+     inside a .ort-terminal-panel. Compact, dashed-bottom separator,
+     mono meta line. NOT for path-kit cards (use .ort-module-card
+     for those). For results lists, role listings, etc. */
+  .stApp .ort-terminal-list-card{{
+    padding:.55rem 0;
+    border-bottom:1px dashed var(--ort-line, rgba(166,255,138,.20));
+  }}
+  .stApp .ort-terminal-list-card:last-child{{
+    border-bottom:none;
+  }}
+  .stApp .ort-terminal-list-card .title{{
+    font-family:var(--ort-font-editorial, 'Newsreader', serif);
+    font-size:1.02rem;line-height:1.25;color:var(--ort-ink,#DDE6DC);
+    margin:0 0 .15rem;
+  }}
+  .stApp .ort-terminal-list-card .meta{{
+    font-family:var(--ort-font-mono);font-size:.62rem;
+    letter-spacing:.10em;text-transform:uppercase;
+    color:var(--ort-ink-dim, rgba(221,230,220,.50));
+  }}
+
+  /* 7. .ort-terminal-action-row — a horizontal row of one or more
+     action buttons / links. Used at the foot of a panel, or under
+     a "selected detail" block. Gap + flex-wrap so they wrap on
+     narrow viewports. */
+  .stApp .ort-terminal-action-row{{
+    display:flex;flex-wrap:wrap;gap:.6rem;
+    align-items:center;
+    margin-top:.8rem;
+  }}
+  .stApp .ort-terminal-action-row .ort-terminal-muted{{flex:1}}
+
+  /* 8. .ort-terminal-muted — quiet secondary text in a panel
+     (descriptions, helper copy, "tap a card to see details" hints).
+     Not for primary content. */
+  .stApp .ort-terminal-muted{{
+    color:var(--ort-ink-mid, rgba(221,230,220,.78));
+    font-family:var(--ort-font-body);
+    font-size:.85rem;line-height:1.45;
+  }}
+
+  /* 9. .ort-terminal-warning — a small inline warning marker.
+     Used for deprecation notes, "data is stale", and similar
+     non-blocking issues. Amber, mono, small. Do NOT use for
+     destructive actions. */
+  .stApp .ort-terminal-warning{{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.25rem .55rem;
+    font-family:var(--ort-font-mono);font-size:.6rem;
+    letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ort-amber-rec, #F0A040);
+    border:1px solid rgba(240,160,64,.45);
+    border-radius:3px;
+    background:rgba(240,160,64,.06);
+  }}
+  .stApp .ort-terminal-warning::before{{
+    content:"!";font-weight:700;line-height:1;
+    color:var(--ort-amber-rec,#F0A040);
+  }}
+
+  /* Reduced-motion safety: all primitives above use only short
+     color/border transitions (<200ms). The @media block below
+     disables any hover transition for users who request reduced
+     motion. Keeps the contract from docs/THEME.md §C "respect
+     prefers-reduced-motion" satisfied for these primitives. */
+  @media (prefers-reduced-motion: reduce){{
+    .stApp .ort-terminal-card,
+    .stApp .ort-terminal-panel,
+    .stApp .ort-terminal-callout{{
+      transition:none !important;
+    }}
+  }}
+
   /* mobile 2-row collapse for the topnav (topnav is the only place
      these classes are emitted, so unprefixed is safe) */
   @media (max-width:640px){{
