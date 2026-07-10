@@ -175,6 +175,75 @@ This rule applies anywhere in the app where a list could grow large:
 - Cold-load widget budget per route: stay under **~500 element containers**
   unless explicitly justified
 
+### Streamlit wrapper safety (PR #38 lesson)
+
+> **Raw `st.markdown("<div>")` HTML does not contain later Streamlit
+> widgets.** Opening a `<div class="ort-terminal-panel">` (or any
+> other `.ort-terminal-*` wrapper) in one `st.markdown` call and
+> expecting a subsequent `st.columns()`, `st.container()`,
+> `st.button()`, or any other Streamlit widget to become a child of
+> that div will fail visually. Streamlit renders those widgets as
+> **sibling blocks**, not children of the markdown div. The wrapper
+> panel then ends up framing only its own text content (e.g. an
+> eyebrow label) while the widgets hang below as unframed siblings —
+> a visible empty-frame bug.
+
+**Safe (verified working in PR #38):**
+
+- `.ort-terminal-*` classes applied inside a single
+  `st.markdown(..., unsafe_allow_html=True)` block that contains all
+  of its own content as raw HTML. Example: a hero or callout whose
+  body is also HTML (paragraph, list, link).
+
+**Unsafe (verified broken in PR #38):**
+
+- Opening `<div class="ort-terminal-panel">` in one `st.markdown` and
+  then calling `_render_action_cards()` (which uses `st.columns` +
+  `st.container(border=True)` + `st.button`) or
+  `_render_selected_detail()` (which uses `st.container(border=True)`)
+  in the same script run. The cards / path-detail content render as
+  sibling blocks. The panel visually frames only the eyebrow. The
+  closing `</div>` from a later `st.markdown('</div>', ...)` ends up
+  as a stray closing tag in a sibling element.
+
+**Required alternatives when wrapping real Streamlit widgets:**
+
+- **Use pure HTML only** when all content is inside the same markdown
+  block (no `st.columns`, `st.container`, `st.button`, etc. after the
+  opening `st.markdown`).
+- **Use real Streamlit containers** for real Streamlit widgets. Wrap
+  the widgets in `with st.container(border=True):` and style the
+  container carefully after inspecting the DOM, rather than faking a
+  section wrapper with raw HTML.
+- **Style the widget's existing structure** by targeting the
+  Streamlit-emitted testid or class (e.g.
+  `[data-testid="stVerticalBlockBorderWrapper"]`, `.stButton`) with
+  a scoped selector in `theme.py`, rather than wrapping the widget
+  output in a new HTML parent.
+- **Do not fake section wrappers** with raw HTML around later
+  Streamlit widgets. The visual will not match the markup and the
+  wrapper will appear empty.
+
+**PR #38 specific examples:**
+
+- ✅ Hero callout (kept): `<section class="or-learn-hero ort-terminal-callout">`
+  via `st.markdown` — body content is also HTML inside the same
+  markdown block, so the wrapper works.
+- ✅ "How your progress is saved" callout (kept): `<div class="ort-terminal-callout">`
+  via `st.markdown` — same pattern, all content in one block.
+- ❌ PICK A PATH panel (reverted): `<div class="ort-terminal-panel">`
+  via `st.markdown`, then `_render_action_cards()` (uses
+  `st.columns` + `st.container(border=True)` + `st.button`). The
+  cards rendered as siblings, panel framed only the eyebrow.
+- ❌ PATH NOTES panel (reverted): same pattern with
+  `_render_selected_detail()`. Same bug.
+
+**Detection rule:** after any visual PR, DOM-probe the affected
+section with Playwright / `getBoundingClientRect` to confirm the
+wrapper's children count matches what the markup implies. An
+eyebrow-only panel (e.g. 59px tall with 1 child) is a red flag that
+the wrapper isn't containing subsequent widgets.
+
 ---
 
 ## E. Do / Don't
