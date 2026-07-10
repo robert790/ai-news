@@ -2380,9 +2380,15 @@ def render_learning() -> None:
     from theme import lecture_css
 
     # Header + subheadline (intro line the user sees first).
+    # PR #38: add the .ort-terminal-callout class alongside the existing
+    # .or-learn-hero so the intro reads as a framed module (phosphor
+    # left-edge accent + soft glow) while the existing h1/p typography
+    # from .or-learn-hero still applies. Matches Theme v0.1 field-manual
+    # feel without rewriting the hero styles.
     st.markdown(
-        '<section class="or-learn-hero">'
-        '<div class="or-learn-eyebrow">LEARN · GUIDED COURSE</div>'
+        '<section class="or-learn-hero ort-terminal-callout">'
+        '<div class="or-learn-eyebrow" style="margin-bottom:0.2rem;">'
+        'LEARN · GUIDED COURSE</div>'
         '<h1>Learn AI by building useful workflows.</h1>'
         '<p>Pick a path, read one short chapter, do a 20-minute '
         'exercise, mark it complete. No quiz, no certificate — just '
@@ -2440,12 +2446,16 @@ def render_learning() -> None:
     # the address is the only "save" mechanism. The reset button clears
     # every verifier/method/completed key, the private sync markers,
     # and the ?p= query param so the URL is clean again.
+    # PR #38: migrated from the legacy .or-mini .or-reveal combo to the
+    # new .ort-terminal-callout primitive (PR #37). Same content,
+    # phosphor left-edge accent now consistent with the rest of the page.
     st.markdown(
-        '<div class="or-mini or-reveal" '
-        'style="min-height:auto;margin:0.7rem 0 0.4rem;">'
-        '<div class="or-mini-tag" style="color:var(--sky);">'
+        '<div class="ort-terminal-callout" style="margin:0.7rem 0 0.4rem;">'
+        '<div class="or-learn-eyebrow" style="color:var(--sky);margin-bottom:0.35rem;">'
         '▸ HOW YOUR PROGRESS IS SAVED</div>'
-        '<p class="or-mini-body" style="margin-bottom:0.55rem;">'
+        '<p style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'
+        '&quot;Segoe UI&quot;,sans-serif;font-size:0.92rem;line-height:1.5;'
+        'color:var(--text-2);margin:0;">'
         'No account needed. Your progress is saved in this page address. '
         'Bookmark or copy the URL to continue later on any device.'
         '</p>'
@@ -2491,13 +2501,19 @@ def render_learning() -> None:
     # ── Path quick-links: small horizontal strip ────────────────────
     # Each card selects both the path detail panel AND the matching
     # chapter so the user lands in the guide immediately.
+    # PR #38: frame the section in .ort-terminal-panel so the
+    # "PICK A PATH" eyebrow + 4 path cards read as a single module
+    # (matches the PICK-A-PATH / PATH-NOTES pairing for the bottom
+    # detail panel).
     st.markdown(
-        '<div class="or-learn-eyebrow" style="margin-top:1rem;">'
+        '<div class="ort-terminal-panel" style="margin-top:1rem;">'
+        '<div class="or-learn-eyebrow" style="margin-bottom:0.6rem;">'
         'PICK A PATH</div>',
         unsafe_allow_html=True,
     )
     _render_action_cards(_STATIC_LEARN, state_key="learn_focus",
                          action_label="Start path")
+    st.markdown('</div>', unsafe_allow_html=True)  # close ort-terminal-panel
 
     # ── Two-column guide: chapter list (left) + reading panel (right) ─
     st.markdown('<div class="or-learn-guide">', unsafe_allow_html=True)
@@ -2597,13 +2613,17 @@ def render_learning() -> None:
     # Renders the path's static guidance from _STATIC_LEARN. Kept for
     # users who want the high-level "why this path / common mistake /
     # next" view alongside the chapter detail.
+    # PR #38: frame in .ort-terminal-panel to match the PICK A PATH
+    # section above — both panels now share the same module chrome.
     st.markdown(
-        '<div class="or-learn-eyebrow" style="margin-top:1.4rem;">'
+        '<div class="ort-terminal-panel" style="margin-top:1.4rem;">'
+        '<div class="or-learn-eyebrow" style="margin-bottom:0.6rem;">'
         'PATH NOTES</div>',
         unsafe_allow_html=True,
     )
     _render_selected_detail(_STATIC_LEARN, state_key="learn_focus",
                             panel_heading="SELECTED PATH")
+    st.markdown('</div>', unsafe_allow_html=True)  # close ort-terminal-panel
 
 
 # ─────────────────────────────────────────────────────────────────────────
