@@ -1,3 +1,5 @@
+import "../app/styles/tokens.css";
+import "../app/styles/globals.css";
 import "../styles/spike.css";
 
 import type { Metadata } from "next";
