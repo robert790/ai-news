@@ -1,14 +1,12 @@
 {
-  "name": "openradar-web",
-  "version": "0.1.0",
+  "name": "openradar-web-v2-chassis-rebuild-spike",
+  "version": "0.0.0",
   "private": true,
-  "description": "OpenRadar Web V2 — isolated Next.js foundation. Stage 0-3 only: repository, reference, design-token system, ThemeDial, /system laboratory. Streamlit app at repo root remains untouched.",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3001",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "14.2.18",
@@ -19,11 +17,8 @@
     "@types/node": "20.14.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "autoprefixer": "10.4.20",
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.18",
-    "postcss": "8.4.49",
-    "tailwindcss": "3.4.14",
-    "typescript": "^5.5.4"
+    "typescript": "5.5.4"
   }
 }
