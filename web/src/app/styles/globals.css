@@ -51,18 +51,18 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* --- Accent presets -------------------------------------------------
- * Default skin = Sol phosphor green. The same machine can be
- * re-skinned by setting data-skin on <html>, <body>, or any
- * ancestor of the machine. Each preset rebinds --accent,
- * --accent-strong, --accent-rgb and the *-deep shades used by
- * radar field, nav glow, course icon, and rule.
+ * Five approved accent presets. The same machine can be re-skinned
+ * by setting data-skin on <html>, <body>, or any ancestor of
+ * .machine. Each preset rebinds --accent, --accent-strong,
+ * --accent-rgb and the *-deep shades used by radar field, nav
+ * glow, course icon, and rule.
  *
- * Names below are the five accepted accent presets. Add a new
- * preset by adding one block here — do not introduce a parallel
- * token file.                                                       */
+ * Approved preset names: green, amber, cyan, red, violet.
+ * Default = green (Sol phosphor). Add a new preset by adding one
+ * block here — do not introduce a parallel token file.            */
 
 :root,
-[data-skin="sol"] {
+[data-skin="green"] {
   --accent: #a8ec62;
   --accent-strong: #b6ef75;
   --accent-rgb: 168, 236, 98;
@@ -96,23 +96,6 @@ a { color: inherit; text-decoration: none; }
   --accent-glow-200: rgba(243, 185, 90, 0.19);
 }
 
-[data-skin="copper"] {
-  --accent: #e57c4a;
-  --accent-strong: #ff9966;
-  --accent-rgb: 229, 124, 74;
-  --accent-deep-100: #ffb288;
-  --accent-deep-200: #ff9966;
-  --accent-deep-300: #e57c4a;
-  --accent-deep-400: #c45d2c;
-  --accent-deep-500: #9c4519;
-  --accent-deep-600: #8a3c14;
-  --accent-deep-700: #6a2d0e;
-  --accent-deep-800: #4d1f08;
-  --accent-deep-900: #2f1204;
-  --accent-glow-100: rgba(196, 93, 44, 0.4);
-  --accent-glow-200: rgba(229, 124, 74, 0.19);
-}
-
 [data-skin="cyan"] {
   --accent: #62c8ec;
   --accent-strong: #75dcef;
@@ -130,21 +113,38 @@ a { color: inherit; text-decoration: none; }
   --accent-glow-200: rgba(98, 200, 236, 0.19);
 }
 
-[data-skin="magenta"] {
-  --accent: #d96ad6;
-  --accent-strong: #ef75e8;
-  --accent-rgb: 217, 106, 214;
-  --accent-deep-100: #ff85f0;
-  --accent-deep-200: #ef75e8;
-  --accent-deep-300: #d96ad6;
-  --accent-deep-400: #b854b6;
-  --accent-deep-500: #974095;
-  --accent-deep-600: #843880;
-  --accent-deep-700: #682b65;
-  --accent-deep-800: #4c1f4a;
-  --accent-deep-900: #2f1230;
-  --accent-glow-100: rgba(184, 84, 182, 0.4);
-  --accent-glow-200: rgba(217, 106, 214, 0.19);
+[data-skin="red"] {
+  --accent: #ec6262;
+  --accent-strong: #ef7575;
+  --accent-rgb: 236, 98, 98;
+  --accent-deep-100: #ff8585;
+  --accent-deep-200: #ef7575;
+  --accent-deep-300: #ec6262;
+  --accent-deep-400: #c44b4b;
+  --accent-deep-500: #9c3737;
+  --accent-deep-600: #8a2f2f;
+  --accent-deep-700: #682323;
+  --accent-deep-800: #4a1818;
+  --accent-deep-900: #2f0e0e;
+  --accent-glow-100: rgba(196, 75, 75, 0.4);
+  --accent-glow-200: rgba(236, 98, 98, 0.19);
+}
+
+[data-skin="violet"] {
+  --accent: #b48aff;
+  --accent-strong: #c8a3ff;
+  --accent-rgb: 180, 138, 255;
+  --accent-deep-100: #d6b8ff;
+  --accent-deep-200: #c8a3ff;
+  --accent-deep-300: #b48aff;
+  --accent-deep-400: #9c6bf0;
+  --accent-deep-500: #7e4dd1;
+  --accent-deep-600: #6e3fbf;
+  --accent-deep-700: #553097;
+  --accent-deep-800: #3d216d;
+  --accent-deep-900: #261443;
+  --accent-glow-100: rgba(156, 107, 240, 0.4);
+  --accent-glow-200: rgba(180, 138, 255, 0.19);
 }
 
 /* --- Mobile shell -------------------------------------------------- */
