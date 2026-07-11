@@ -12,21 +12,24 @@ export type FooterMeta = { dt: string; dd: string };
  * the `position: absolute; bottom: 5px` rule pins it to the
  * bottom of the chassis.
  */
+export type LegalItem =
+  | { kind: "text"; value: string }
+  | { kind: "status"; value: string }
+  | { kind: "link"; value: string; href?: string }
+  | { kind: "small"; value: string };
+
 export function Footer({
   markTitle,
   markSubtitle,
   meta,
   subscribe,
   legal,
-  legalTagline,
 }: {
   markTitle: React.ReactNode;
   markSubtitle?: string;
   meta: ReadonlyArray<FooterMeta>;
   subscribe: { label: string; sublabel: string; placeholder: string; buttonLabel: string };
-  legal: ReadonlyArray<{ kind: "text" | "status" | "link"; value: string; href?: string }>;
-  /** Optional right-aligned tagline rendered as <small> at the tail of the legal bar. */
-  legalTagline?: string;
+  legal: ReadonlyArray<LegalItem>;
 }): JSX.Element {
   return (
     <footer className="footer-deck">
@@ -70,9 +73,11 @@ export function Footer({
               </span>
             );
           }
+          if (item.kind === "small") {
+            return <small key={i}>{item.value}</small>;
+          }
           return <span key={i}>{item.value}</span>;
         })}
-        {legalTagline ? <small>{legalTagline}</small> : null}
       </div>
     </footer>
   );

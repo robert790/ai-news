@@ -257,8 +257,8 @@ export default function Home(): JSX.Element {
             { kind: "link", value: "Privacy", href: "#privacy" },
             { kind: "link", value: "Terms", href: "#terms" },
             { kind: "link", value: "Contact", href: "#contact" },
+            { kind: "small", value: "Designed for engineers. Built for operators." },
           ]}
-          legalTagline="Designed for engineers. Built for operators."
         />
       </Machine>
     </main>
