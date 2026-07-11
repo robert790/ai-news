@@ -1,0 +1,133 @@
+/*
+ * OpenRadar shared design tokens.
+ *
+ * Source of truth: web/docs/visual-baselines/home/VISUAL-BASELINE.md
+ * Every value below is an extraction of a real value from the
+ * accepted Sol Home baseline (spike.css @ freeze commit 69a4ba2).
+ * Do not introduce new colors, sizes, or easings here — only lift
+ * values that already exist on the frozen Home.
+ *
+ * These tokens are NOT theme-switched. Accent presets live in
+ * globals.css via the [data-skin="…"] attribute. To add a new
+ * preset, extend globals.css, not this file.
+ */
+
+:root {
+  /* --- Material: chassis surface palette -----------------------------
+   * The freeze uses gradients made of these stops. Each stop is named
+   * for its role so a future theme can re-tint the chassis without
+   * chasing hex codes through spike.css.                              */
+  --or-steel-100: #2a2c26;     /* machine base highlight */
+  --or-steel-200: #1b1d19;     /* machine mid */
+  --or-steel-300: #161914;     /* machine shadow / readout base */
+  --or-steel-400: #0d0f0d;     /* machine deep */
+  --or-steel-500: #0b0d0b;     /* machine darkest */
+  --or-steel-600: #0b0d0a;     /* body inner panel */
+  --or-steel-700: #090b08;     /* cavity / inset base */
+  --or-steel-800: #070907;     /* hairline border */
+  --or-steel-900: #030403;     /* page ground */
+
+  /* --- Material: bronze trim -----------------------------------------
+   * The bronze edges, bolt rims, and lit borders are made from these.
+   * Use --or-bronze-500 for the default 1px chassis edge.            */
+  --or-bronze-100: #9a8059;
+  --or-bronze-200: #8c7657;
+  --or-bronze-300: #8b7858;
+  --or-bronze-400: #776247;
+  --or-bronze-500: #746248;
+  --or-bronze-600: #6d593d;
+  --or-bronze-700: #62543b;
+  --or-bronze-800: #60523b;
+  --or-bronze-900: #564a37;
+
+  /* --- Material: warm rim light (machine::before/::after) ----------- */
+  --or-rim-100: #9a8059;
+  --or-rim-200: #927955;
+  --or-rim-300: #382e20;
+  --or-rim-400: #1b170f;
+  --or-rim-500: #17130d;
+
+  /* --- Type: text --------------------------------------------------- */
+  --or-cream-100: #eee8d6;     /* primary headline */
+  --or-cream-200: #ddd8c6;     /* module title */
+  --or-cream-300: #d8d2bf;     /* footer label */
+  --or-cream-400: #d3cfbe;     /* module alt */
+  --or-cream-500: #ccc6b2;     /* menu / mobile lede */
+  --or-cream-600: #c9c3b0;     /* hero action */
+  --or-cream-700: #b9b4a3;     /* hero lede */
+  --or-cream-800: #b8b3a1;     /* lower-bank head */
+  --or-cream-900: #b5b09f;     /* standards row */
+
+  --or-warm-100: #aaa696;      /* radar readout / status */
+  --or-warm-200: #aaa697;      /* learn list */
+  --or-warm-300: #aaa694;      /* lower-bank title */
+  --or-warm-400: #a4a08e;      /* brand subtitle */
+  --or-warm-500: #9c9888;      /* unused, kept for parity */
+  --or-warm-600: #999586;      /* footer dt / legal */
+  --or-warm-700: #979384;      /* tool row note */
+  --or-warm-800: #8f8c7e;      /* mobile dim */
+
+  /* --- Type: bronze numerals --------------------------------------- */
+  --or-bronze-num-100: #e0b95c;/* status rail big number */
+  --or-bronze-num-200: #d0b45e;/* updates panel code */
+  --or-bronze-num-300: #d5ad4e;/* kit row number */
+
+  /* --- Accent: a single semantic accent -----------------------------
+   * Default = Sol phosphor green. Skin attributes in globals.css
+   * rebind --accent* to other presets. Components and themes must
+   * only consume --accent, --accent-strong, --accent-rgb.           */
+  --accent: #a8ec62;
+  --accent-strong: #b6ef75;
+  --accent-rgb: 168, 236, 98;
+
+  /* --- Accent: green-deep (radar field, course icon) --------------- */
+  --accent-deep-100: #c6ff7b;  /* origin dot */
+  --accent-deep-200: #b4f36a;  /* brand-scope sweep */
+  --accent-deep-300: #a9e862;  /* pulse bar */
+  --accent-deep-400: #9de95f;  /* blip gradient */
+  --accent-deep-500: #8cc757;  /* radar bearing */
+  --accent-deep-600: #84b655;  /* standards marker */
+  --accent-deep-700: #79c84c;  /* blip fade */
+  --accent-deep-800: #77b544;  /* nav active glow */
+  --accent-deep-900: #5f9b38;  /* rule glow */
+
+  /* --- Accent: dim glows (telemetry dim, radar grid) --------------- */
+  --accent-glow-100: rgba(75, 113, 43, 0.4);   /* primary-action halo */
+  --accent-glow-200: rgba(124, 173, 73, 0.19); /* signal panel fill */
+
+  /* --- Type: stack -------------------------------------------------- */
+  --or-font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --or-font-display: "Arial Narrow", "Roboto Condensed", "Segoe UI", Arial, sans-serif;
+
+  /* --- Motion -------------------------------------------------------
+   * Radar sweep period lifted verbatim from spike.css. Components
+   * that animate must respect prefers-reduced-motion.                */
+  --or-sweep-duration: 4.2s;
+  --or-ease: linear;
+
+  /* --- Dimensions -----------------------------------------------------
+   * Page shell and machine geometry from spike.css. Components should
+   * compose off these rather than restating values.                  */
+  --or-shell-pad: 18px;
+  --or-machine-pad: 10px;
+  --or-machine-max: 1380px;
+  --or-page-shell-gap: 0;
+
+  /* Mobile shell — applied by globals.css at <=760px.                */
+  --or-shell-pad-mobile: 7px;
+  --or-machine-pad-mobile: 6px;
+
+  /* --- Strokes ------------------------------------------------------- */
+  --or-stroke-hairline: 1px solid var(--or-steel-800);
+  --or-stroke-bronze: 1px solid var(--or-bronze-500);
+
+  /* --- Radii -------------------------------------------------------- */
+  --or-radius-shell: 0;
+  --or-radius-panel: 0;
+  --or-radius-readout: 0;       /* uses clip-path, not radius */
+  --or-radius-button: 0;
+
+  /* --- Shadow (page ground) ---------------------------------------- */
+  --or-shadow-machine: 0 0 0 1px #62543e, 0 0 0 4px #111310, 0 28px 70px #000, inset 0 1px #5d5a4b, inset 0 -2px #050605;
+  --or-shadow-machine-mobile: 0 0 0 1px #62543e, 0 0 0 3px #111310, 0 18px 45px #000;
+}
