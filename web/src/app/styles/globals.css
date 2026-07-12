@@ -73,6 +73,36 @@ a { color: inherit; text-decoration: none; }
   --accent-deep-900: #5f9b38;
   --accent-glow-100: rgba(75, 113, 43, 0.4);
   --accent-glow-200: rgba(124, 173, 73, 0.19);
+
+  /* Semantic accent slots — added for full 5-skin coverage of the
+     Sol Home composition. Green values match the accepted freeze
+     (commit 69a4ba2) byte-for-byte. */
+  --accent-radar-grid: #7cc049;        /* .radar-grid stroke */
+  --accent-radar-origin-glow: #a4ed62; /* .radar-origin drop-shadow */
+  --accent-blip-100: #e5ffae;         /* SVG blip radial stop 0 */
+  /* --accent-blip-200 reuses --accent-deep-400 (#9de95f) */
+  /* --accent-blip-300 reuses --accent-deep-700 (#79c84c) */
+  --accent-beam-100: #baff71;          /* SVG beam gradient stop 0 (opacity .04) */
+  --accent-beam-200: #baff71;          /* SVG beam gradient stop 1 (opacity .78) */
+  --accent-brand-cross: #659b40;       /* brand scope crosshairs */
+  --accent-brand-sweep-glow: #85cf51;  /* brand scope sweep box-shadow */
+  --accent-dot-glow: #7bc64a;          /* kicker/online/status dot box-shadow */
+  --accent-cta-border: #cdf89c;        /* .primary-action border-color */
+  --accent-cta-inset: #e4ffbe;         /* .primary-action inset highlight */
+  --accent-cta-end: #83c64f;           /* .primary-action gradient end stop */
+  --accent-overview-text: #9bc66a;     /* .overview color */
+  --accent-overview-border: #4c6336;   /* .overview i border */
+  --accent-module-border: #4b6334;     /* .module-code border */
+  --accent-module-cta: #91b967;        /* .module-head button color */
+  --accent-tag-border: #465334;        /* .tool-row em border */
+  --accent-tag-text: #9ac46c;          /* .tool-row em color */
+  --accent-progress-start: #729e47;    /* .progress i gradient start */
+  --accent-progress-glow: #78a84a;     /* .progress i box-shadow */
+  --accent-marker-glow: #65923f;       /* .standards-list i box-shadow */
+  --accent-health-glow: #82c34e;       /* .health-panel li i / .legal i box-shadow */
+  --accent-form-border: #6b8c43;       /* .footer-deck form button border */
+  --accent-form-bg: #24301d;           /* .footer-deck form button background */
+  --accent-footer-dd: #9bc965;         /* .footer-deck dd color */
 }
 
 [data-skin="amber"] {
@@ -90,6 +120,31 @@ a { color: inherit; text-decoration: none; }
   --accent-deep-900: #4d2f08;
   --accent-glow-100: rgba(217, 154, 53, 0.4);
   --accent-glow-200: rgba(243, 185, 90, 0.19);
+
+  --accent-radar-grid: #c89a2c;
+  --accent-radar-origin-glow: #ffd07a;
+  --accent-blip-100: #ffeec0;
+  --accent-beam-100: #ffd07a;
+  --accent-beam-200: #ffd07a;
+  --accent-brand-cross: #b07422;
+  --accent-brand-sweep-glow: #d99a35;
+  --accent-dot-glow: #ffd07a;
+  --accent-cta-border: #ffeec0;
+  --accent-cta-inset: #fff5db;
+  --accent-cta-end: #b87f1f;
+  --accent-overview-text: #f3c982;
+  --accent-overview-border: #8e5a16;
+  --accent-module-border: #8e5a16;
+  --accent-module-cta: #d99a35;
+  --accent-tag-border: #8e5a16;
+  --accent-tag-text: #d99a35;
+  --accent-progress-start: #b87f1f;
+  --accent-progress-glow: #d99a35;
+  --accent-marker-glow: #b07422;
+  --accent-health-glow: #d99a35;
+  --accent-form-border: #b07422;
+  --accent-form-bg: #3a2710;
+  --accent-footer-dd: #d99a35;
 }
 
 [data-skin="cyan"] {
@@ -107,6 +162,31 @@ a { color: inherit; text-decoration: none; }
   --accent-deep-900: #0f303a;
   --accent-glow-100: rgba(75, 168, 196, 0.4);
   --accent-glow-200: rgba(98, 200, 236, 0.19);
+
+  --accent-radar-grid: #4ba8c4;
+  --accent-radar-origin-glow: #75dcef;
+  --accent-blip-100: #c4f3ff;
+  --accent-beam-100: #75dcef;
+  --accent-beam-200: #75dcef;
+  --accent-brand-cross: #2c7e9a;
+  --accent-brand-sweep-glow: #5cc1de;
+  --accent-dot-glow: #75dcef;
+  --accent-cta-border: #c4f3ff;
+  --accent-cta-inset: #dcfaff;
+  --accent-cta-end: #3790ad;
+  --accent-overview-text: #75dcef;
+  --accent-overview-border: #226578;
+  --accent-module-border: #226578;
+  --accent-module-cta: #5cc1de;
+  --accent-tag-border: #226578;
+  --accent-tag-text: #6ad4ea;
+  --accent-progress-start: #3790ad;
+  --accent-progress-glow: #5cc1de;
+  --accent-marker-glow: #4ba8c4;
+  --accent-health-glow: #5cc1de;
+  --accent-form-border: #3790ad;
+  --accent-form-bg: #102a35;
+  --accent-footer-dd: #5cc1de;
 }
 
 [data-skin="red"] {
@@ -124,6 +204,31 @@ a { color: inherit; text-decoration: none; }
   --accent-deep-900: #2f0e0e;
   --accent-glow-100: rgba(196, 75, 75, 0.4);
   --accent-glow-200: rgba(236, 98, 98, 0.19);
+
+  --accent-radar-grid: #c44b4b;
+  --accent-radar-origin-glow: #ef7575;
+  --accent-blip-100: #ffd0d0;
+  --accent-beam-100: #ef7575;
+  --accent-beam-200: #ef7575;
+  --accent-brand-cross: #8a2f2f;
+  --accent-brand-sweep-glow: #c44b4b;
+  --accent-dot-glow: #ef7575;
+  --accent-cta-border: #ffd0d0;
+  --accent-cta-inset: #ffe2e2;
+  --accent-cta-end: #9c3737;
+  --accent-overview-text: #ec6262;
+  --accent-overview-border: #682323;
+  --accent-module-border: #682323;
+  --accent-module-cta: #c44b4b;
+  --accent-tag-border: #682323;
+  --accent-tag-text: #ef7575;
+  --accent-progress-start: #9c3737;
+  --accent-progress-glow: #c44b4b;
+  --accent-marker-glow: #8a2f2f;
+  --accent-health-glow: #c44b4b;
+  --accent-form-border: #9c3737;
+  --accent-form-bg: #3a1414;
+  --accent-footer-dd: #c44b4b;
 }
 
 [data-skin="violet"] {
@@ -141,6 +246,31 @@ a { color: inherit; text-decoration: none; }
   --accent-deep-900: #261443;
   --accent-glow-100: rgba(156, 107, 240, 0.4);
   --accent-glow-200: rgba(180, 138, 255, 0.19);
+
+  --accent-radar-grid: #9c6bf0;
+  --accent-radar-origin-glow: #c8a3ff;
+  --accent-blip-100: #ecdcff;
+  --accent-beam-100: #c8a3ff;
+  --accent-beam-200: #c8a3ff;
+  --accent-brand-cross: #6e3fbf;
+  --accent-brand-sweep-glow: #9c6bf0;
+  --accent-dot-glow: #c8a3ff;
+  --accent-cta-border: #ecdcff;
+  --accent-cta-inset: #f4e8ff;
+  --accent-cta-end: #7e4dd1;
+  --accent-overview-text: #b48aff;
+  --accent-overview-border: #553097;
+  --accent-module-border: #553097;
+  --accent-module-cta: #9c6bf0;
+  --accent-tag-border: #553097;
+  --accent-tag-text: #c8a3ff;
+  --accent-progress-start: #7e4dd1;
+  --accent-progress-glow: #9c6bf0;
+  --accent-marker-glow: #6e3fbf;
+  --accent-health-glow: #9c6bf0;
+  --accent-form-border: #7e4dd1;
+  --accent-form-bg: #2a1648;
+  --accent-footer-dd: #9c6bf0;
 }
 
 /* --- Mobile shell -------------------------------------------------- */

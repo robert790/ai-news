@@ -40,19 +40,26 @@ export function Radar({
         <div className="radar-glass">
           <svg viewBox="0 0 200 200" role="img" aria-label={svgLabel}>
             <defs>
+              {/*
+                The radar field gradient is dark-green phosphor —
+                a material layer that stays frozen across skins. The
+                beam and blip gradients read --accent-beam-* and
+                --accent-blip-* / --accent-deep-* through inline
+                style so they re-skin with the active data-skin.
+              */}
               <radialGradient id="radarField">
                 <stop offset="0" stopColor="#1b351b" stopOpacity=".72" />
                 <stop offset=".68" stopColor="#071208" stopOpacity=".85" />
                 <stop offset="1" stopColor="#010402" />
               </radialGradient>
               <linearGradient id="beam" x1="0" x2="1">
-                <stop stopColor="#baff71" stopOpacity=".04" />
-                <stop offset="1" stopColor="#baff71" stopOpacity=".78" />
+                <stop style={{ stopColor: "var(--accent-beam-100)" }} stopOpacity=".04" />
+                <stop offset="1" style={{ stopColor: "var(--accent-beam-200)" }} stopOpacity=".78" />
               </linearGradient>
               <radialGradient id="blip">
-                <stop stopColor="#e5ffae" />
-                <stop offset=".45" stopColor="#9de95f" />
-                <stop offset="1" stopColor="#79c84c" stopOpacity="0" />
+                <stop style={{ stopColor: "var(--accent-blip-100)" }} />
+                <stop offset=".45" style={{ stopColor: "var(--accent-deep-400)" }} />
+                <stop offset="1" style={{ stopColor: "var(--accent-deep-700)" }} stopOpacity="0" />
               </radialGradient>
             </defs>
             <circle cx="100" cy="100" r="98" fill="url(#radarField)" />
