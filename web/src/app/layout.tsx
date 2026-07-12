@@ -1,5 +1,6 @@
 import "../app/styles/globals.css";
 import "../styles/sol.css";
+import "../styles/system.css";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
