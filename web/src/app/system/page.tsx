@@ -79,7 +79,7 @@ function SkinPanel({ id, label }: { id: (typeof SKINS)[number]["id"]; label: str
         <h3 id={`skin-${id}-h`}>{label}</h3>
       </header>
       <div className="sys-skin__grid">
-        <Module title="Sample module" code="01" className="sys-skin__module">
+        <Module title="Sample module" code="01" className="sys-skin__module" specimen>
           <div className="sys-skin__module-body">
             <span className="sys-skin__primary">Primary row</span>
             <span className="sys-skin__ghost">Ghost row</span>
@@ -87,7 +87,7 @@ function SkinPanel({ id, label }: { id: (typeof SKINS)[number]["id"]; label: str
           </div>
           <div className="sys-skin__progress"><i style={{ width: "55%" }} /></div>
         </Module>
-        <Module title="Status rail" code="02" className="sys-skin__rail">
+        <Module title="Status rail" code="02" className="sys-skin__rail" specimen>
           <StatusRail
             ariaLabel={`${label} accent demo`}
             items={[
@@ -99,7 +99,7 @@ function SkinPanel({ id, label }: { id: (typeof SKINS)[number]["id"]; label: str
             ]}
           />
         </Module>
-        <Module title="Action row" code="03" className="sys-skin__actions">
+        <Module title="Action row" code="03" className="sys-skin__actions" specimen>
           <div className="sys-skin__action-row">
             <a className="primary-action" href="#"><b>Launch</b> →</a>
             <a href="#">Secondary</a>
@@ -115,7 +115,15 @@ function StatePanel({ state }: { state: (typeof SYSTEM_STATES)[number] }) {
   return (
     <article className={`sys-state sys-state--${state.key}`}>
       <header className="sys-state__head">
-        <span className={`sys-state__chip sys-state__chip--${state.key}`}>{state.label}</span>
+        <span
+          className={`sys-state__chip sys-state__chip--${state.key}`}
+          aria-hidden="true"
+        >
+          {/* chip encodes state via color + glyph only; the
+              state name lives in the adjacent <h4> to avoid
+              mobile title collision. */}
+          <i className={`sys-state__chip-glyph sys-state__chip-glyph--${state.key}`} />
+        </span>
         <h4>{state.label}</h4>
       </header>
       <p className="sys-state__body">{state.note}</p>
@@ -168,7 +176,7 @@ export default function System() {
         {/* 2x2 specimen grid: row 1 = 40% / 60%, row 2 = 50% / 50%. */}
         <section className="sys-specimens" aria-label="Specimens">
           <div className="sys-specimens__row sys-specimens__row--top">
-            <Module title="Component inventory" code="01" className="legend-module">
+            <Module title="Component inventory" code="01" className="legend-module" specimen>
               <ul className="sys-legend">
                 <li><span className="sys-legend__num">01</span><span className="sys-legend__content"><strong>Machine</strong><small>Bronze chassis, bolts, optional data-skin</small></span></li>
                 <li><span className="sys-legend__num">02</span><span className="sys-legend__content"><strong>TopDeck</strong><small>Brand mark, nav, actions, online indicator</small></span></li>
@@ -180,7 +188,7 @@ export default function System() {
                 <li><span className="sys-legend__num">08</span><span className="sys-legend__content"><strong>Footer</strong><small>Mark, dl, subscribe, legal bar</small></span></li>
               </ul>
             </Module>
-            <Module title="Type hierarchy" code="02" className="typo-module">
+            <Module title="Type hierarchy" code="02" className="typo-module" specimen>
               <ol className="sys-typo">
                 {TYP_RAMP.map((t) => (
                   <li key={t.name} className={`sys-typo__item sys-typo__item--${t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
@@ -194,7 +202,7 @@ export default function System() {
             </Module>
           </div>
           <div className="sys-specimens__row sys-specimens__row--bottom">
-            <Module title="Token ramp" code="03" className="tokens-module">
+            <Module title="Token ramp" code="03" className="tokens-module" specimen>
               <div id="tokens" />
               <ul className="sys-tokens">
                 {SKIN_TOKEN_SAMPLE.map((t) => (
@@ -206,7 +214,7 @@ export default function System() {
                 ))}
               </ul>
             </Module>
-            <Module title="Action states" code="04" className="actions-module">
+            <Module title="Action states" code="04" className="actions-module" specimen>
               <ul className="sys-actions">
                 {ACTION_STATES.map((a) => (
                   <li key={a.key} className={`sys-actions__row sys-actions__row--${a.key}`}>

@@ -382,5 +382,84 @@
     grid-template-columns: 1fr auto;
     padding: 8px 12px 13px;
   }
+  .page-shell[data-page="tools"] .top-deck--menu-open nav { display: grid; }
   .page-shell[data-page="tools"] .brand-scope { width: 35px; }
+}
+/* Focused polish: stronger reading hierarchy, quieter controls, and
+   instrument motion without changing the accepted chassis geometry. */
+.page-shell[data-page="tools"] .tools-reset {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-bottom: 1px solid #62543b;
+  background: transparent;
+  color: #bdb7a5;
+  font: 600 8.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+.page-shell[data-page="tools"] .tools-reset:hover { color: var(--accent); border-color: var(--accent); }
+.page-shell[data-page="tools"] .tools-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.page-shell[data-page="tools"] .tools-feature__lede { color: #c4beac; font-size: 13px; line-height: 1.5; }
+.page-shell[data-page="tools"] .tool-preview { appearance: none; }
+.page-shell[data-page="tools"] .tools-state__body { color: #aaa696; font-size: 13px; line-height: 1.5; }
+.page-shell[data-page="tools"] .tools-section__head p,
+.page-shell[data-page="tools"] .tools-searchbar__label,
+.page-shell[data-page="tools"] .tools-searchbar__count { color: #b5b09f; }
+.page-shell[data-page="tools"] .tools-results .tool-row { border-color: #22251f; }
+.page-shell[data-page="tools"] .tools-results .tool-row:hover { background: #10130e; }
+
+/* OpenRadar disclosure control — bronze border, dark surface,
+   cream text, 44px+ height, full-width on mobile, no native grey. */
+.page-shell[data-page="tools"] .tools-disclosure {
+  display: flex;
+  padding: 10px 0 4px;
+  border-top: 1px solid #292b24;
+}
+.page-shell[data-page="tools"] .tools-disclosure__btn {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #62543b;
+  background: linear-gradient(#151713, #0b0d0a);
+  color: #c9c3b0;
+  font: 600 9.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  box-shadow: inset 0 1px #2d2d25, 0 1px 0 #050605;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.page-shell[data-page="tools"] .tools-disclosure__btn:hover {
+  border-color: #8c7657;
+  color: #ddd8c6;
+}
+.page-shell[data-page="tools"] .tools-disclosure__btn:active {
+  background: linear-gradient(#1c1e19, #0d0f0b);
+  transform: translateY(1px);
+}
+.page-shell[data-page="tools"] .tools-disclosure__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="tools"] .tools-disclosure__btn[aria-expanded="true"] {
+  border-color: #8c7657;
+  color: #ddd8c6;
+}
+
+@media (max-width: 760px) {
+  .page-shell[data-page="tools"] .tool-row--inline {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "cat price"
+      "visit visit";
+  }
+  .page-shell[data-page="tools"] .tool-row--inline > span { grid-area: cat; }
+  .page-shell[data-page="tools"] .tool-row--inline > em { grid-area: price; }
 }

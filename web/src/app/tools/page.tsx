@@ -27,9 +27,9 @@ import {
 const TOOLS_NAV = [
   { label: "Home", href: "/" },
   { label: "Tools", href: "/tools", active: true },
-  { label: "Kits", href: "#kits" },
-  { label: "Learn", href: "#learn" },
-  { label: "Jobs", href: "#jobs" },
+  { label: "Kits", href: "/#kits" },
+  { label: "Learn", href: "/#learn" },
+  { label: "Jobs", href: "/#jobs" },
 ];
 
 type Category = "Research" | "Build" | "Decide" | "Operate";
@@ -202,13 +202,6 @@ function ToolRow({ tool }: { tool: Tool }) {
       </span>
       <em>{tool.category}</em>
       <em aria-label={`Pricing: ${tool.pricing}`}>{tool.pricing}</em>
-      <span
-        className="tool-preview"
-        role="img"
-        aria-label={`Preview only — outbound link not enabled at this stage for ${tool.name}`}
-      >
-        Preview
-      </span>
     </div>
   );
 }
@@ -221,13 +214,6 @@ function FeaturedCard({ tool }: { tool: Tool }) {
         <div className="tool-row tool-row--inline">
           <span><small>Category</small><strong>{tool.category}</strong></span>
           <em aria-label={`Pricing: ${tool.pricing}`}>{tool.pricing}</em>
-          <span
-            className="tool-preview tool-preview--inline"
-            role="img"
-            aria-label={`Preview only — outbound link not enabled at this stage for ${tool.name}`}
-          >
-            Preview
-          </span>
         </div>
       </div>
     </Module>
@@ -291,6 +277,22 @@ function LoadingState() {
 export default function Tools() {
   const [query, setQuery] = React.useState("");
   const [category, setCategory] = React.useState<Category | "All">("All");
+  // Mobile-only disclosure: on small viewports, the full 16-row
+  // index is excessively long, so we render the first 6 by default
+  // and reveal the rest on demand. Desktop always shows everything.
+  const [mobileExpanded, setMobileExpanded] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 760px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const MOBILE_LIMIT = 6;
 
   // Apply category + case-insensitive name/useCase substring filter.
   const filtered = React.useMemo(() => {
@@ -310,6 +312,13 @@ export default function Tools() {
     [filtered],
   );
   const compact = filtered;
+  // Mobile-only disclosure: when the filtered list has more than the
+  // mobile limit, show only the first MOBILE_LIMIT rows by default
+  // and reveal the rest on demand. Desktop always shows everything.
+  const isMobileLimited = isMobile && compact.length > MOBILE_LIMIT;
+  const isMobileCollapsed = isMobile && !mobileExpanded && isMobileLimited;
+  const compactVisible = isMobileCollapsed ? compact.slice(0, MOBILE_LIMIT) : compact;
+  const compactHiddenCount = isMobileLimited ? compact.length - MOBILE_LIMIT : 0;
 
   // Per-category visible counts (post-search, for the chip badges).
   const countFor = React.useCallback(
@@ -341,7 +350,7 @@ export default function Tools() {
               Skip what doesn&apos;t.
             </>
           }
-          lede="A practical, vetted index of AI tools for engineers, builders, and operators. Searchable by category, with clear pricing signals and direct links to each tool."
+          lede="A practical, vetted index of AI tools for engineers, builders, and operators. Searchable by category, with clear pricing signals."
           actions={[
             { primary: true, href: "#search", label: <>Search the index <b>→</b></> },
             { href: "#featured", label: "Featured tools" },
@@ -392,6 +401,18 @@ export default function Tools() {
                     onSelect={(id) => setCategory(id)}
                   />
                 ))}
+                {(query || category !== "All") && (
+                  <button
+                    type="button"
+                    className="tools-reset"
+                    onClick={() => {
+                      setQuery("");
+                      setCategory("All");
+                    }}
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             </div>
           </Module>
@@ -427,13 +448,35 @@ export default function Tools() {
           {compact.length === 0 ? (
             <EmptyState />
           ) : (
-            <Module title="Compact index" code="··" className="tools-results-module">
-              <div className="tools-results" role="list">
-                {compact.map((t) => (
-                  <div role="listitem" key={t.id}><ToolRow tool={t} /></div>
-                ))}
-              </div>
-            </Module>
+            <>
+              <p className="tools-outbound-notice" role="note">
+                Outbound tool links are coming soon. This index lists
+                verified tools with their category and pricing; full
+                visit actions activate once destinations are wired.
+              </p>
+              <Module title="Compact index" code="··" className="tools-results-module">
+                <div className="tools-results" role="list">
+                  {compactVisible.map((t) => (
+                    <div role="listitem" key={t.id}><ToolRow tool={t} /></div>
+                  ))}
+                </div>
+                {isMobileLimited && compactHiddenCount > 0 && (
+                  <div className="tools-disclosure">
+                    <button
+                      type="button"
+                      className="tools-disclosure__btn"
+                      onClick={() => setMobileExpanded((v) => !v)}
+                      aria-expanded={mobileExpanded}
+                    >
+                      {mobileExpanded
+                        ? "Show less"
+                        : `Show ${compactHiddenCount} more`}
+                      <span aria-hidden="true">{mobileExpanded ? " ↑" : " ↓"}</span>
+                    </button>
+                  </div>
+                )}
+              </Module>
+            </>
           )}
         </section>
 

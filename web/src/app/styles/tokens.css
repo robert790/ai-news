@@ -102,7 +102,7 @@
   /* --- Motion -------------------------------------------------------
    * Radar sweep period lifted verbatim from spike.css. Components
    * that animate must respect prefers-reduced-motion.                */
-  --or-sweep-duration: 4.2s;
+  --or-sweep-duration: 6s;
   --or-ease: linear;
 
   /* --- Dimensions -----------------------------------------------------

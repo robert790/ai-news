@@ -47,14 +47,14 @@ export default function Home(): JSX.Element {
           actions={[
             {
               primary: true,
-              href: "#tools",
+              href: "/tools",
               label: (
                 <>
                   Explore tools <b>→</b>
                 </>
               ),
             },
-            { href: "#picks", label: "Today's picks" },
+            { href: "/tools#featured", label: "Today's picks" },
             { href: "#kits", label: "Browse kits" },
           ]}
           overview={{
@@ -95,7 +95,7 @@ export default function Home(): JSX.Element {
         />
 
         <section className="module-grid" aria-label="OpenRadar destinations">
-          <Module title="Featured tools" code="01" className="tools-module">
+          <Module title="Featured tools" code="01" className="tools-module" id="tools" actionHref="/tools">
             {TOOLS.map((tool) => (
               <div className="tool-row" key={tool.name}>
                 <span className="tool-mark">{tool.mark}</span>
@@ -107,7 +107,7 @@ export default function Home(): JSX.Element {
               </div>
             ))}
           </Module>
-          <Module title="Prompt kits" code="02" className="kits-module">
+          <Module title="Prompt kits" code="02" className="kits-module" id="kits">
             {KITS.map((kit) => (
               <div className="kit-row" key={kit.no}>
                 <b>{kit.no}</b>
@@ -119,7 +119,7 @@ export default function Home(): JSX.Element {
               </div>
             ))}
           </Module>
-          <Module title="Learn path" code="03" className="learn-module">
+          <Module title="Learn path" code="03" className="learn-module" id="learn">
             <div className="course">
               <span className="course-icon">▤</span>
               <span>
@@ -146,7 +146,7 @@ export default function Home(): JSX.Element {
               </li>
             </ol>
           </Module>
-          <Module title="Jobs / roles" code="04" className="jobs-module">
+          <Module title="Jobs / roles" code="04" className="jobs-module" id="jobs">
             {JOBS.map(([name, place, type]) => (
               <div className="job-row" key={name}>
                 <span>
