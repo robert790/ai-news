@@ -147,7 +147,7 @@ function StatePanel({ state }: { state: (typeof SYSTEM_STATES)[number] }) {
 
 export default function System() {
   return (
-    <main className="page-shell">
+    <main className="page-shell" data-page="system">
       <Machine ariaLabel="OpenRadar system laboratory">
         <TopDeck
           nav={SYSTEM_NAV}
