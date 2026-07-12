@@ -71,23 +71,6 @@ const SYSTEM_STATES = [
   { key: "error", label: "Error", note: "Failed to refresh feeds" },
 ];
 
-function SkinSwatch({ id, label }: { id: (typeof SKINS)[number]["id"]; label: string }) {
-  return (
-    <Module title={label} code={id.slice(0, 2).toUpperCase()} className={`skin-swatch skin-swatch--${id}`}>
-      <div className="skin-swatch__body">
-        <div className="skin-swatch__line skin-swatch__line--bar" />
-        <div className="skin-swatch__line skin-swatch__line--short" />
-        <div className="skin-swatch__line" />
-        <div className="skin-swatch__gauge">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </Module>
-  );
-}
-
 function SkinPanel({ id, label }: { id: (typeof SKINS)[number]["id"]; label: string }) {
   return (
     <section className="sys-skin" data-skin={id} id={`skin-${id}`} aria-labelledby={`skin-${id}-h`}>
@@ -182,64 +165,69 @@ export default function System() {
           ]}
         />
 
-        <section className="module-grid" id="legend" aria-label="Legend">
-          <Module title="Component inventory" code="01" className="legend-module">
-            <ul className="sys-legend">
-              <li><span className="sys-legend__num">01</span><strong>Machine</strong><small>Bronze chassis, bolts, optional data-skin</small></li>
-              <li><span className="sys-legend__num">02</span><strong>TopDeck</strong><small>Brand, nav, actions, online indicator</small></li>
-              <li><span className="sys-legend__num">03</span><strong>HeroDeck</strong><small>Operational console panel</small></li>
-              <li><span className="sys-legend__num">04</span><strong>Radar</strong><small>CRT scope + four readouts</small></li>
-              <li><span className="sys-legend__num">05</span><strong>StatusRail</strong><small>Five-up telemetry strip</small></li>
-              <li><span className="sys-legend__num">06</span><strong>Module</strong><small>Header + body card with index</small></li>
-              <li><span className="sys-legend__num">07</span><strong>LowerBank</strong><small>Three-column secondary strip</small></li>
-              <li><span className="sys-legend__num">08</span><strong>Footer</strong><small>Mark, dl, subscribe, legal bar</small></li>
-            </ul>
-          </Module>
-          <Module title="Type hierarchy" code="02" className="typo-module">
-            <ul className="sys-typo">
-              {TYP_RAMP.map((t) => (
-                <li key={t.name}>
-                  <span className="sys-typo__name">{t.name}</span>
-                  <span className={`sys-typo__sample sys-typo__sample--${t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>Find what works.</span>
-                  <span className="sys-typo__spec">{t.spec}</span>
-                  <span className="sys-typo__use">{t.use}</span>
-                </li>
-              ))}
-            </ul>
-          </Module>
-          <Module title="Token ramp" code="03" className="tokens-module">
-            <div id="tokens" />
-            <ul className="sys-tokens">
-              {SKIN_TOKEN_SAMPLE.map((t) => (
-                <li key={t.token}>
-                  <code>{t.token}</code>
-                  <span className="sys-tokens__chip" data-token={t.token} />
-                  <small>{t.note}</small>
-                </li>
-              ))}
-            </ul>
-          </Module>
-          <Module title="Action states" code="04" className="actions-module">
-            <ul className="sys-actions">
-              {ACTION_STATES.map((a) => (
-                <li key={a.key} className={`sys-actions__row sys-actions__row--${a.key}`}>
-                  <span className="sys-actions__label">{a.label}</span>
-                  <a
-                    className={a.key === "default" ? "primary-action" : a.key === "active" ? "primary-action sys-active" : a.key === "hover" ? "primary-action sys-hover" : "primary-action sys-disabled"}
-                    aria-disabled={a.key === "disabled" ? true : undefined}
-                    href="#"
-                  >
-                    <b>Run</b> →
-                  </a>
-                  <a
-                    className={a.key === "default" ? "" : a.key === "active" ? "sys-active" : a.key === "hover" ? "sys-hover" : "sys-disabled"}
-                    aria-disabled={a.key === "disabled" ? true : undefined}
-                    href="#"
-                  >Secondary</a>
-                </li>
-              ))}
-            </ul>
-          </Module>
+        {/* 2x2 specimen grid: row 1 = 40% / 60%, row 2 = 50% / 50%. */}
+        <section className="sys-specimens" aria-label="Specimens">
+          <div className="sys-specimens__row sys-specimens__row--top">
+            <Module title="Component inventory" code="01" className="legend-module">
+              <ul className="sys-legend">
+                <li><span className="sys-legend__num">01</span><span className="sys-legend__content"><strong>Machine</strong><small>Bronze chassis, bolts, optional data-skin</small></span></li>
+                <li><span className="sys-legend__num">02</span><span className="sys-legend__content"><strong>TopDeck</strong><small>Brand mark, nav, actions, online indicator</small></span></li>
+                <li><span className="sys-legend__num">03</span><span className="sys-legend__content"><strong>HeroDeck</strong><small>Operational console hero panel</small></span></li>
+                <li><span className="sys-legend__num">04</span><span className="sys-legend__content"><strong>Radar</strong><small>CRT scope plus four corner readouts</small></span></li>
+                <li><span className="sys-legend__num">05</span><span className="sys-legend__content"><strong>StatusRail</strong><small>Five-up telemetry strip</small></span></li>
+                <li><span className="sys-legend__num">06</span><span className="sys-legend__content"><strong>Module</strong><small>Header plus body card with index</small></span></li>
+                <li><span className="sys-legend__num">07</span><span className="sys-legend__content"><strong>LowerBank</strong><small>Three-column secondary strip</small></span></li>
+                <li><span className="sys-legend__num">08</span><span className="sys-legend__content"><strong>Footer</strong><small>Mark, dl, subscribe, legal bar</small></span></li>
+              </ul>
+            </Module>
+            <Module title="Type hierarchy" code="02" className="typo-module">
+              <ol className="sys-typo">
+                {TYP_RAMP.map((t) => (
+                  <li key={t.name} className={`sys-typo__item sys-typo__item--${t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
+                    <span className="sys-typo__name">{t.name}</span>
+                    <span className="sys-typo__spec">{t.spec}</span>
+                    <span className="sys-typo__use">{t.use}</span>
+                    <span className={`sys-typo__sample sys-typo__sample--${t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>Find what works.</span>
+                  </li>
+                ))}
+              </ol>
+            </Module>
+          </div>
+          <div className="sys-specimens__row sys-specimens__row--bottom">
+            <Module title="Token ramp" code="03" className="tokens-module">
+              <div id="tokens" />
+              <ul className="sys-tokens">
+                {SKIN_TOKEN_SAMPLE.map((t) => (
+                  <li key={t.token}>
+                    <code>{t.token}</code>
+                    <span className="sys-tokens__chip" data-token={t.token} />
+                    <small>{t.note}</small>
+                  </li>
+                ))}
+              </ul>
+            </Module>
+            <Module title="Action states" code="04" className="actions-module">
+              <ul className="sys-actions">
+                {ACTION_STATES.map((a) => (
+                  <li key={a.key} className={`sys-actions__row sys-actions__row--${a.key}`}>
+                    <span className="sys-actions__label">{a.label}</span>
+                    <a
+                      className={a.key === "default" ? "primary-action" : a.key === "active" ? "primary-action sys-active" : a.key === "hover" ? "primary-action sys-hover" : "primary-action sys-disabled"}
+                      aria-disabled={a.key === "disabled" ? true : undefined}
+                      href="#"
+                    >
+                      <b>Run</b> →
+                    </a>
+                    <a
+                      className={a.key === "default" ? "" : a.key === "active" ? "sys-active" : a.key === "hover" ? "sys-hover" : "sys-disabled"}
+                      aria-disabled={a.key === "disabled" ? true : undefined}
+                      href="#"
+                    >Secondary</a>
+                  </li>
+                ))}
+              </ul>
+            </Module>
+          </div>
         </section>
 
         <LowerBank
@@ -287,13 +275,10 @@ export default function System() {
         <section id="skin" className="sys-skin-section" aria-label="Five accent skins">
           <header className="sys-section__head">
             <h2>Five accent skins</h2>
-            <p>Each block scopes a <code>data-skin</code> to its section so the cascade re-targets accents without rebuilding the chassis.</p>
+            <p>Each panel scopes a <code>data-skin</code> to its section so the cascade re-targets accents without rebuilding the chassis.</p>
           </header>
           <div className="sys-skin-row">
             {SKINS.map((s) => <SkinPanel key={s.id} id={s.id} label={s.label} />)}
-          </div>
-          <div className="sys-skin-grid" aria-label="Skin swatches">
-            {SKINS.map((s) => <SkinSwatch key={s.id} id={s.id} label={s.label} />)}
           </div>
         </section>
 
@@ -319,7 +304,7 @@ export default function System() {
           meta={[
             { dt: "Surface", dd: "/system" },
             { dt: "Audience", dd: "Designers" },
-            { dt: "Source", dd: "HEAD 749f76b" },
+            { dt: "Source", dd: "Sol baseline" },
             { dt: "Static", dd: "Internal" },
           ]}
           subscribe={{
@@ -334,7 +319,7 @@ export default function System() {
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "Tokens", href: "/system#tokens" },
             { kind: "link", value: "States", href: "/system#states" },
-            { kind: "small", value: "Static · internal · 749f76b" },
+            { kind: "small", value: "Static · internal" },
           ]}
         />
       </Machine>
