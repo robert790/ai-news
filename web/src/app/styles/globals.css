@@ -3,10 +3,6 @@
  *
  * Source of truth: web/docs/visual-baselines/home/VISUAL-BASELINE.md
  * Reset, page shell, and the data-skin accent presets live here.
- *
- * Stage 1a: this file is imported but the freeze (spike.css) still
- * drives the Home layout. Components will consume tokens + this
- * layer in stage 1b+. Do not reintroduce spike.css classnames here.
  */
 
 @import "./tokens.css";

@@ -1,6 +1,5 @@
-import "../app/styles/tokens.css";
 import "../app/styles/globals.css";
-import "../styles/spike.css";
+import "../styles/sol.css";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";

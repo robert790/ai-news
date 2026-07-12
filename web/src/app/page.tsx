@@ -31,7 +31,7 @@ const JOBS: ReadonlyArray<readonly [string, string, string]> = [
 export default function Home(): JSX.Element {
   return (
     <main className="page-shell">
-      <Machine>
+      <Machine skin="green">
         <TopDeck nav={HOME_NAV} />
 
         <HeroDeck
