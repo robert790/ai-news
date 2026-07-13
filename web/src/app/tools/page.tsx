@@ -28,7 +28,7 @@ const TOOLS_NAV = [
   { label: "Home", href: "/" },
   { label: "Tools", href: "/tools", active: true },
   { label: "Prompt Kits", href: "/prompt-kits" },
-  { label: "Learn", href: "/#learn" },
+  { label: "Learn", href: "/learn" },
   { label: "Jobs", href: "/#jobs" },
 ];
 

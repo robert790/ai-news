@@ -119,7 +119,7 @@ export default function Home(): JSX.Element {
               </div>
             ))}
           </Module>
-          <Module title="Learn path" code="03" className="learn-module" id="learn">
+          <Module title="Learn path" code="03" className="learn-module" id="learn" actionHref="/learn">
             <div className="course">
               <span className="course-icon">▤</span>
               <span>

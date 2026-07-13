@@ -28,7 +28,7 @@ const PROMPT_NAV = [
   { label: "Home", href: "/" },
   { label: "Tools", href: "/tools" },
   { label: "Prompt Kits", href: "/prompt-kits", active: true },
-  { label: "Learn", href: "/#learn" },
+  { label: "Learn", href: "/learn" },
   { label: "Jobs", href: "/#jobs" },
 ];
 
