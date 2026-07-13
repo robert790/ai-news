@@ -27,7 +27,7 @@ const LEARN_NAV = [
   { label: "Tools", href: "/tools" },
   { label: "Prompt Kits", href: "/prompt-kits" },
   { label: "Learn", href: "/learn", active: true },
-  { label: "Jobs", href: "/#jobs" },
+  { label: "Jobs", href: "/jobs" },
 ];
 
 type Topic = "Foundations" | "Prompting" | "Building" | "Agents" | "Career";

@@ -29,7 +29,7 @@ const TOOLS_NAV = [
   { label: "Tools", href: "/tools", active: true },
   { label: "Prompt Kits", href: "/prompt-kits" },
   { label: "Learn", href: "/learn" },
-  { label: "Jobs", href: "/#jobs" },
+  { label: "Jobs", href: "/jobs" },
 ];
 
 type Category = "Research" | "Build" | "Decide" | "Operate";

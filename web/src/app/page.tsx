@@ -146,7 +146,7 @@ export default function Home(): JSX.Element {
               </li>
             </ol>
           </Module>
-          <Module title="Jobs / roles" code="04" className="jobs-module" id="jobs">
+          <Module title="Jobs / roles" code="04" className="jobs-module" id="jobs" actionHref="/jobs">
             {JOBS.map(([name, place, type]) => (
               <div className="job-row" key={name}>
                 <span>

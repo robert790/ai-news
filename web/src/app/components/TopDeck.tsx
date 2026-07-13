@@ -64,5 +64,5 @@ export const HOME_NAV: readonly NavLink[] = [
   { label: "Tools", href: "/tools" },
   { label: "Prompt Kits", href: "/prompt-kits" },
   { label: "Learn", href: "/learn" },
-  { label: "Jobs", href: "/#jobs" },
+  { label: "Jobs", href: "/jobs" },
 ];

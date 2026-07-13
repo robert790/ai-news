@@ -29,7 +29,7 @@ const PROMPT_NAV = [
   { label: "Tools", href: "/tools" },
   { label: "Prompt Kits", href: "/prompt-kits", active: true },
   { label: "Learn", href: "/learn" },
-  { label: "Jobs", href: "/#jobs" },
+  { label: "Jobs", href: "/jobs" },
 ];
 
 type Category = "Build" | "Research" | "Decide" | "Write" | "Operate";
