@@ -2,6 +2,7 @@ import "../app/styles/globals.css";
 import "../styles/sol.css";
 import "../styles/system.css";
 import "../app/tools/tools.css";
+import "../app/prompt-kits/prompt-kits.css";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";

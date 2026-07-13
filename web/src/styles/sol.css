@@ -91,6 +91,40 @@ a { color:inherit; text-decoration:none; }
 .radar-blip--emphasis .radar-blip__core{opacity:1}
 @media (prefers-reduced-motion:reduce){.radar-beam,.radar-blip{animation:none}}
 
+/* --- Tablet (768–1023): shared TopDeck header compaction
+   Keeps the accepted 1440 header intact and the ≤760 mobile menu
+   intact. Fixes Home's overflow at 768px. Per-page overrides
+   (.page-shell[data-page="tools"|"system"|"prompt-kits"] .top-deck)
+   retain precedence for those routes. */
+@media (min-width:768px) and (max-width:1023px) {
+  .top-deck {
+    min-height: 72px;
+    padding: 10px 14px 12px;
+    grid-template-columns: 180px minmax(220px, 1fr) auto;
+    gap: 12px;
+  }
+  .brand { gap: 10px; }
+  .brand-scope { width: 38px; }
+  .brand strong { font-size: 16px; letter-spacing: .18em; }
+  .brand small { font-size: 7px; }
+  .top-deck nav {
+    height: 42px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .top-deck nav a {
+    font-size: 9px;
+    padding: 0 4px;
+    letter-spacing: .09em;
+  }
+  .top-deck .dial { width: 36px; height: 36px; }
+  .top-deck .top-actions { gap: 6px; }
+  .top-deck .top-action { width: 30px; height: 30px; }
+  .online { font-size: 7px; right: 16px; bottom: 3px; }
+  /* Prevent module-grid 1fr columns from honoring min-content and
+     overflowing the chassis at 768. */
+  .module-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+}
+
 @media (max-width:760px){
   .page-shell{padding:7px}.machine{padding:6px;box-shadow:0 0 0 1px #62543e,0 0 0 3px #111310,0 18px 45px #000}.machine::before,.machine::after{left:8px;right:8px}
   .machine-bolt{display:none}.top-deck{min-height:68px;padding:8px 12px 13px;grid-template-columns:1fr auto;gap:8px}.brand{gap:9px}.brand-scope{width:35px}.brand strong{font-size:15px;letter-spacing:.16em}.brand small{font-size:6px}.top-deck nav,.top-actions{display:none}.menu{display:flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid #62543d;background:linear-gradient(#1e211b,#0b0d0b);color:#ccc6b2;font:9px var(--mono);text-transform:uppercase;letter-spacing:.1em}.menu span{width:12px;height:8px;border-top:1px solid #a8a28e;border-bottom:1px solid #a8a28e}.online{right:13px;bottom:2px;font-size:6px}

@@ -55,7 +55,7 @@ export default function Home(): JSX.Element {
               ),
             },
             { href: "/tools#featured", label: "Today's picks" },
-            { href: "#kits", label: "Browse kits" },
+            { href: "/prompt-kits", label: "Browse kits" },
           ]}
           overview={{
             href: "#overview",
@@ -107,7 +107,7 @@ export default function Home(): JSX.Element {
               </div>
             ))}
           </Module>
-          <Module title="Prompt kits" code="02" className="kits-module" id="kits">
+          <Module title="Prompt kits" code="02" className="kits-module" id="kits" actionHref="/prompt-kits">
             {KITS.map((kit) => (
               <div className="kit-row" key={kit.no}>
                 <b>{kit.no}</b>

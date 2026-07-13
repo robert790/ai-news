@@ -526,6 +526,26 @@
   /* Home hides nav/dial at this breakpoint; /system matches it to
      avoid duplicating the dropdown menu pattern. */
   .page-shell[data-page="system"] .top-deck nav { display: none; }
+  .page-shell[data-page="system"] .top-deck--menu-open nav {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: auto;
+    grid-template-columns: 1fr;
+    margin-top: 5px;
+    border-radius: 0;
+    padding: 3px;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open nav a {
+    min-height: 42px;
+    border-right: 0;
+    border-bottom: 1px solid #25251f;
+    font-size: 8px;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open nav a:last-child {
+    border-bottom: 0;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open .online { display: none; }
   .page-shell[data-page="system"] .top-deck {
     grid-template-columns: 1fr auto;
     padding: 8px 12px 13px;
