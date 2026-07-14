@@ -1,0 +1,30 @@
+/*
+ * web/src/app/home.css
+ *
+ * Home-only adjustments for the primary module grid. The shared
+ * .module-grid is 4 columns by default (sol.css) which produces
+ * narrow word-by-word wrapping at tablet widths. At 768–1023px
+ * Home switches to a balanced 2x2 layout. Desktop remains 4 columns
+ * (shared default) and mobile remains 1 column.
+ *
+ * Scoped via the page attribute selector + the shared .module-grid
+ * class. No new class names added to the DOM.
+ */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-shell[data-page="home"] .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+/* Mobile (<=760): single stacked column. */
+@media (max-width: 760px) {
+  .page-shell[data-page="home"] .module-grid {
+    display: block !important;
+  }
+  .page-shell[data-page="home"] .module-grid > .module {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+}

@@ -1,0 +1,554 @@
+/*
+ * web/src/styles/system.css
+ *
+ * /system design-laboratory composition. Built only on top of the
+ * accepted Sol Home tokens, bronze/steel/cream substrate, and the
+ * shared accent cascade. Adds zero new tokens.
+ *
+ * Scoping rule: every selector below is prefixed with
+ * `.page-shell[data-page="system"]` so it cannot affect Home or
+ * any other route. The base Module/StatusRail/LowerBank
+ * composition classes from sol.css remain untouched.
+ */
+
+.page-shell[data-page="system"] .sys-skin-section,
+.page-shell[data-page="system"] .sys-states,
+.page-shell[data-page="system"] .sys-section__head,
+.page-shell[data-page="system"] .sys-skin,
+.page-shell[data-page="system"] .sys-skin__grid,
+.page-shell[data-page="system"] .sys-skin-row,
+.page-shell[data-page="system"] .sys-state,
+.page-shell[data-page="system"] .sys-legend,
+.page-shell[data-page="system"] .sys-typo,
+.page-shell[data-page="system"] .sys-tokens,
+.page-shell[data-page="system"] .sys-actions,
+.page-shell[data-page="system"] .sys-specimens,
+.page-shell[data-page="system"] .sys-specimens__row { display: block; }
+
+/* Override Home .module inside /system: allow shrinking for 2x2 layout. */
+.page-shell[data-page="system"] .module { min-width: 0; }
+
+/* --- Two-row specimen grid: row 1 = 40%/60%, row 2 = 50%/50% --- */
+.page-shell[data-page="system"] .sys-specimens { margin-top: 12px; }
+.page-shell[data-page="system"] .sys-specimens__row {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 12px;
+}
+.page-shell[data-page="system"] .sys-specimens__row:last-child { margin-bottom: 0; }
+/* Mobile-first: stack to single column. */
+.page-shell[data-page="system"] .sys-specimens__row--top { grid-template-columns: 1fr; }
+.page-shell[data-page="system"] .sys-specimens__row--bottom { grid-template-columns: 1fr; }
+
+/* --- Section frames for skin comparison + state panels --- */
+.page-shell[data-page="system"] .sys-skin-section,
+.page-shell[data-page="system"] .sys-states {
+  margin-top: 16px;
+  padding: 18px 22px 22px;
+  background: linear-gradient(#1d1e19, #0a0c09);
+  border: 1px solid #60523b;
+  box-shadow: inset 0 1px #5b594a, 0 5px 9px #000;
+}
+.page-shell[data-page="system"] .sys-section__head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.page-shell[data-page="system"] .sys-section__head h2 { margin: 0; color: #ddd8c6; font: 600 18px var(--or-font-display); letter-spacing: -.01em; }
+.page-shell[data-page="system"] .sys-section__head p { margin: 0; color: #aaa697; font: 10px var(--or-font-mono); text-transform: uppercase; letter-spacing: .11em; }
+.page-shell[data-page="system"] .sys-section__head code { color: var(--accent); }
+
+/* --- Five-skin comparison row --- */
+.page-shell[data-page="system"] .sys-skin-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-skin {
+  padding: 12px;
+  background: linear-gradient(135deg, #272821, #0b0d0a 8%, #171914 93%, #413b2d);
+  border: 1px solid #6d593d;
+  box-shadow: inset 0 1px #6f6957, 0 6px 10px #000;
+  min-width: 0;
+  overflow: hidden;
+}
+.page-shell[data-page="system"] .sys-skin__head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #4b4637; min-width: 0; }
+.page-shell[data-page="system"] .sys-skin__code {
+  display: grid; place-items: center;
+  width: 22px; height: 22px;
+  border: 1px solid var(--accent-module-border);
+  color: var(--accent);
+  font: 9px var(--or-font-mono);
+  text-transform: uppercase;
+  flex: none;
+}
+.page-shell[data-page="system"] .sys-skin__head h3 {
+  margin: 0; color: #ddd8c6;
+  font: 11px var(--or-font-mono); letter-spacing: .09em; text-transform: uppercase;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.page-shell[data-page="system"] .sys-skin__grid { display: grid; grid-template-rows: auto auto auto; gap: 8px; min-width: 0; }
+.page-shell[data-page="system"] .sys-skin__module,
+.page-shell[data-page="system"] .sys-skin__rail,
+.page-shell[data-page="system"] .sys-skin__actions { min-width: 0; }
+/* Override the shared Home .module { min-height: 270px } so the
+   skin comparison cards size to their actual content. Scoped to
+   .sys-skin__module/__rail/__actions so it never affects Home or
+   any other Module usage. */
+.page-shell[data-page="system"] .sys-skin__module,
+.page-shell[data-page="system"] .sys-skin__rail,
+.page-shell[data-page="system"] .sys-skin__actions { min-height: 0; height: auto; }
+.page-shell[data-page="system"] .sys-skin__module .module-body,
+.page-shell[data-page="system"] .sys-skin__actions .module-body { padding: 8px; display: flex; min-width: 0; overflow: hidden; }
+.page-shell[data-page="system"] .sys-skin__rail .module-body { padding: 0; background: transparent; border: 0; box-shadow: none; min-width: 0; overflow: hidden; }
+
+/* Inside each skin specimen: module body, status rail, action row. */
+.page-shell[data-page="system"] .sys-skin__module-body { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.page-shell[data-page="system"] .sys-skin__primary {
+  padding: 4px 8px;
+  background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
+  color: #11160d; border: 1px solid var(--accent-cta-border);
+  font: 8px var(--or-font-mono); text-transform: uppercase;
+  white-space: nowrap;
+}
+.page-shell[data-page="system"] .sys-skin__ghost {
+  padding: 4px 8px;
+  background: #0b0d0a; color: #c9c3b0; border: 1px solid #62543b;
+  font: 8px var(--or-font-mono); text-transform: uppercase;
+  white-space: nowrap;
+}
+.page-shell[data-page="system"] .sys-skin__tag {
+  padding: 2px 6px;
+  border: 1px solid var(--accent-tag-border); color: var(--accent-tag-text);
+  font: normal 7px var(--or-font-mono); text-transform: uppercase;
+  white-space: nowrap;
+}
+.page-shell[data-page="system"] .sys-skin__progress {
+  height: 6px; background: #050604; border: 1px solid #3a3d31; padding: 1px;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-skin__progress i {
+  display: block; height: 100%;
+  background: linear-gradient(90deg, var(--accent-progress-start), var(--accent));
+  box-shadow: 0 0 5px var(--accent-progress-glow);
+}
+
+.page-shell[data-page="system"] .sys-skin__rail .status-rail {
+  margin-top: 0; min-height: 0;
+  background: linear-gradient(#151713, #090b09);
+  border: 1px solid #574a36;
+  padding: 6px 8px;
+  min-width: 0; overflow: hidden;
+}
+.page-shell[data-page="system"] .sys-skin__rail .status-rail > div { padding: 0 4px; gap: 4px; min-width: 0; overflow: hidden; }
+.page-shell[data-page="system"] .sys-skin__rail .status-rail span,
+.page-shell[data-page="system"] .sys-skin__rail .status-rail small {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.page-shell[data-page="system"] .sys-skin__rail .status-rail span { font-size: 7.5px; }
+.page-shell[data-page="system"] .sys-skin__rail .status-rail small { font-size: 7px; }
+.page-shell[data-page="system"] .sys-skin__rail .status-icon { width: 18px; height: 18px; font-size: 10px; flex: none; }
+.page-shell[data-page="system"] .sys-skin__rail .pulse { width: 22px; flex: none; }
+
+.page-shell[data-page="system"] .sys-skin__action-row {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-skin__action-row a {
+  padding: 4px 10px;
+  font: 8px var(--or-font-mono); text-transform: uppercase; letter-spacing: .06em;
+  border: 1px solid #62543b; background: #0b0d0a; color: #c9c3b0;
+  box-shadow: inset 0 1px #2d2d25;
+  white-space: nowrap;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-skin__action-row a.primary-action {
+  background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
+  color: #11160d; border-color: var(--accent-cta-border); font-weight: 700;
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 12px var(--accent-glow-100);
+}
+.page-shell[data-page="system"] .sys-skin__action-row a.primary-action b { font-size: 12px; }
+
+/* --- Component inventory (legend) --- */
+.page-shell[data-page="system"] .legend-module .module-body { padding: 4px; }
+.page-shell[data-page="system"] .sys-legend { margin: 0; padding: 0; list-style: none; }
+.page-shell[data-page="system"] .sys-legend li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 12px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #282b23;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-legend li:last-child { border: 0; }
+.page-shell[data-page="system"] .sys-legend__num {
+  color: var(--accent);
+  font: 10px var(--or-font-mono);
+  text-align: right;
+}
+.page-shell[data-page="system"] .sys-legend__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-legend strong {
+  display: block;
+  color: #e0dac7;
+  font: 12px var(--or-font-display);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-shell[data-page="system"] .sys-legend small {
+  display: block;
+  color: #979384;
+  font: 9px/1.45 var(--or-font-mono);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* --- Typography ramp --- */
+.page-shell[data-page="system"] .typo-module .module-body { padding: 4px; }
+.page-shell[data-page="system"] .sys-typo {
+  margin: 0; padding: 0;
+  list-style: none;
+}
+.page-shell[data-page="system"] .sys-typo__item {
+  display: grid;
+  /* Mobile-first: name, spec, use, sample stacked vertically */
+  grid-template-columns: 1fr;
+  align-items: baseline;
+  row-gap: 4px;
+  padding: 10px 8px;
+  border-bottom: 1px solid #282b23;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-typo__item:last-child { border: 0; }
+.page-shell[data-page="system"] .sys-typo__name {
+  color: var(--accent);
+  font: 600 9px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+.page-shell[data-page="system"] .sys-typo__spec {
+  color: #aaa697;
+  font: 8.5px var(--or-font-mono);
+}
+.page-shell[data-page="system"] .sys-typo__use {
+  color: #979384;
+  font: 8px var(--or-font-mono);
+  text-transform: lowercase;
+}
+.page-shell[data-page="system"] .sys-typo__sample {
+  display: block;
+  color: #e0dac7;
+  overflow-wrap: anywhere;
+}
+
+/* --- Token ramp --- */
+.page-shell[data-page="system"] .tokens-module .module-body { padding: 4px; }
+.page-shell[data-page="system"] .sys-tokens { margin: 0; padding: 0; list-style: none; }
+.page-shell[data-page="system"] .sys-tokens li {
+  display: grid;
+  grid-template-columns: 140px 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #282b23;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-tokens li:last-child { border: 0; }
+.page-shell[data-page="system"] .sys-tokens code {
+  color: var(--accent);
+  font: 10px var(--or-font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-shell[data-page="system"] .sys-tokens small {
+  color: #979384;
+  font: 8.5px var(--or-font-mono);
+  overflow-wrap: anywhere;
+}
+.page-shell[data-page="system"] .sys-tokens__chip {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 4px var(--accent-glow-100);
+  flex: none;
+}
+
+/* --- Action states --- */
+.page-shell[data-page="system"] .actions-module .module-body { padding: 4px; }
+.page-shell[data-page="system"] .sys-actions {
+  margin: 0; padding: 0; list-style: none;
+}
+.page-shell[data-page="system"] .sys-actions__row {
+  /* Mobile-first: stacked single column */
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+  border-bottom: 1px solid #282b23;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-actions__row:last-child { border: 0; }
+.page-shell[data-page="system"] .sys-actions__label {
+  color: var(--accent);
+  font: 600 9px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+.page-shell[data-page="system"] .sys-actions__row a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; /* touch target */
+  padding: 0 14px;
+  font: 9px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  border: 1px solid #62543b;
+  background: #0b0d0a;
+  color: #c9c3b0;
+  box-shadow: inset 0 1px #2d2d25;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.page-shell[data-page="system"] .sys-actions__row a.primary-action {
+  background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
+  color: #11160d; border-color: var(--accent-cta-border); font-weight: 700;
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 12px var(--accent-glow-100);
+}
+.page-shell[data-page="system"] .sys-actions__row a.primary-action b { font-size: 14px; }
+.page-shell[data-page="system"] .sys-actions__row .sys-hover {
+  border-color: var(--accent);
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 10px var(--accent-glow-100);
+}
+.page-shell[data-page="system"] .sys-actions__row .sys-active {
+  box-shadow: inset 0 2px 8px #000;
+  transform: translateY(1px);
+}
+.page-shell[data-page="system"] .sys-actions__row .sys-disabled {
+  opacity: .4;
+  pointer-events: none;
+  filter: grayscale(.5);
+  color: #77766a;
+  border-color: #36352c;
+}
+
+/* --- System state panels --- */
+.page-shell[data-page="system"] .sys-states__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+.page-shell[data-page="system"] .sys-state {
+  padding: 12px;
+  background: linear-gradient(135deg, #272821, #0b0d0a 8%, #171914 93%, #413b2d);
+  border: 1px solid #6d593d;
+  box-shadow: inset 0 1px #6f6957, 0 6px 10px #000;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 200px;
+}
+.page-shell[data-page="system"] .sys-state__head {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #4b4637;
+}
+.page-shell[data-page="system"] .sys-state__head h4 {
+  margin: 0;
+  color: #ddd8c6;
+  font: 11px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+.page-shell[data-page="system"] .sys-state__chip {
+  display: grid; place-items: center;
+  width: 22px; height: 22px;
+  border: 1px solid var(--accent-module-border); color: var(--accent);
+  font: 9px var(--or-font-mono); text-transform: uppercase;
+}
+.page-shell[data-page="system"] .sys-state__chip--loading { color: var(--accent-deep-300); border-color: var(--accent-module-border); }
+.page-shell[data-page="system"] .sys-state__chip--empty { color: #aaa697; border-color: #4b4637; }
+.page-shell[data-page="system"] .sys-state__chip--success { color: var(--accent); border-color: var(--accent-module-border); }
+.page-shell[data-page="system"] .sys-state__chip--warning { color: var(--accent-cta-end); border-color: var(--accent-cta-border); background: linear-gradient(180deg, transparent 60%, #2a1f10); }
+.page-shell[data-page="system"] .sys-state__chip--error { color: #ff8585; border-color: #8a2f2f; background: linear-gradient(180deg, transparent 60%, #2f0e0e); }
+.page-shell[data-page="system"] .sys-state__body { margin: 0; color: #b9b4a3; font-size: 13px; line-height: 1.45; }
+.page-shell[data-page="system"] .sys-state__meta { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.page-shell[data-page="system"] .sys-state__meta li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #292b24; }
+.page-shell[data-page="system"] .sys-state__meta li:last-child { border: 0; }
+.page-shell[data-page="system"] .sys-state__meta span { color: #979384; font: 8.5px var(--or-font-mono); text-transform: uppercase; letter-spacing: .09em; }
+.page-shell[data-page="system"] .sys-state__meta strong { color: var(--accent); font: 9.5px var(--or-font-mono); }
+
+/* ============================================================================
+   Responsive breakpoints
+   - Mobile: ≤760px (default mobile-first rules above)
+   - Tablet: 768-1023px → 3+2 centered skin row, specimens split 50/50
+   - Desktop: ≥1024px → 5-up skin row, specimens 40/60 + 50/50, typ 4-zone
+   ============================================================================ */
+
+/* --- Tablet (768-1023px): 3+2 centered skin row, specimens each 50% --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* 5-skin row: real centered 3+2 layout, every card occupies a
+     unique grid position. Use a 6-col grid: row 1 = cards 1-3 each
+     span 2 cols, row 2 = cards 4-5 each span 2 cols starting at
+     col 2 (so the 2-card row is centered). */
+  .page-shell[data-page="system"] .sys-skin-row {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    row-gap: 12px;
+    justify-content: center;
+  }
+  .page-shell[data-page="system"] .sys-skin:nth-child(1) { grid-column: 1 / span 2; grid-row: 1; }
+  .page-shell[data-page="system"] .sys-skin:nth-child(2) { grid-column: 3 / span 2; grid-row: 1; }
+  .page-shell[data-page="system"] .sys-skin:nth-child(3) { grid-column: 5 / span 2; grid-row: 1; }
+  .page-shell[data-page="system"] .sys-skin:nth-child(4) { grid-column: 2 / span 2; grid-row: 2; }
+  .page-shell[data-page="system"] .sys-skin:nth-child(5) { grid-column: 4 / span 2; grid-row: 2; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail > div { gap: 6px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail span { font-size: 8.5px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail small { font-size: 8px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-icon { width: 22px; height: 22px; font-size: 12px; }
+  .page-shell[data-page="system"] .sys-skin__rail .pulse { width: 26px; }
+  .page-shell[data-page="system"] .sys-specimens__row--top { grid-template-columns: 1fr 1fr; }
+  .page-shell[data-page="system"] .sys-specimens__row--bottom { grid-template-columns: 1fr 1fr; }
+  /* Type ramp at tablet: 2-zone stacked rows per specimen */
+  .page-shell[data-page="system"] .sys-typo__item {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
+}
+
+/* --- Desktop (≥1024px): 5-up skin row, typ 4-zone rows --- */
+@media (min-width: 1024px) {
+  .page-shell[data-page="system"] .sys-specimens__row--top { grid-template-columns: 40% 60%; }
+  .page-shell[data-page="system"] .sys-specimens__row--bottom { grid-template-columns: 1fr 1fr; }
+  .page-shell[data-page="system"] .sys-skin-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail > div { gap: 6px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail span { font-size: 9.5px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-rail small { font-size: 9px; }
+  .page-shell[data-page="system"] .sys-skin__rail .status-icon { width: 24px; height: 24px; font-size: 13px; }
+  .page-shell[data-page="system"] .sys-skin__rail .pulse { width: 30px; }
+
+  /* Type ramp at desktop: 4-column row, sample gets its own column */
+  .page-shell[data-page="system"] .sys-typo__item {
+    grid-template-columns: 110px 170px 130px minmax(0, 1fr);
+    grid-template-areas:
+      "name spec use sample";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 0;
+    padding: 12px 10px;
+  }
+  .page-shell[data-page="system"] .sys-typo__name { grid-area: name; }
+  .page-shell[data-page="system"] .sys-typo__spec { grid-area: spec; }
+  .page-shell[data-page="system"] .sys-typo__use { grid-area: use; }
+  .page-shell[data-page="system"] .sys-typo__sample {
+    grid-area: sample;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+  .page-shell[data-page="system"] .sys-typo__sample--display { font-size: 22px; }
+  .page-shell[data-page="system"] .sys-typo__sample--body-lede { font-size: 16px; }
+  .page-shell[data-page="system"] .sys-typo__sample--module-title,
+  .page-shell[data-page="system"] .sys-typo__sample--rail-label,
+  .page-shell[data-page="system"] .sys-typo__sample--tag-chip,
+  .page-shell[data-page="system"] .sys-typo__sample--legal-micro { font-size: 11px; }
+
+  /* Action states at desktop: label / primary / secondary in one row */
+  .page-shell[data-page="system"] .sys-actions__row {
+    grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    padding: 10px 12px;
+  }
+  .page-shell[data-page="system"] .sys-actions__row > a.primary-action {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .page-shell[data-page="system"] .sys-actions__row > a:not(.primary-action) {
+    grid-column: 3;
+    min-width: 0;
+  }
+
+  /* Token ramp at desktop: chip + name + note spread out */
+  .page-shell[data-page="system"] .sys-tokens li {
+    grid-template-columns: 150px 20px minmax(0, 1fr);
+    padding: 6px 10px;
+  }
+
+  /* Legend at desktop: keep index | description two-column */
+  .page-shell[data-page="system"] .sys-legend li {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+}
+
+/* --- TopDeck overflow override for /system only (768px and below): ---
+   The Home chassis TopDeck row (brand + nav + top-actions + dial)
+   is wider than 768 because of the 4-up nav + 5 actions + dial +
+   brand mark. /system shares that chassis. Without overriding
+   TopDeck internals (forbidden), the cleanest fix is to collapse
+   the top-actions cluster at ≤760 inside /system only. */
+@media (max-width: 1023px) {
+  /* Shrink /system TopDeck internals so it fits at 768px (the chassis
+     uses fixed grid columns that overflow below 1024). We never
+     touch Home because /system is the only route under this scope. */
+  .page-shell[data-page="system"] .top-deck {
+    grid-template-columns: 200px minmax(280px, 1fr) auto;
+    gap: 12px;
+    padding: 10px 14px 12px;
+  }
+  .page-shell[data-page="system"] .top-deck .dial { display: none; }
+  .page-shell[data-page="system"] .top-deck nav a {
+    font-size: 8.5px;
+    padding: 0 6px;
+    letter-spacing: .08em;
+  }
+  .page-shell[data-page="system"] .top-deck nav {
+    height: 40px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .page-shell[data-page="system"] .top-actions { gap: 4px; }
+  .page-shell[data-page="system"] .top-actions .top-action {
+    width: 28px;
+    height: 28px;
+  }
+  .page-shell[data-page="system"] .brand strong { font-size: 13px; }
+  .page-shell[data-page="system"] .brand small { font-size: 7px; }
+}
+
+@media (max-width: 760px) {
+  /* Home hides nav/dial at this breakpoint; /system matches it to
+     avoid duplicating the dropdown menu pattern. */
+  .page-shell[data-page="system"] .top-deck nav { display: none; }
+  .page-shell[data-page="system"] .top-deck--menu-open nav {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: auto;
+    grid-template-columns: 1fr;
+    margin-top: 5px;
+    border-radius: 0;
+    padding: 3px;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open nav a {
+    min-height: 42px;
+    border-right: 0;
+    border-bottom: 1px solid #25251f;
+    font-size: 8px;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open nav a:last-child {
+    border-bottom: 0;
+  }
+  .page-shell[data-page="system"] .top-deck--menu-open .online { display: none; }
+  .page-shell[data-page="system"] .top-deck {
+    grid-template-columns: 1fr auto;
+    padding: 8px 12px 13px;
+  }
+  .page-shell[data-page="system"] .brand-scope { width: 35px; }
+}

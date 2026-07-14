@@ -1,0 +1,584 @@
+/*
+ * web/src/app/prompt-kits/prompt-kits.css
+ *
+ * /prompt-kits page composition. Built only on top of the accepted
+ * Sol Home tokens, bronze/steel/cream substrate, and the shared
+ * chassis. Adds zero new tokens. Scoped via
+ * .page-shell[data-page="prompt-kits"] so it cannot affect Home,
+ * /tools, or /system.
+ */
+
+.page-shell[data-page="prompt-kits"] .kits-searchbar,
+.page-shell[data-page="prompt-kits"] .kits-searchbar__inner,
+.page-shell[data-page="prompt-kits"] .kits-searchbar__field,
+.page-shell[data-page="prompt-kits"] .kits-searchbar__chips,
+.page-shell[data-page="prompt-kits"] .kits-featured-section,
+.page-shell[data-page="prompt-kits"] .kits-results-section,
+.page-shell[data-page="prompt-kits"] .kits-section__head,
+.page-shell[data-page="prompt-kits"] .kits-results,
+.page-shell[data-page="prompt-kits"] .kits-feature__body,
+.page-shell[data-page="prompt-kits"] .kits-state {
+  display: block;
+}
+
+/* Override shared .module min-height inside /prompt-kits only. */
+.page-shell[data-page="prompt-kits"] .module { min-width: 0; min-height: 0; }
+.page-shell[data-page="prompt-kits"] .kits-feature .module-body,
+.page-shell[data-page="prompt-kits"] .kits-search-module .module-body,
+.page-shell[data-page="prompt-kits"] .kits-results-module .module-body,
+.page-shell[data-page="prompt-kits"] .kits-empty .module-body {
+  padding: 10px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* --- Section heading --- */
+.page-shell[data-page="prompt-kits"] .kits-section__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.page-shell[data-page="prompt-kits"] .kits-section__head h2 {
+  margin: 0;
+  color: #ddd8c6;
+  font: 600 18px var(--or-font-display);
+  letter-spacing: -.01em;
+}
+.page-shell[data-page="prompt-kits"] .kits-section__head p {
+  margin: 0;
+  color: #b5b09f;
+  font: 10px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .11em;
+}
+.page-shell[data-page="prompt-kits"] .kits-section__count {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  color: #979384;
+  border: 1px solid #36352c;
+  background: #0b0d0a;
+  font: 600 9px var(--or-font-mono);
+  letter-spacing: .08em;
+  vertical-align: middle;
+}
+
+/* --- Search bar --- */
+.page-shell[data-page="prompt-kits"] .kits-searchbar { margin-top: 12px; }
+.page-shell[data-page="prompt-kits"] .kits-searchbar__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #b5b09f;
+  font: 600 9px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .11em;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__count {
+  color: #979384;
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__field input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #38382e;
+  background: #060806;
+  color: #c5bfad;
+  font: 11px var(--or-font-mono);
+  outline: none;
+  box-shadow: inset 0 1px #000;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__field input::placeholder {
+  color: #6a6757;
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__field input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: inset 0 1px #000, 0 0 0 2px var(--accent-glow-100);
+}
+.page-shell[data-page="prompt-kits"] .kits-searchbar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.page-shell[data-page="prompt-kits"] .kits-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid #38382e;
+  background: #0b0d0a;
+  color: #c9c3b0;
+  font: 600 8.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  cursor: pointer;
+  box-shadow: inset 0 1px #1f201a;
+  min-height: 30px;
+}
+.page-shell[data-page="prompt-kits"] .kits-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.page-shell[data-page="prompt-kits"] .kits-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kits-chip--active {
+  background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
+  color: #11160d;
+  border-color: var(--accent-cta-border);
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 10px var(--accent-glow-100);
+}
+.page-shell[data-page="prompt-kits"] .kits-chip__count {
+  font-size: 7.5px;
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  opacity: .8;
+}
+.page-shell[data-page="prompt-kits"] .kits-reset {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-bottom: 1px solid #62543b;
+  background: transparent;
+  color: #bdb7a5;
+  font: 600 8.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+.page-shell[data-page="prompt-kits"] .kits-reset:hover { color: var(--accent); border-color: var(--accent); }
+.page-shell[data-page="prompt-kits"] .kits-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* --- Featured cards --- */
+.page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature .module-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature__lede {
+  margin: 0;
+  color: #c4beac;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 8px 0 0;
+  border-top: 1px solid #282b23;
+  list-style: none;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature__meta li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature__meta span {
+  color: #979384;
+  font: 8.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .09em;
+}
+.page-shell[data-page="prompt-kits"] .kits-feature__meta strong {
+  color: var(--accent);
+  font: 600 10px var(--or-font-mono);
+  letter-spacing: .06em;
+}
+
+/* --- Compact index (uses Home's .kit-row baseline + extra cols) --- */
+.page-shell[data-page="prompt-kits"] .kits-results {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row {
+  /* compact summary row: mark, name/use-case, category, difficulty, setup, Details, Copy */
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto auto;
+  grid-template-areas:
+    "mark name cat level time details copy";
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+}
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row .kit-mark { grid-area: mark; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > span:nth-child(2) { grid-area: name; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(1) { grid-area: cat; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(2) { grid-area: level; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(3) { grid-area: time; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-details { grid-area: details; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy { grid-area: copy; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy {
+  margin-left: 0;
+}
+
+/* Kit copy button — instrument-style control with success state. */
+.page-shell[data-page="prompt-kits"] .kit-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--accent-cta-border);
+  background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
+  color: #11160d;
+  font: 600 8px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  text-decoration: none;
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 8px var(--accent-glow-100);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: box-shadow 160ms ease, transform 80ms ease;
+}
+.page-shell[data-page="prompt-kits"] .kit-copy:hover {
+  box-shadow: inset 0 1px var(--accent-cta-inset), 0 0 14px var(--accent-glow-100);
+}
+.page-shell[data-page="prompt-kits"] .kit-copy:active {
+  transform: translateY(1px);
+}
+.page-shell[data-page="prompt-kits"] .kit-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kit-copy--ok {
+  border-color: #2f6a3f;
+  background: linear-gradient(#8fdca0, #2f6a3f);
+  color: #07120a;
+  box-shadow: inset 0 1px #c9f1ce, 0 0 12px rgba(143, 220, 160, 0.45);
+}
+
+/* Kit Details button — secondary dark/bronze outline; visually quieter
+   than the primary Copy action. */
+.page-shell[data-page="prompt-kits"] .kit-details {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid #62543b;
+  background: #0b0d0a;
+  color: #c9c3b0;
+  font: 600 8px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px #15180f;
+  cursor: pointer;
+}
+.page-shell[data-page="prompt-kits"] .kit-details:hover {
+  border-color: var(--accent);
+  color: #ddd8c6;
+}
+.page-shell[data-page="prompt-kits"] .kit-details:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kit-row--open > .kit-details {
+  border-color: var(--accent);
+  color: #ddd8c6;
+}
+
+/* Expanded summary panel for /prompt-kits compact rows. */
+.page-shell[data-page="prompt-kits"] .kit-row__summary {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: #0b0d0a;
+  border: 1px solid #36352c;
+  border-radius: 4px;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts dt {
+  margin: 0;
+  color: #979384;
+  font: 600 8px var(--or-font-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts dd {
+  margin: 0;
+  color: #cfc9b6;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__prompt-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #b5b09f;
+  font: 12px var(--or-font-mono);
+  white-space: pre-wrap;
+}
+
+/* Visually-hidden summary line used inside the expanded region
+   (it provides a complete sentence for screen readers while the
+   visible <dl> facts stay terse). */
+.page-shell[data-page="prompt-kits"] .sr-only,
+.page-shell[data-page="tools"] .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Polite live region for Copy announcements; invisible when empty. */
+.page-shell[data-page="prompt-kits"] .kits-live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* Outbound notice — single banner above the compact index. */
+.page-shell[data-page="prompt-kits"] .kits-outbound-notice {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px solid #36352c;
+  background: #0b0d0a;
+  color: #b5b09f;
+  font: 9.5px var(--or-font-mono);
+  letter-spacing: .04em;
+  line-height: 1.5;
+}
+
+/* Empty + loading states */
+.page-shell[data-page="prompt-kits"] .kits-state {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kits-state__title {
+  margin: 0;
+  color: #ddd8c6;
+  font: 600 13px var(--or-font-display);
+}
+.page-shell[data-page="prompt-kits"] .kits-state__body {
+  margin: 0;
+  color: #aaa696;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.page-shell[data-page="prompt-kits"] .kits-state__clear {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 1px solid #62543b;
+  background: linear-gradient(#151713, #0b0d0a);
+  color: #c9c3b0;
+  font: 600 8.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  box-shadow: inset 0 1px #2d2d25;
+}
+.page-shell[data-page="prompt-kits"] .kits-state__clear:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.page-shell[data-page="prompt-kits"] .kits-state__clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* OpenRadar disclosure control — bronze border, dark surface, cream
+   text, 44px+ height, full-width on mobile, no native grey. */
+.page-shell[data-page="prompt-kits"] .kits-disclosure {
+  display: flex;
+  padding: 10px 0 4px;
+  border-top: 1px solid #292b24;
+}
+.page-shell[data-page="prompt-kits"] .kits-disclosure__btn {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #62543b;
+  background: linear-gradient(#151713, #0b0d0a);
+  color: #c9c3b0;
+  font: 600 9.5px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  cursor: pointer;
+  box-shadow: inset 0 1px #2d2d25, 0 1px 0 #050605;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:hover {
+  border-color: #8c7657;
+  color: #ddd8c6;
+}
+.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:active {
+  background: linear-gradient(#1c1e19, #0d0f0b);
+  transform: translateY(1px);
+}
+.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kits-disclosure__btn[aria-expanded="true"] {
+  border-color: #8c7657;
+  color: #ddd8c6;
+}
+
+/* --- Mobile (≤760) --- */
+@media (max-width: 760px) {
+  .page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
+    /* Three collapsed bands:
+       1. mark + name/use-case
+       2. category + difficulty + setup
+       3. Details + Copy
+       Expanded summary spans the full row. */
+    grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      "mark name name name name"
+      "cat cat level time time"
+      "details details copy copy copy";
+    column-gap: 10px;
+    row-gap: 6px;
+    padding: 10px;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row .kit-mark { grid-area: mark; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > span:nth-child(2) { grid-area: name; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(1) { grid-area: cat; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(2) { grid-area: level; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(3) { grid-area: time; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-details {
+    grid-area: details;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy {
+    grid-area: copy;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-row__summary {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+}
+
+/* --- Tablet (768-1023) --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- TopDeck shrink override for /prompt-kits at ≤1023 (same pattern as
+   /tools and /system) so the chassis fits at 768 without touching Home. --- */
+@media (max-width: 1023px) {
+  .page-shell[data-page="prompt-kits"] .top-deck {
+    grid-template-columns: 200px minmax(280px, 1fr) auto;
+    gap: 12px;
+    padding: 10px 14px 12px;
+  }
+  .page-shell[data-page="prompt-kits"] .top-deck .dial { display: none; }
+  .page-shell[data-page="prompt-kits"] .top-deck nav a {
+    font-size: 8.5px;
+    padding: 0 6px;
+    letter-spacing: .08em;
+  }
+  .page-shell[data-page="prompt-kits"] .top-deck nav {
+    height: 40px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .page-shell[data-page="prompt-kits"] .top-actions { gap: 4px; }
+  .page-shell[data-page="prompt-kits"] .top-actions .top-action { width: 28px; height: 28px; }
+  .page-shell[data-page="prompt-kits"] .brand strong { font-size: 13px; }
+  .page-shell[data-page="prompt-kits"] .brand small { font-size: 7px; }
+}
+@media (max-width: 760px) {
+  .page-shell[data-page="prompt-kits"] .top-deck--menu-open nav {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: 1fr;
+    margin-top: 5px;
+    border-radius: 0;
+    padding: 3px;
+    height: auto;
+  }
+  .page-shell[data-page="prompt-kits"] .top-deck--menu-open nav a {
+    min-height: 42px;
+    border-right: 0;
+    border-bottom: 1px solid #25251f;
+    font-size: 8px;
+  }
+  .page-shell[data-page="prompt-kits"] .top-deck--menu-open nav a:last-child {
+    border-bottom: 0;
+  }
+  .page-shell[data-page="prompt-kits"] .top-deck--menu-open .online { display: none; }
+
+  .page-shell[data-page="prompt-kits"] .top-deck {
+    grid-template-columns: 1fr auto;
+    padding: 8px 12px 13px;
+  }
+  .page-shell[data-page="prompt-kits"] .brand-scope { width: 35px; }
+}
+
+/* --- Tablet (768-1023): constrain shared Footer email input
+   to prevent 5px overflow at exactly 768px viewport. --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-shell[data-page="prompt-kits"] footer form input[type="email"] {
+    max-width: 140px;
+  }
+}
