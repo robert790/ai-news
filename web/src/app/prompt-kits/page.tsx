@@ -44,6 +44,7 @@ type Kit = {
   difficulty: Difficulty;
   setupMin: number;
   useCase: string;
+  expectedOutput: string;
   prompt: string;
   featured?: boolean;
 };
@@ -58,6 +59,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 5,
     useCase: "Catch regressions before merge with a reusable review pass",
+    expectedOutput: "A focused review with one or two concrete change suggestions per file.",
     prompt:
       "You are a senior reviewer. Review the diff for correctness, edge cases, security, readability, and test coverage. Output a verdict (approve/changes), a numbered list of findings, and concrete patch suggestions for each.",
     featured: true,
@@ -71,6 +73,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 15,
     useCase: "Plan, scaffold, implement, test, and document a small feature",
+    expectedOutput: "A shippable diff plus a 5-line note on what to test and what to watch.",
     prompt:
       "Plan a vertical slice for the following feature. Produce: (1) user story + acceptance criteria, (2) file-level plan, (3) test plan, (4) implementation diff, (5) rollback plan.",
     featured: true,
@@ -84,6 +87,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 5,
     useCase: "Make a defensible tool choice between 2–5 candidates",
+    expectedOutput: "A short ranked comparison with explicit trade-offs and a clear recommendation.",
     prompt:
       "Build a weighted decision matrix for the listed tools across capability, fit, cost, latency, privacy, and vendor risk. Recommend a primary pick and a fallback with reasons.",
     featured: true,
@@ -97,6 +101,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 20,
     useCase: "Synthesize a topic into a brief with cited sources",
+    expectedOutput: "A one-page brief with cited sources, key findings, and three open questions.",
     prompt:
       "Produce a 1-page brief on the topic. Cite each non-trivial claim with an inline marker [n] tied to a numbered references list. Flag any claim that cannot be supported.",
     featured: true,
@@ -110,6 +115,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 30,
     useCase: "Run a blameless review that produces corrective actions",
+    expectedOutput: "A blameless timeline, root cause hypothesis, and concrete follow-up actions.",
     prompt:
       "Draft a blameless postmortem: timeline, contributing factors (Swiss-cheese), customer impact, what went well, what didn't, action items with owners and due dates.",
   },
@@ -122,6 +128,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 10,
     useCase: "Short, specific, value-anchored cold email that respects the reader",
+    expectedOutput: "Three personalized cold-outreach drafts tuned to the same recipient profile.",
     prompt:
       "Draft a 90-word cold email to the recipient for the stated purpose. Open with a specific observation about their work, state a concrete value claim, and end with a low-friction ask.",
   },
@@ -134,6 +141,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 5,
     useCase: "Capture decisions, owners, and due dates from a transcript",
+    expectedOutput: "A clean summary with decisions, action items, owners, and deadlines.",
     prompt:
       "Summarize the transcript into: TL;DR (≤3 sentences), decisions made, action ledger (owner / action / due date), open questions. Use plain prose; no headers above the TL;DR.",
   },
@@ -146,6 +154,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Advanced",
     setupMin: 45,
     useCase: "Pressure-test an architecture for the stated workload",
+    expectedOutput: "A short design doc with constraints, options, and a recommended approach.",
     prompt:
       "For the stated requirements, produce: top-level diagram (ASCII), data model, scaling model, failure modes + mitigations, cost envelope, and 3 concrete risks we should monitor.",
   },
@@ -158,6 +167,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 10,
     useCase: "Open-ended script that surfaces behavior, not opinions",
+    expectedOutput: "A scripted interview guide with probes for the assumptions that matter most.",
     prompt:
       "Draft a 30-minute user interview script. Open with a warm-up, then 5 behavior-first questions (past tense), each with 2–3 neutral follow-ups. Close without leading.",
   },
@@ -170,6 +180,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 10,
     useCase: "Capture context, options, trade-offs, and the chosen path",
+    expectedOutput: "A one-page decision record with context, options, decision, and consequences.",
     prompt:
       "Write an ADR: title, status, context, decision drivers, considered options with pros/cons, decision, and consequences (positive, negative, neutral).",
   },
@@ -182,6 +193,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 5,
     useCase: "Short, user-facing changelog that respects the reader",
+    expectedOutput: "Plain-language release notes grouped by user impact, not by file change.",
     prompt:
       "From the raw commit list, draft user-facing release notes. Group by impact (New / Improved / Fixed), 1 line per item, no jargon, name the user-visible behavior change.",
   },
@@ -194,6 +206,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 30,
     useCase: "Turn tribal knowledge into a runnable procedure",
+    expectedOutput: "A repeatable playbook with triggers, steps, owners, and exit criteria.",
     prompt:
       "Interview the operator (answers below) and produce a numbered playbook with decision points, escalation paths, and rollback steps.",
   },
@@ -206,6 +219,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 25,
     useCase: "Map the space without copying anyone",
+    expectedOutput: "A 2x2 positioning matrix, a parity table, and a candid differentiation read.",
     prompt:
       "From the listed competitors, produce a 2x2 positioning matrix (axes of your choice, justified), a feature parity table, and a candid assessment of where we are differentiated.",
   },
@@ -218,6 +232,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 10,
     useCase: "Decide between pricing variants without lying to yourself",
+    expectedOutput: "A 2-week A/B test plan with hypothesis, primary metric, and decision rule.",
     prompt:
       "Design a 2-week pricing A/B test: hypothesis, primary metric (and guardrails), minimum sample size, decision rule, and stop-loss. State what would invalidate the test.",
   },
@@ -230,6 +245,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Beginner",
     setupMin: 5,
     useCase: "Sort the incoming bug queue by impact and reversibility",
+    expectedOutput: "A sorted triage with severity, owner queue, and a 24h action per report.",
     prompt:
       "For each report: classify (bug / regression / docs / dup / wontfix), assign severity (S0–S3) with a one-line reason, suggest an owner queue, and propose a 24h action.",
   },
@@ -242,6 +258,7 @@ const KITS: ReadonlyArray<Kit> = [
     difficulty: "Intermediate",
     setupMin: 20,
     useCase: "Turn notes into a buildable spec without losing nuance",
+    expectedOutput: "A buildable spec with stories, success metric, and explicit assumptions.",
     prompt:
       "From the transcript, produce a spec: problem statement, success metric, non-goals, user stories, open questions, and a v1 surface list. Mark every assumption that came from inference.",
   },
@@ -276,9 +293,31 @@ function FeaturedKitCard({ kit }: { kit: Kit }) {
   );
 }
 
-function KitRow({ kit, copied, onCopy }: { kit: Kit; copied: boolean; onCopy: () => void }) {
+function KitRow({
+  kit,
+  copied,
+  expanded,
+  onToggleDetails,
+  onCopy,
+}: {
+  kit: Kit;
+  copied: boolean;
+  expanded: boolean;
+  onToggleDetails: () => void;
+  onCopy: () => void;
+}) {
+  const toggleId = `kit-toggle-${kit.id}`;
+  const regionId = `kit-summary-${kit.id}`;
+  const summary = `${kit.title} details — ${kit.category}, ${kit.difficulty}, ~${kit.setupMin}m setup`;
+  // Limit prompt preview to ~240 chars to keep the expanded region
+  // visually bounded to about three lines at default zoom.
+  const PREVIEW_LIMIT = 240;
+  const promptPreview =
+    kit.prompt.length > PREVIEW_LIMIT
+      ? kit.prompt.slice(0, PREVIEW_LIMIT).trimEnd() + "…"
+      : kit.prompt;
   return (
-    <div className="kit-row">
+    <div className={`kit-row${expanded ? " kit-row--open" : ""}`}>
       <KitMark mark={kit.mark} />
       <span>
         <strong>{kit.title}</strong>
@@ -289,6 +328,16 @@ function KitRow({ kit, copied, onCopy }: { kit: Kit; copied: boolean; onCopy: ()
       <em aria-label={`Setup time ${kit.setupMin} minutes`}>~{kit.setupMin}m</em>
       <button
         type="button"
+        id={toggleId}
+        className="kit-details"
+        aria-expanded={expanded}
+        aria-controls={regionId}
+        onClick={onToggleDetails}
+      >
+        {expanded ? "Hide" : "Details"}
+      </button>
+      <button
+        type="button"
         className={`kit-copy${copied ? " kit-copy--ok" : ""}`}
         onClick={onCopy}
         aria-label={`Copy prompt for ${kit.title}`}
@@ -296,6 +345,31 @@ function KitRow({ kit, copied, onCopy }: { kit: Kit; copied: boolean; onCopy: ()
       >
         {copied ? "Copied" : "Copy"}
       </button>
+      <div
+        id={regionId}
+        role="region"
+        aria-labelledby={toggleId}
+        hidden={!expanded}
+        className="kit-row__summary"
+      >
+        <dl className="kit-row__facts">
+          <div>
+            <dt>USE CASE</dt>
+            <dd>{kit.useCase}</dd>
+          </div>
+          <div>
+            <dt>PROMPT PREVIEW</dt>
+            <dd className="kit-row__prompt-preview">{promptPreview}</dd>
+          </div>
+          <div>
+            <dt>EXPECTED OUTPUT</dt>
+            <dd>{kit.expectedOutput}</dd>
+          </div>
+        </dl>
+        <p className="kit-row__summary-sr sr-only" aria-hidden="true">
+          {summary}
+        </p>
+      </div>
     </div>
   );
 }
@@ -351,8 +425,24 @@ export default function PromptKits() {
   const [query, setQuery] = React.useState("");
   const [category, setCategory] = React.useState<Category | "All">("All");
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
+  // Exactly one kit row may be expanded at a time.
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  // Polite live region announcement (e.g. "Copied: Bug triage queue").
+  const [liveMessage, setLiveMessage] = React.useState<string>("");
   const [mobileExpanded, setMobileExpanded] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+
+  const toggleDetails = React.useCallback((id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }, []);
+
+  // Close expanded state and clear stale Copied feedback when
+  // filters, the manual reset, or the mobile disclosure change.
+  React.useEffect(() => {
+    setExpandedId(null);
+    setCopiedId(null);
+    setLiveMessage("");
+  }, [query, category, mobileExpanded]);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -420,6 +510,7 @@ export default function PromptKits() {
         document.body.removeChild(ta);
       }
       setCopiedId(kit.id);
+      setLiveMessage(`Copied: ${kit.title}`);
       window.setTimeout(() => {
         setCopiedId((current) => (current === kit.id ? null : current));
       }, 1600);
@@ -554,6 +645,14 @@ export default function PromptKits() {
               {query.trim() && ` Matches "${query.trim()}".`}
             </p>
           </header>
+          <p
+            className="kits-live-region"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {liveMessage}
+          </p>
           {compact.length === 0 ? (
             <EmptyState onClear={handleClearFilters} />
           ) : (
@@ -568,6 +667,8 @@ export default function PromptKits() {
                       <KitRow
                         kit={k}
                         copied={copiedId === k.id}
+                        expanded={expandedId === k.id}
+                        onToggleDetails={() => toggleDetails(k.id)}
                         onCopy={() => handleCopy(k)}
                       />
                     </div>

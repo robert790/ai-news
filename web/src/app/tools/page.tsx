@@ -42,6 +42,7 @@ type Tool = {
   category: Category;
   useCase: string;
   pricing: Pricing;
+  bestFor: string;
   featured?: boolean;
 };
 
@@ -53,6 +54,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Research",
     useCase: "Real-time research with cited sources",
     pricing: "Freemium",
+    bestFor: "Live source-cited answers for time-sensitive research",
     featured: true,
   },
   {
@@ -62,6 +64,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Build",
     useCase: "AI-first code editor for pair-programming",
     pricing: "Freemium",
+    bestFor: "Refactors, completions, and multi-file edits in a real codebase",
     featured: true,
   },
   {
@@ -71,6 +74,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Build",
     useCase: "Ship apps from natural-language prompts",
     pricing: "Freemium",
+    bestFor: "Prototype-to-deploy apps from a single natural-language brief",
     featured: true,
   },
   {
@@ -80,6 +84,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Research",
     useCase: "Source-grounded notebook for long docs",
     pricing: "Freemium",
+    bestFor: "Long-document synthesis grounded in your own sources",
     featured: true,
   },
   {
@@ -89,6 +94,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Decide",
     useCase: "Long-context reasoning and writing",
     pricing: "Freemium",
+    bestFor: "Long reasoning chains, careful writing, and nuanced trade-offs",
   },
   {
     id: "chatgpt",
@@ -97,6 +103,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Decide",
     useCase: "General assistant and ideation partner",
     pricing: "Freemium",
+    bestFor: "Brainstorming, first drafts, and quick mixed-format answers",
   },
   {
     id: "gemini",
@@ -105,6 +112,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Decide",
     useCase: "Multimodal assistant with Workspace hooks",
     pricing: "Freemium",
+    bestFor: "Workspace-native drafting with deep multimodal context",
   },
   {
     id: "windsurf",
@@ -113,6 +121,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Build",
     useCase: "Agentic IDE with cascade flows",
     pricing: "Freemium",
+    bestFor: "Multi-step codebase changes driven by cascade flows",
   },
   {
     id: "v0",
@@ -121,6 +130,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Build",
     useCase: "Generate UI from text and screenshots",
     pricing: "Freemium",
+    bestFor: "Quick UI scaffolds from a description or a screenshot",
   },
   {
     id: "elevenlabs",
@@ -129,6 +139,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Operate",
     useCase: "Voice synthesis and dubbing",
     pricing: "Freemium",
+    bestFor: "Studio-grade voice and dubbing without a recording session",
   },
   {
     id: "runway",
@@ -137,6 +148,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Operate",
     useCase: "Video generation and editing",
     pricing: "Freemium",
+    bestFor: "Storyboard-to-shot video edits for early creative reviews",
   },
   {
     id: "zapier",
@@ -145,6 +157,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Operate",
     useCase: "Orchestrate AI workflows across apps",
     pricing: "Freemium",
+    bestFor: "Cross-app automations that an ops team can maintain",
   },
   {
     id: "make",
@@ -153,6 +166,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Operate",
     useCase: "Visual automation with branching logic",
     pricing: "Freemium",
+    bestFor: "Branching visual workflows for non-trivial routing",
   },
   {
     id: "ollama",
@@ -161,6 +175,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Build",
     useCase: "Run local LLMs on your own hardware",
     pricing: "Free",
+    bestFor: "Private local inference with no network round-trips",
   },
   {
     id: "huggingface",
@@ -169,6 +184,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Research",
     useCase: "Open models, datasets, and Spaces",
     pricing: "Freemium",
+    bestFor: "Open models, datasets, and Spaces for hands-on evaluation",
   },
   {
     id: "kaggle",
@@ -177,6 +193,7 @@ const TOOLS: ReadonlyArray<Tool> = [
     category: "Research",
     useCase: "Datasets, notebooks, and competitions",
     pricing: "Free",
+    bestFor: "Public datasets and shared notebooks for reproducible experiments",
   },
 ];
 
@@ -192,9 +209,20 @@ function ToolMark({ mark }: { mark: string }) {
   return <span className="tool-mark">{mark}</span>;
 }
 
-function ToolRow({ tool }: { tool: Tool }) {
+function ToolRow({
+  tool,
+  expanded,
+  onToggleDetails,
+}: {
+  tool: Tool;
+  expanded: boolean;
+  onToggleDetails: () => void;
+}) {
+  const toggleId = `tool-toggle-${tool.id}`;
+  const regionId = `tool-summary-${tool.id}`;
+  const summary = `${tool.name} details — ${tool.category}, ${tool.pricing}`;
   return (
-    <div className="tool-row">
+    <div className={`tool-row${expanded ? " tool-row--open" : ""}`}>
       <ToolMark mark={tool.mark} />
       <span>
         <strong>{tool.name}</strong>
@@ -202,6 +230,49 @@ function ToolRow({ tool }: { tool: Tool }) {
       </span>
       <em>{tool.category}</em>
       <em aria-label={`Pricing: ${tool.pricing}`}>{tool.pricing}</em>
+      <button
+        type="button"
+        id={toggleId}
+        className="tool-details"
+        aria-expanded={expanded}
+        aria-controls={regionId}
+        onClick={onToggleDetails}
+      >
+        {expanded ? "Hide" : "Details"}
+      </button>
+      <div
+        id={regionId}
+        role="region"
+        aria-labelledby={toggleId}
+        hidden={!expanded}
+        className="tool-row__summary"
+      >
+        <dl className="tool-row__facts">
+          <div>
+            <dt>WHAT IT DOES</dt>
+            <dd>{tool.useCase}</dd>
+          </div>
+          <div>
+            <dt>BEST FOR</dt>
+            <dd>{tool.bestFor}</dd>
+          </div>
+          <div>
+            <dt>CATEGORY</dt>
+            <dd>{tool.category}</dd>
+          </div>
+          <div>
+            <dt>PRICING</dt>
+            <dd>{tool.pricing}</dd>
+          </div>
+          <div>
+            <dt>DATA</dt>
+            <dd>Representative entry · Static preview</dd>
+          </div>
+        </dl>
+        <p className="tool-row__summary-sr sr-only" aria-hidden="true">
+          {summary}
+        </p>
+      </div>
     </div>
   );
 }
@@ -277,11 +348,27 @@ function LoadingState() {
 export default function Tools() {
   const [query, setQuery] = React.useState("");
   const [category, setCategory] = React.useState<Category | "All">("All");
+  // Exactly one row may be expanded at a time. Closing all rows
+  // happens automatically on filter / disclosure / reset changes
+  // (see useEffects below).
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  const toggleDetails = React.useCallback((id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }, []);
   // Mobile-only disclosure: on small viewports, the full 16-row
   // index is excessively long, so we render the first 6 by default
   // and reveal the rest on demand. Desktop always shows everything.
   const [mobileExpanded, setMobileExpanded] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+
+  // Closing trigger: collapse any open Details when filters change.
+  React.useEffect(() => {
+    setExpandedId(null);
+  }, [query, category]);
+  // Also collapse when mobile disclosure state changes.
+  React.useEffect(() => {
+    setExpandedId(null);
+  }, [mobileExpanded]);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -457,7 +544,7 @@ export default function Tools() {
               <Module title="Compact index" code="··" className="tools-results-module">
                 <div className="tools-results" role="list">
                   {compactVisible.map((t) => (
-                    <div role="listitem" key={t.id}><ToolRow tool={t} /></div>
+                    <div role="listitem" key={t.id}><ToolRow tool={t} expanded={expandedId === t.id} onToggleDetails={() => toggleDetails(t.id)} /></div>
                   ))}
                 </div>
                 {isMobileLimited && compactHiddenCount > 0 && (

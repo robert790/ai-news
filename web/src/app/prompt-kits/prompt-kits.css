@@ -219,12 +219,22 @@
   min-width: 0;
 }
 .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
-  /* add two extra columns: difficulty + setup + copy button on the right */
-  grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto;
+  /* compact summary row: mark, name/use-case, category, difficulty, setup, Details, Copy */
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto auto;
+  grid-template-areas:
+    "mark name cat level time details copy";
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
 }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row .kit-mark { grid-area: mark; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > span:nth-child(2) { grid-area: name; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(1) { grid-area: cat; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(2) { grid-area: level; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(3) { grid-area: time; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-details { grid-area: details; }
+.page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy { grid-area: copy; }
 .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy {
   margin-left: 0;
 }
@@ -265,6 +275,111 @@
   box-shadow: inset 0 1px #c9f1ce, 0 0 12px rgba(143, 220, 160, 0.45);
 }
 
+/* Kit Details button — secondary dark/bronze outline; visually quieter
+   than the primary Copy action. */
+.page-shell[data-page="prompt-kits"] .kit-details {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid #62543b;
+  background: #0b0d0a;
+  color: #c9c3b0;
+  font: 600 8px var(--or-font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  box-shadow: inset 0 1px #15180f;
+  cursor: pointer;
+}
+.page-shell[data-page="prompt-kits"] .kit-details:hover {
+  border-color: var(--accent);
+  color: #ddd8c6;
+}
+.page-shell[data-page="prompt-kits"] .kit-details:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kit-row--open > .kit-details {
+  border-color: var(--accent);
+  color: #ddd8c6;
+}
+
+/* Expanded summary panel for /prompt-kits compact rows. */
+.page-shell[data-page="prompt-kits"] .kit-row__summary {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: #0b0d0a;
+  border: 1px solid #36352c;
+  border-radius: 4px;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts dt {
+  margin: 0;
+  color: #979384;
+  font: 600 8px var(--or-font-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__facts dd {
+  margin: 0;
+  color: #cfc9b6;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.page-shell[data-page="prompt-kits"] .kit-row__prompt-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #b5b09f;
+  font: 12px var(--or-font-mono);
+  white-space: pre-wrap;
+}
+
+/* Visually-hidden summary line used inside the expanded region
+   (it provides a complete sentence for screen readers while the
+   visible <dl> facts stay terse). */
+.page-shell[data-page="prompt-kits"] .sr-only,
+.page-shell[data-page="tools"] .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Polite live region for Copy announcements; invisible when empty. */
+.page-shell[data-page="prompt-kits"] .kits-live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 /* Outbound notice — single banner above the compact index. */
 .page-shell[data-page="prompt-kits"] .kits-outbound-notice {
   margin: 0 0 8px;
@@ -366,11 +481,16 @@
     grid-template-columns: 1fr;
   }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
-    /* wrap to 2 rows: mark+name on top, attributes on bottom */
-    grid-template-columns: 34px minmax(0, 1fr) auto;
+    /* Three collapsed bands:
+       1. mark + name/use-case
+       2. category + difficulty + setup
+       3. Details + Copy
+       Expanded summary spans the full row. */
+    grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
     grid-template-areas:
-      "mark name copy"
-      "cat level time";
+      "mark name name name name"
+      "cat cat level time time"
+      "details details copy copy copy";
     column-gap: 10px;
     row-gap: 6px;
     padding: 10px;
@@ -380,10 +500,19 @@
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(1) { grid-area: cat; }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(2) { grid-area: level; }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row > em:nth-of-type(3) { grid-area: time; }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-details {
+    grid-area: details;
+    min-height: 44px;
+    justify-content: center;
+  }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-copy {
     grid-area: copy;
     min-height: 44px;
     justify-content: center;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-results .kit-row > .kit-row__summary {
+    grid-column: 1 / -1;
+    margin-top: 0;
   }
 }
 
