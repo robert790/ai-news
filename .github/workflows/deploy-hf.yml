@@ -81,6 +81,8 @@ jobs:
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
+            --exclude='web/' \
+            --exclude='content/openradar-command-console-reference.png' \
             ./ "${DEPLOY_DIR}/"
 
           cd "${DEPLOY_DIR}"
