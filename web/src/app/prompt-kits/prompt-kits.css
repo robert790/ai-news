@@ -445,3 +445,11 @@
   }
   .page-shell[data-page="prompt-kits"] .brand-scope { width: 35px; }
 }
+
+/* --- Tablet (768-1023): constrain shared Footer email input
+   to prevent 5px overflow at exactly 768px viewport. --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-shell[data-page="prompt-kits"] footer form input[type="email"] {
+    max-width: 140px;
+  }
+}

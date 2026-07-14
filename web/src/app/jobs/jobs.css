@@ -238,7 +238,7 @@
 .page-shell[data-page="jobs"] .job-row:last-child { border-bottom: 0; }
 .page-shell[data-page="jobs"] .job-row__head {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto auto auto;
+  grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;

@@ -48,13 +48,13 @@ export function Footer({
           </div>
         ))}
       </dl>
-      <form>
+      <form aria-label="Preview only" noValidate>
         <label htmlFor="email">
           {subscribe.label} <small>{subscribe.sublabel}</small>
         </label>
         <span>
-          <input id="email" type="email" placeholder={subscribe.placeholder} />
-          <button aria-label={subscribe.buttonLabel}>→</button>
+          <input id="email" type="email" placeholder={subscribe.placeholder} disabled aria-disabled="true" />
+          <button type="button" aria-label={subscribe.buttonLabel} disabled>→</button>
         </span>
       </form>
       <div className="legal">

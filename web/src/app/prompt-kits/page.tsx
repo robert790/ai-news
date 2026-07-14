@@ -465,17 +465,17 @@ export default function PromptKits() {
             { href: "#featured", label: "Featured kits" },
             { href: "#all", label: "Browse all" },
           ]}
-          overview={{ href: "#legend", label: "How to use these kits" }}
+          overview={{ href: "#search", label: "How to read this preview" }}
         />
 
         <StatusRail
-          ariaLabel="Prompt kits status"
+          ariaLabel="Prompt kits preview status"
           items={[
             { icon: <i className="status-icon">ϟ</i>, label: "Index", detail: `${filtered.length} / ${KITS.length}` },
             { icon: <i className="status-icon">⌘</i>, label: "Categories", detail: "5 groups" },
-            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Weekly" },
-            { icon: <i className="pulse" />, label: "Copy", detail: "Local" },
-            { icon: <i className="status-icon">◷</i>, label: "Static", detail: "Internal" },
+            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Static preview" },
+            { icon: <i className="pulse" />, label: "Source", detail: "Curated sample" },
+            { icon: <i className="status-icon">◷</i>, label: "Status", detail: "Sample data" },
           ]}
         />
 
@@ -615,7 +615,7 @@ export default function PromptKits() {
                 <ul>
                   <li><b>01</b><span>Per-kit examples</span><time>Soon</time></li>
                   <li><b>02</b><span>Learn tracks</span><time>Soon</time></li>
-                  <li><b>03</b><span>Verified jobs</span><time>Soon</time></li>
+                  <li><b>03</b><span>Verified destinations</span><time>Soon</time></li>
                 </ul>
               ),
             },
@@ -627,7 +627,7 @@ export default function PromptKits() {
                 <ul>
                   <li>Copy is local <i /></li>
                   <li>No tracking <i /></li>
-                  <li>Reviewed weekly <i /></li>
+                  <li>Static preview <i /></li>
                 </ul>
               ),
             },
@@ -642,26 +642,26 @@ export default function PromptKits() {
               Practical reuse.
             </>
           }
-          markSubtitle="Copy-and-paste kits for real work, with audience and difficulty labels."
+          markSubtitle="A static preview of the kits. Copy-and-paste prompts for real work."
           meta={[
             { dt: "Surface", dd: "/prompt-kits" },
             { dt: "Audience", dd: "Engineers" },
-            { dt: "Source", dd: "Sol baseline" },
-            { dt: "Static", dd: "Internal" },
+            { dt: "Source", dd: "Representative data" },
+            { dt: "Static", dd: "Preview" },
           ]}
           subscribe={{
-            label: "Kit digest",
-            sublabel: "One new kit per week — internal changelog only.",
-            placeholder: "designer@team",
-            buttonLabel: "Subscribe",
+            label: "Preview only",
+            sublabel: "No subscriptions implemented in this preview.",
+            placeholder: "preview-only",
+            buttonLabel: "Preview only",
           }}
           legal={[
             { kind: "text", value: "© 2026 OpenRadar" },
-            { kind: "status", value: "Library" },
+            { kind: "status", value: "Preview" },
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "Tools", href: "/tools" },
             { kind: "link", value: "System", href: "/system" },
-            { kind: "small", value: "Static · internal" },
+            { kind: "small", value: "Static · no live content" },
           ]}
         />
       </Machine>

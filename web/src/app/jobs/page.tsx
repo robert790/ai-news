@@ -44,9 +44,6 @@ type Job = {
   seniority: Seniority;
   employment: Employment;
   skills: ReadonlyArray<string>;
-  source: string;
-  ageDays: number;
-  salary?: string;
   summary: string;
   featured?: boolean;
 };
@@ -62,8 +59,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Full-time",
     skills: ["TypeScript", "OpenAI API", "function calling", "evals"],
-    source: "Direct",
-    ageDays: 3,
     summary:
       "Wire LLM features into a small product surface. Build internal evals, ship behind a flag, write the prompt templates, and own the quality metrics. We are a small team; you will touch UI and infra.",
     featured: true,
@@ -78,9 +73,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["Kubernetes", "GPU scheduling", "vLLM", "Python"],
-    source: "Direct",
-    ageDays: 7,
-    salary: "€110k–€140k",
     summary:
       "Own the inference platform used by 50+ internal teams. Reduce tail latency, design multi-region failover, and ship a self-serve model catalog. Expect a quarter of incident response.",
     featured: true,
@@ -95,8 +87,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["PM", "evals", "discovery", "stakeholder work"],
-    source: "Recruiter",
-    ageDays: 12,
     summary:
       "Drive the AI roadmap for the clinician-facing product. Write PRDs that include failure modes and evaluation criteria. Run weekly review with the applied research team. Pair with design on the prompt disclosure pattern.",
   },
@@ -110,8 +100,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Full-time",
     skills: ["prompt QA", "knowledge ops", "SQL"],
-    source: "Direct",
-    ageDays: 5,
     summary:
       "Operate the production prompt catalog. Triage failures, write regression prompts, and own the weekly quality report. We need someone who treats prompts as code: versions, tests, and rollback plans.",
   },
@@ -125,9 +113,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["PyTorch", "evals", "statistics"],
-    source: "Direct",
-    ageDays: 9,
-    salary: "$180k–$220k",
     summary:
       "Build public evals for reasoning and tool use. Publish your work. You will work with academic labs and industry teams to design benchmarks that resist contamination.",
     featured: true,
@@ -142,8 +127,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Junior",
     employment: "Full-time",
     skills: ["prompting", "TypeScript", "evals"],
-    source: "Direct",
-    ageDays: 2,
     summary:
       "An entry-level role for someone who has shipped a small AI tool, runs their own evals, and writes clearly. Pair with senior engineers for the first three months.",
   },
@@ -157,8 +140,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Full-time",
     skills: ["Figma", "interaction design", "research"],
-    source: "Direct",
-    ageDays: 18,
     summary:
       "Design the human side of AI features: disclosure, recovery, feedback. Maintain a small library of patterns and write the case studies. Work with product and engineering from day one.",
   },
@@ -172,11 +153,8 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Contract",
     skills: ["evals", "Python", "data viz"],
-    source: "Recruiter",
-    ageDays: 6,
     summary:
       "Three-month engagement to harden the evals stack and ship a public dashboard. Strong preference for engineers who write clearly about their methodology.",
-    salary: "$150/hour",
   },
   {
     id: "lead-ai-product",
@@ -188,9 +166,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Lead",
     employment: "Full-time",
     skills: ["PM", "platform strategy", "evals"],
-    source: "Direct",
-    ageDays: 21,
-    salary: "$220k–$280k + equity",
     summary:
       "Lead the next major iteration of our AI platform. Three direct reports, a roadmap review board, and a close partnership with research. You will be the public voice of our platform direction.",
   },
@@ -204,8 +179,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["ops", "QA", "vendor management"],
-    source: "Direct",
-    ageDays: 4,
     summary:
       "Run the human-rater partner network. Quality bar, throughput, and a fair-pay policy that we publish. You will own the operations playbook and the public quality report.",
   },
@@ -219,9 +192,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["interpretability", "PyTorch", "publishing"],
-    source: "Direct",
-    ageDays: 11,
-    salary: "$190k–$240k",
     summary:
       "Conduct applied interpretability work on production models. Publish peer-reviewed papers. Two days a week dedicated to your own research direction.",
   },
@@ -235,8 +205,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Full-time",
     skills: ["creative coding", "generative", "studio work"],
-    source: "Direct",
-    ageDays: 14,
     summary:
       "Build interactive experiences for cultural and brand work. You will pair with designers and producers. We expect a portfolio of shipped interactive pieces.",
   },
@@ -250,8 +218,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Junior",
     employment: "Internship",
     skills: ["PyTorch", "research"],
-    source: "Direct",
-    ageDays: 8,
     summary:
       "Twelve-week internship running alongside the evaluation team. You will own one benchmark end-to-end and present a public report at the end.",
   },
@@ -265,8 +231,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Senior",
     employment: "Full-time",
     skills: ["security", "threat modeling", "AI policy"],
-    source: "Direct",
-    ageDays: 15,
     summary:
       "Threat-model our AI features. Build the abuse test suite. Be the public voice on our AI safety posture. We publish the model card and the red-team findings.",
     featured: true,
@@ -281,8 +245,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Full-time",
     skills: ["PMO", "data", "stakeholder work"],
-    source: "Recruiter",
-    ageDays: 19,
     summary:
       "Run the rhythm of the product org. Quarterly reviews, weekly metrics, cross-team alignment. Strong preference for someone who has shipped a product ops playbook.",
   },
@@ -296,8 +258,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Mid",
     employment: "Part-time",
     skills: ["community", "writing", "events"],
-    source: "Direct",
-    ageDays: 22,
     summary:
       "Run the developer community. Weekly office hours, monthly newsletter, an in-person gathering once a year. You will write most public words for the company.",
   },
@@ -311,8 +271,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Junior",
     employment: "Full-time",
     skills: ["PyTorch", "Python"],
-    source: "Direct",
-    ageDays: 1,
     summary:
       "Entry-level research engineer to support the interpretability team. You will run evals, write technical reports, and grow into a research direction of your own.",
   },
@@ -326,9 +284,6 @@ const JOBS: ReadonlyArray<Job> = [
     seniority: "Lead",
     employment: "Full-time",
     skills: ["Kubernetes", "GPU", "people management"],
-    source: "Direct",
-    ageDays: 27,
-    salary: "€140k–€170k",
     summary:
       "Lead the AI infrastructure platform team (5 engineers). Set the technical direction, own the QBR plan, and partner with research on capacity planning.",
   },
@@ -337,14 +292,6 @@ const JOBS: ReadonlyArray<Job> = [
 const TRACKS: ReadonlyArray<Track> = ["Engineering", "Product", "Operations", "Research", "Creative"];
 const WORK_MODES: ReadonlyArray<WorkMode> = ["Remote", "Hybrid", "On-site"];
 const SENIORITIES: ReadonlyArray<Seniority> = ["Junior", "Mid", "Senior", "Lead"];
-
-function ageLabel(days: number): string {
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days}d ago`;
-  if (days < 30) return `${Math.floor(days / 7)}w ago`;
-  return `${Math.floor(days / 30)}mo ago`;
-}
 
 function FeaturedJobCard({ job }: { job: Job }) {
   return (
@@ -355,11 +302,8 @@ function FeaturedJobCard({ job }: { job: Job }) {
           <li><span>Track</span><strong>{job.track}</strong></li>
           <li><span>Mode</span><strong>{job.workMode}</strong></li>
           <li><span>Level</span><strong>{job.seniority}</strong></li>
-          <li><span>Posted</span><strong>{ageLabel(job.ageDays)}</strong></li>
+          <li><span>Status</span><strong>Sample entry</strong></li>
         </ul>
-        {job.salary && (
-          <p className="jobs-feature__salary">{job.salary}</p>
-        )}
       </div>
     </Module>
   );
@@ -386,7 +330,6 @@ function JobRow({
           <em>{job.track}</em>
           <em>{job.workMode}</em>
           <em>{job.seniority}</em>
-          <em aria-label={`Posted ${ageLabel(job.ageDays)}`}>{ageLabel(job.ageDays)}</em>
           <em>{job.employment}</em>
         </span>
         <span className="job-row__actions">
@@ -399,16 +342,16 @@ function JobRow({
           >
             {expanded ? "Hide" : "Details"}
           </button>
-          <a
+          <button
+            type="button"
             className="job-view"
-            href="#"
+            disabled
             aria-disabled="true"
             tabIndex={-1}
-            onClick={(e) => e.preventDefault()}
             title="External destination coming soon"
           >
             View role
-          </a>
+          </button>
         </span>
       </header>
       {expanded && (
@@ -420,11 +363,7 @@ function JobRow({
             ))}
           </ul>
           <dl className="job-row__facts">
-            <div><dt>Source</dt><dd>{job.source}</dd></div>
             <div><dt>Type</dt><dd>{job.employment}</dd></div>
-            {job.salary && (
-              <div><dt>Salary</dt><dd>{job.salary}</dd></div>
-            )}
           </dl>
         </div>
       )}
@@ -600,17 +539,17 @@ export default function Jobs() {
             { href: "#featured", label: "Featured opportunities" },
             { href: "#all", label: "Browse all" },
           ]}
-          overview={{ href: "#legend", label: "How to read these listings" }}
+          overview={{ href: "#search", label: "How to read this preview" }}
         />
 
         <StatusRail
-          ariaLabel="Jobs status"
+          ariaLabel="Jobs preview status"
           items={[
             { icon: <i className="status-icon">▤</i>, label: "Listings", detail: `${filtered.length} / ${JOBS.length}` },
             { icon: <i className="status-icon">⌘</i>, label: "Tracks", detail: `${TRACKS.length}` },
-            { icon: <i className="status-icon">⊟</i>, label: "Sources", detail: "Direct · Recruiter" },
-            { icon: <i className="pulse" />, label: "Status", detail: "Static" },
-            { icon: <i className="status-icon">◷</i>, label: "Updated", detail: "Weekly" },
+            { icon: <i className="status-icon">⊟</i>, label: "Source", detail: "Curated sample" },
+            { icon: <i className="pulse" />, label: "Mode", detail: "Static preview" },
+            { icon: <i className="status-icon">◷</i>, label: "Updated", detail: "Static preview" },
           ]}
         />
 
@@ -784,7 +723,7 @@ export default function Jobs() {
               headline: "What's next",
               body: (
                 <ul>
-                  <li><b>01</b><span>Verified jobs</span><time>Soon</time></li>
+                  <li><b>01</b><span>Verified destinations</span><time>Soon</time></li>
                   <li><b>02</b><span>External destinations</span><time>Soon</time></li>
                   <li><b>03</b><span>Saved searches</span><time>Soon</time></li>
                 </ul>
@@ -796,8 +735,8 @@ export default function Jobs() {
               headline: "Stays honest",
               body: (
                 <ul>
-                  <li>Reviewed weekly <i /></li>
-                  <li>No fake salaries <i /></li>
+                  <li>Static preview <i /></li>
+                  <li>No salary data shown <i /></li>
                   <li>Static indexes <i /></li>
                 </ul>
               ),
@@ -813,27 +752,27 @@ export default function Jobs() {
               Practical roles.
             </>
           }
-          markSubtitle="A focused index of AI opportunities — sourced, labeled, and reviewed weekly."
+          markSubtitle="A static preview of the jobs. Sample roles for orientation only."
           meta={[
             { dt: "Surface", dd: "/jobs" },
             { dt: "Audience", dd: "All levels" },
-            { dt: "Source", dd: "Sol baseline" },
-            { dt: "Static", dd: "Internal" },
+            { dt: "Source", dd: "Representative data" },
+            { dt: "Static", dd: "Preview" },
           ]}
           subscribe={{
-            label: "Jobs digest",
-            sublabel: "Weekly curated roles — internal changelog only.",
-            placeholder: "designer@team",
-            buttonLabel: "Subscribe",
+            label: "Preview only",
+            sublabel: "No subscriptions implemented in this preview.",
+            placeholder: "preview-only",
+            buttonLabel: "Preview only",
           }}
           legal={[
             { kind: "text", value: "© 2026 OpenRadar" },
-            { kind: "status", value: "Jobs" },
+            { kind: "status", value: "Preview" },
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "Tools", href: "/tools" },
             { kind: "link", value: "Learn", href: "/learn" },
             { kind: "link", value: "System", href: "/system" },
-            { kind: "small", value: "Static · internal" },
+            { kind: "small", value: "Static · no live content" },
           ]}
         />
       </Machine>

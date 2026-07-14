@@ -356,17 +356,17 @@ export default function Tools() {
             { href: "#featured", label: "Featured tools" },
             { href: "#all", label: "Browse all" },
           ]}
-          overview={{ href: "#legend", label: "Filter & sort guide" }}
+          overview={{ href: "#search", label: "How to read this preview" }}
         />
 
         <StatusRail
-          ariaLabel="Tools status"
+          ariaLabel="Tools preview status"
           items={[
             { icon: <i className="status-icon">ϟ</i>, label: "Index", detail: `${filtered.length} / ${TOOLS.length}` },
             { icon: <i className="status-icon">⌘</i>, label: "Categories", detail: "4 groups" },
-            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Daily" },
-            { icon: <i className="pulse" />, label: "Signals", detail: "Live" },
-            { icon: <i className="status-icon">◷</i>, label: "Sources", detail: "Verified" },
+            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Static preview" },
+            { icon: <i className="pulse" />, label: "Source", detail: "Curated sample" },
+            { icon: <i className="status-icon">◷</i>, label: "Status", detail: "Sample data" },
           ]}
         />
 
@@ -502,7 +502,7 @@ export default function Tools() {
                 <ul>
                   <li><b>01</b><span>Prompt kits</span><time>Soon</time></li>
                   <li><b>02</b><span>Learn tracks</span><time>Soon</time></li>
-                  <li><b>03</b><span>Verified jobs</span><time>Soon</time></li>
+                  <li><b>03</b><span>Verified destinations</span><time>Soon</time></li>
                 </ul>
               ),
             },
@@ -513,8 +513,8 @@ export default function Tools() {
               body: (
                 <ul>
                   <li>Static <i /></li>
-                  <li>Daily refresh <i /></li>
-                  <li>Verified links <i /></li>
+                  <li>Curated sample <i /></li>
+                  <li>Sample links <i /></li>
                 </ul>
               ),
             },
@@ -529,25 +529,25 @@ export default function Tools() {
               Practical AI, vetted.
             </>
           }
-          markSubtitle="Not hype. Not news. Tools that work, with a clear use case."
+          markSubtitle="A static preview of the index. Sample tools with clear use cases."
           meta={[
             { dt: "Surface", dd: "/tools" },
             { dt: "Audience", dd: "Engineers" },
-            { dt: "Source", dd: "Sol baseline" },
-            { dt: "Static", dd: "Internal" },
+            { dt: "Source", dd: "Representative data" },
+            { dt: "Static", dd: "Preview" },
           ]}
           subscribe={{
-            label: "Tool digest",
-            sublabel: "Weekly summary of the index — not for spammers.",
-            placeholder: "designer@team",
-            buttonLabel: "Subscribe",
+            label: "Preview only",
+            sublabel: "No subscriptions implemented in this preview.",
+            placeholder: "preview-only",
+            buttonLabel: "Preview only",
           }}
           legal={[
             { kind: "text", value: "© 2026 OpenRadar" },
-            { kind: "status", value: "Index" },
+            { kind: "status", value: "Preview" },
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "System", href: "/system" },
-            { kind: "small", value: "Static · internal" },
+            { kind: "small", value: "Static · no live content" },
           ]}
         />
       </Machine>

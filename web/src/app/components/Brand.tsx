@@ -2,11 +2,12 @@ import * as React from "react";
 import { Scope } from "./Scope";
 
 /**
- * Brand mark (scope + wordmark + tagline). The `href` defaults to
- * the home anchor and the aria-label is fixed.
+ * Brand mark (scope + wordmark + tagline). The `href` defaults
+ * to the home route so clicking the brand from any public
+ * subpage reaches the Home page.
  */
 export function Brand({
-  href = "#",
+  href = "/",
   wordmark = "OPEN · RADAR",
   tagline = "AI tools · prompts · learn · jobs",
 }: {

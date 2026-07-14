@@ -678,17 +678,17 @@ export default function Learn() {
             { href: "#tracks", label: "Featured tracks" },
             { href: "#all", label: "Browse all" },
           ]}
-          overview={{ href: "#legend", label: "How to read these lessons" }}
+          overview={{ href: "#search", label: "How to read this preview" }}
         />
 
         <StatusRail
-          ariaLabel="Learn status"
+          ariaLabel="Learn preview status"
           items={[
             { icon: <i className="status-icon">▣</i>, label: "Lessons", detail: `${filtered.length} / ${LESSONS.length}` },
             { icon: <i className="status-icon">⌘</i>, label: "Topics", detail: `${TOPICS.length}` },
             { icon: <i className="status-icon">⊟</i>, label: "Tracks", detail: `${TRACKS.length}` },
-            { icon: <i className="pulse" />, label: "Status", detail: "Static" },
-            { icon: <i className="status-icon">◷</i>, label: "Updated", detail: "Weekly" },
+            { icon: <i className="pulse" />, label: "Source", detail: "Curated sample" },
+            { icon: <i className="status-icon">◷</i>, label: "Updated", detail: "Static preview" },
           ]}
         />
 
@@ -844,7 +844,7 @@ export default function Learn() {
               body: (
                 <ul>
                   <li><b>01</b><span>Per-track examples</span><time>Soon</time></li>
-                  <li><b>02</b><span>Verified jobs</span><time>Soon</time></li>
+                  <li><b>02</b><span>Verified destinations</span><time>Soon</time></li>
                   <li><b>03</b><span>Project archive</span><time>Soon</time></li>
                 </ul>
               ),
@@ -855,7 +855,7 @@ export default function Learn() {
               headline: "Stays current",
               body: (
                 <ul>
-                  <li>Reviewed weekly <i /></li>
+                  <li>Static preview <i /></li>
                   <li>No tracking <i /></li>
                   <li>Static indexes <i /></li>
                 </ul>
@@ -872,27 +872,27 @@ export default function Learn() {
               Practical skills.
             </>
           }
-          markSubtitle="A focused learning index for AI work — foundations first, agents last."
+          markSubtitle="A static preview of the learning tracks. Foundations first, agents last."
           meta={[
             { dt: "Surface", dd: "/learn" },
             { dt: "Audience", dd: "All levels" },
-            { dt: "Source", dd: "Sol baseline" },
-            { dt: "Static", dd: "Internal" },
+            { dt: "Source", dd: "Representative data" },
+            { dt: "Static", dd: "Preview" },
           ]}
           subscribe={{
-            label: "Lesson digest",
-            sublabel: "One new lesson per week — internal changelog only.",
-            placeholder: "designer@team",
-            buttonLabel: "Subscribe",
+            label: "Preview only",
+            sublabel: "No subscriptions implemented in this preview.",
+            placeholder: "preview-only",
+            buttonLabel: "Preview only",
           }}
           legal={[
             { kind: "text", value: "© 2026 OpenRadar" },
-            { kind: "status", value: "Learn" },
+            { kind: "status", value: "Preview" },
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "Tools", href: "/tools" },
             { kind: "link", value: "Prompt Kits", href: "/prompt-kits" },
             { kind: "link", value: "System", href: "/system" },
-            { kind: "small", value: "Static · internal" },
+            { kind: "small", value: "Static · no live content" },
           ]}
         />
       </Machine>

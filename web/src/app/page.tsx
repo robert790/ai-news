@@ -30,7 +30,7 @@ const JOBS: ReadonlyArray<readonly [string, string, string]> = [
 
 export default function Home(): JSX.Element {
   return (
-    <main className="page-shell">
+    <main className="page-shell" data-page="home">
       <Machine>
         <TopDeck nav={HOME_NAV} />
 
@@ -54,42 +54,42 @@ export default function Home(): JSX.Element {
                 </>
               ),
             },
-            { href: "/tools#featured", label: "Today's picks" },
+            { href: "/tools#featured", label: "Browse featured" },
             { href: "/prompt-kits", label: "Browse kits" },
           ]}
           overview={{
-            href: "#overview",
-            label: "New here? Watch 60-sec overview",
+            href: "#tools",
+            label: "How to read this preview",
           }}
         />
 
         <StatusRail
-          ariaLabel="Current index status"
+          ariaLabel="OpenRadar preview status"
           items={[
             {
               icon: <i className="status-icon">ϟ</i>,
               label: "Signals",
-              detail: "Reviewed daily",
+              detail: "Static preview",
             },
             {
               icon: <i className="status-icon">⌘</i>,
               label: "Tools",
-              detail: "Curated index",
+              detail: "Curated sample",
             },
             {
               icon: <i className="status-icon">▱</i>,
               label: "Jobs",
-              detail: "Verified roles",
+              detail: "Sample roles",
             },
             {
               icon: <i className="pulse" />,
               label: "Feeds",
-              detail: "All channels online",
+              detail: "Preview only",
             },
             {
               icon: <i className="status-icon">◷</i>,
               label: "Cadence",
-              detail: "Updated weekly",
+              detail: "Static preview",
             },
           ]}
         />
@@ -124,25 +124,18 @@ export default function Home(): JSX.Element {
               <span className="course-icon">▤</span>
               <span>
                 <strong>AI Foundations</strong>
-                <small>Start here. 10 short chapters.</small>
+                <small>Sample path. 10 chapters.</small>
               </span>
-              <b>4 / 10</b>
-            </div>
-            <div className="progress">
-              <i />
             </div>
             <ol>
               <li>
                 <span>What is AI, really?</span>
-                <b>✓</b>
               </li>
               <li>
                 <span>Prompts that work</span>
-                <b>✓</b>
               </li>
               <li>
                 <span>Tools overview</span>
-                <b>▶</b>
               </li>
             </ol>
           </Module>
@@ -164,12 +157,12 @@ export default function Home(): JSX.Element {
             {
               className: "signal-panel",
               label: "Selection standard",
-              headline: "Human reviewed",
+              headline: "Curated sample",
               body: (
                 <ul className="standards-list">
                   <li>
                     <i />
-                    Clear use case
+                    Representative use case
                   </li>
                   <li>
                     <i />
@@ -209,7 +202,7 @@ export default function Home(): JSX.Element {
             {
               className: "health-panel",
               label: "Coverage",
-              headline: "Five surfaces",
+              headline: "Four surfaces",
               body: (
                 <ul>
                   <li>
@@ -222,7 +215,7 @@ export default function Home(): JSX.Element {
                     Learning paths <i />
                   </li>
                   <li>
-                    Career signals <i />
+                    Career roles <i />
                   </li>
                 </ul>
               ),
@@ -238,26 +231,24 @@ export default function Home(): JSX.Element {
               Just what works.
             </>
           }
-          markSubtitle="Built for builders who ship."
+          markSubtitle="A static preview of the index. No live feeds, no subscriptions."
           meta={[
             { dt: "Focus", dd: "Practical AI" },
-            { dt: "Review", dd: "Human-led" },
+            { dt: "Source", dd: "Representative data" },
             { dt: "Format", dd: "Concise" },
             { dt: "Language", dd: "English" },
           ]}
           subscribe={{
-            label: "Stay in the loop",
-            sublabel: "Get top signals weekly.",
-            placeholder: "you@domain.com",
-            buttonLabel: "Subscribe",
+            label: "Preview only",
+            sublabel: "No subscriptions implemented in this preview.",
+            placeholder: "preview-only",
+            buttonLabel: "Preview only",
           }}
           legal={[
             { kind: "text", value: "© 2026 OpenRadar" },
-            { kind: "status", value: "Status" },
-            { kind: "link", value: "Privacy", href: "#privacy" },
-            { kind: "link", value: "Terms", href: "#terms" },
-            { kind: "link", value: "Contact", href: "#contact" },
-            { kind: "small", value: "Designed for engineers. Built for operators." },
+            { kind: "status", value: "Preview" },
+            { kind: "small", value: "Privacy · Terms · Contact — preview labels only" },
+            { kind: "small", value: "No live content in this preview" },
           ]}
         />
       </Machine>
