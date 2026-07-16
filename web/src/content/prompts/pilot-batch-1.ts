@@ -8,7 +8,7 @@ import type { PromptRecord } from "./types";
  * legacy wording is not reused. Provenance is recorded as a single
  * structured reference on every record (see PROVENANCE below).
  *
- * Drafts only. Every record is editorial: tool-agnostic, no vendor
+ * Pilot Batch 1 records are owner-approved, commercially cleared, and eligible for future Prompt Kits integration. Eligibility does not mean they are currently wired into the public route.
  * sample blocks, no living-creator names, no em dashes in user-facing
  * content, variables explicitly marked and explained.
  *

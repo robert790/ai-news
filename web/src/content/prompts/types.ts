@@ -6,7 +6,7 @@
  * time; the validator (web/scripts/validate-prompt-content.mjs) uses the
  * installed compiler to enforce it again at validation time.
  *
- * Drafts only. Inclusion does not equal legal or publication approval.
+ * Canonical prompt records may be draft, reviewed, approved, or rejected. Approval and publication eligibility are represented by explicit metadata and do not mean the records are already published in the UI.
  */
 
 import type { PromptCollectionId } from "./collections";
