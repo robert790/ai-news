@@ -6,6 +6,13 @@ This directory holds the canonical OpenRadar prompt records for the Web V2 pilot
 
 This is the **canonical Web V2 prompt-content pilot**. It is the editorial source for prompts that will eventually surface in the Web V2 `/prompt-kits` experience. It is **not** the runtime content of the production Streamlit application.
 
+As of Pilot V1 owner authorization on 2026-07-16:
+
+- All five Pilot V1 records are owner-approved (`reviewStatus: "approved"`, `commercialUseStatus: "cleared"`, `publicationEligibility: "prompt-kits"`).
+- The records are eligible for future Prompt Kits integration. They are **not** yet wired into the public route; the wiring is a separate change.
+- Professional prompts still require appropriate human review at use time, regardless of their approved eligibility.
+- See `docs/content-os/prompt-pilot-owner-decisions-v1.md` for the durable owner-decision record (reviewer, timestamp, source SHA, packet SHA).
+
 ## Relationship to legacy content
 
 - `prompts_data/prompts.json` (the legacy data file) is **untouched**. It still powers the Streamlit production UI.
@@ -61,7 +68,28 @@ There is no `legal-review` state. There is no inferred state. Post-draft states 
 
 ### Commercial use
 
-`commercialUseStatus` is one of `"pending" | "cleared" | "restricted"`. All current records are `pending`.
+`commercialUseStatus` is one of `"pending" | "cleared" | "restricted"`. Pilot V1 records are `cleared`.
+
+### Publication eligibility
+
+`publicationEligibility` is one of `"internal" | "prompt-kits"`.
+
+- `internal` — not approved for public Prompt Kits integration.
+- `prompt-kits` — owner-approved as eligible for future Prompt Kits integration.
+
+Eligibility records owner approval only. It does **not** mean the record is currently wired into the public route.
+
+Eligibility invariants:
+
+- `publicationEligibility: "prompt-kits"` requires:
+  - `reviewStatus: "approved"`.
+  - `commercialUseStatus: "cleared"`.
+  - non-empty `reviewer`.
+  - valid `lastReviewedAt`.
+- `draft`, `editor-reviewed`, or `rejected` records cannot use `"prompt-kits"`.
+- A `rejected` record must use `"internal"`.
+
+The validator enforces these invariants.
 
 ### Safety classification
 
@@ -154,7 +182,7 @@ Until then, treat every record here as a working draft and do not publish it ext
 
 ## Disclaimer
 
-Automated checks do not prove originality, legal clearance, editorial quality, or safe production use. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. The wording has not been reviewed by an editor, a lawyer, or a trust-and-safety reviewer. Use the structure; do not rely on the prose.
+Automated checks do not prove originality, factual correctness, editorial quality, or safe execution. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. The wording has been editorially reviewed and approved for the OpenRadar canonical pilot, but no automated or human check can prove factual correctness of a model response or guarantee safe execution of an operational action. Use the structure; do not rely on the prose for safety-critical decisions.
 
 ## Editing rules
 

@@ -29,11 +29,12 @@ const provenance = (id: string) => [
 const baseEditorial = {
   sourceType: "openradar-rewrite" as const,
   authorship: "OpenRadar editorial",
-  reviewStatus: "draft" as const,
-  reviewer: null,
-  lastReviewedAt: null,
+  reviewStatus: "approved" as const,
+  reviewer: "Robert Voicu",
+  lastReviewedAt: "2026-07-16T19:12:27Z",
   contentVersion: 1,
-  commercialUseStatus: "pending" as const,
+  commercialUseStatus: "cleared" as const,
+  publicationEligibility: "prompt-kits" as const,
 };
 
 export const pilotBatch1Records: PromptRecord[] = [

@@ -35,6 +35,8 @@ export type PromptReviewStatus =
 
 export type PromptCommercialUseStatus = "pending" | "cleared" | "restricted";
 
+export type PromptPublicationEligibility = "internal" | "prompt-kits";
+
 export type PromptSafetyClass = "general" | "professional" | "sensitive";
 
 export type PromptSourceReferenceKind =
@@ -96,6 +98,20 @@ export type PromptReviewMetadata =
       lastReviewedAt: string;
     };
 
+/**
+ * Promotion invariants:
+ *  - publicationEligibility: "prompt-kits" requires:
+ *      - reviewStatus: "approved"
+ *      - commercialUseStatus: "cleared"
+ *      - non-empty reviewer
+ *      - valid lastReviewedAt
+ *  - draft, editor-reviewed, or rejected records cannot use "prompt-kits"
+ *  - rejected records must use "internal"
+ *
+ * Eligibility records owner approval only. It does NOT claim the record
+ * is currently wired into the public route or visible to end users.
+ */
+
 export type PromptRecord = PromptReviewMetadata & {
   /** Stable canonical ID, lowercase kebab-case, immutable. */
   id: string;
@@ -118,6 +134,8 @@ export type PromptRecord = PromptReviewMetadata & {
   authorship: string;
   safetyClass: PromptSafetyClass;
   commercialUseStatus: PromptCommercialUseStatus;
+  /** Editorial publication-eligibility state. */
+  publicationEligibility: PromptPublicationEligibility;
   /** Monotonically increasing editorial version. */
   contentVersion: number;
 };

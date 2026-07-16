@@ -56,12 +56,13 @@ function baseRecord(overrides = {}) {
       },
     ],
     authorship: "OpenRadar editorial",
-    reviewStatus: "draft",
-    reviewer: null,
-    lastReviewedAt: null,
+    reviewStatus: "approved",
+    reviewer: "Reviewer",
+    lastReviewedAt: "2026-07-16T19:12:27Z",
     contentVersion: 1,
     safetyClass: "general",
-    commercialUseStatus: "pending",
+    commercialUseStatus: "cleared",
+    publicationEligibility: "prompt-kits",
     ...overrides,
   };
 }
@@ -183,6 +184,7 @@ test("negative: invalid post-draft metadata", () => {
       reviewStatus: "editor-reviewed",
       reviewer: "",
       lastReviewedAt: "2026-07-16T12:00:00Z",
+      publicationEligibility: "internal",
     }),
   ]);
   assertHasError(r, "reviewer must be a non-empty string");
@@ -194,6 +196,7 @@ test("negative: invalid ISO timestamp", () => {
       reviewStatus: "editor-reviewed",
       reviewer: "someone",
       lastReviewedAt: "not-a-real-date",
+      publicationEligibility: "internal",
     }),
   ]);
   assertHasError(r, "lastReviewedAt must be a valid ISO-8601");
@@ -251,6 +254,8 @@ test("negative: invalid draft reviewer/timestamp combination", () => {
       reviewStatus: "draft",
       reviewer: "should-be-null",
       lastReviewedAt: null,
+      commercialUseStatus: "pending",
+      publicationEligibility: "internal",
     }),
   ]);
   assertHasError(r, "reviewer must be null");
@@ -352,6 +357,118 @@ test("negative: empty optional source-reference note", () => {
     }),
   ]);
   assertHasError(r, "note must be a non-empty string when present");
+});
+
+// ---------------- publication eligibility cases ----------------
+
+test("negative: publicationEligibility missing", () => {
+  const { publicationEligibility, ...rest } = baseRecord();
+  const r = runWith([rest]);
+  assertHasError(r, "publicationEligibility");
+});
+
+test("negative: draft + prompt-kits fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "draft",
+      reviewer: null,
+      lastReviewedAt: null,
+      commercialUseStatus: "pending",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "'prompt-kits'");
+});
+
+test("negative: editor-reviewed + prompt-kits fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "editor-reviewed",
+      reviewer: "someone",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "reviewStatus 'editor-reviewed' cannot be paired with publicationEligibility 'prompt-kits'");
+});
+
+test("negative: approved + pending + prompt-kits fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "approved",
+      reviewer: "someone",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      commercialUseStatus: "pending",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "'prompt-kits' requires commercialUseStatus 'cleared'");
+});
+
+test("negative: rejected + prompt-kits fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "rejected",
+      reviewer: "someone",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      commercialUseStatus: "cleared",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "publicationEligibility 'prompt-kits' requires reviewStatus 'approved'");
+});
+
+test("negative: rejected + not-internal fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "rejected",
+      reviewer: "someone",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      commercialUseStatus: "cleared",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "rejected record must use publicationEligibility 'internal'");
+});
+
+test("positive: approved + cleared + prompt-kits passes", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "approved",
+      reviewer: "Robert Voicu",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      commercialUseStatus: "cleared",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertNoError(r, "publicationEligibility");
+  assert.equal(r.errors.length, 0, JSON.stringify(r.errors, null, 2));
+});
+
+test("negative: approved + cleared + prompt-kits but reviewer empty fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "approved",
+      reviewer: "",
+      lastReviewedAt: "2026-07-16T19:12:27Z",
+      commercialUseStatus: "cleared",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "'prompt-kits' requires a non-empty reviewer");
+});
+
+test("negative: approved + cleared + prompt-kits but lastReviewedAt invalid fails", () => {
+  const r = runWith([
+    baseRecord({
+      reviewStatus: "approved",
+      reviewer: "Robert Voicu",
+      lastReviewedAt: "not-a-real-date",
+      commercialUseStatus: "cleared",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "'prompt-kits' requires a valid lastReviewedAt");
 });
 
 // ---------------- sanity check ----------------

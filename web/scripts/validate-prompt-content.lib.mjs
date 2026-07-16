@@ -67,6 +67,11 @@ const ALLOWED_COMMERCIAL_USE_STATUSES = new Set([
   "restricted",
 ]);
 
+const ALLOWED_PUBLICATION_ELIGIBILITY = new Set([
+  "internal",
+  "prompt-kits",
+]);
+
 const ALLOWED_SOURCE_REFERENCE_KINDS = new Set([
   "internal-concept",
   "public-framework",
@@ -354,6 +359,67 @@ function checkRecordShape(rec, where, errors, options) {
     errors.push(
       `${where}: commercialUseStatus '${rec.commercialUseStatus}' is not in ${[...ALLOWED_COMMERCIAL_USE_STATUSES].join(", ")}`,
     );
+  }
+
+  // publicationEligibility + promotion invariants.
+  if (
+    rec.publicationEligibility === undefined ||
+    rec.publicationEligibility === null
+  ) {
+    errors.push(
+      `${where}: field 'publicationEligibility' is required (use 'internal' or 'prompt-kits')`,
+    );
+  } else if (!ALLOWED_PUBLICATION_ELIGIBILITY.has(rec.publicationEligibility)) {
+    errors.push(
+      `${where}: publicationEligibility '${rec.publicationEligibility}' is not in ${[...ALLOWED_PUBLICATION_ELIGIBILITY].join(", ")}`,
+    );
+  } else {
+    const wantsPromptKits = rec.publicationEligibility === "prompt-kits";
+    if (wantsPromptKits) {
+      if (rec.reviewStatus !== "approved") {
+        errors.push(
+          `${where}: publicationEligibility 'prompt-kits' requires reviewStatus 'approved' (got '${rec.reviewStatus}')`,
+        );
+      }
+      if (rec.commercialUseStatus !== "cleared") {
+        errors.push(
+          `${where}: publicationEligibility 'prompt-kits' requires commercialUseStatus 'cleared' (got '${rec.commercialUseStatus}')`,
+        );
+      }
+      if (
+        typeof rec.reviewer !== "string" ||
+        rec.reviewer.trim().length === 0
+      ) {
+        errors.push(
+          `${where}: publicationEligibility 'prompt-kits' requires a non-empty reviewer`,
+        );
+      }
+      if (
+        typeof rec.lastReviewedAt !== "string" ||
+        !isValidIso8601(rec.lastReviewedAt)
+      ) {
+        errors.push(
+          `${where}: publicationEligibility 'prompt-kits' requires a valid lastReviewedAt (got ${JSON.stringify(rec.lastReviewedAt)})`,
+        );
+      }
+    }
+    if (
+      rec.reviewStatus === "rejected" &&
+      rec.publicationEligibility !== "internal"
+    ) {
+      errors.push(
+        `${where}: a rejected record must use publicationEligibility 'internal' (got '${rec.publicationEligibility}')`,
+      );
+    }
+    if (
+      (rec.reviewStatus === "draft" ||
+        rec.reviewStatus === "editor-reviewed") &&
+      rec.publicationEligibility === "prompt-kits"
+    ) {
+      errors.push(
+        `${where}: reviewStatus '${rec.reviewStatus}' cannot be paired with publicationEligibility 'prompt-kits'`,
+      );
+    }
   }
   // safetyClass
   if (!ALLOWED_SAFETY_CLASSES.has(rec.safetyClass)) {
