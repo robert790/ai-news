@@ -114,6 +114,75 @@ export function isValidIso8601(s) {
 }
 
 /**
+ * Validate the Batch 1 lock against the separately-exported
+ * pilotBatch1Records. The lock is a separate deterministic rule from
+ * the rest of the contract and is NOT derived from the complete
+ * promptRecords catalog.
+ *
+ * Rules:
+ *  - pilotBatch1Records length equals the lock length.
+ *  - its ID set exactly equals BATCH_1_LOCK_IDS.
+ *  - no missing IDs.
+ *  - no extra IDs.
+ *  - no duplicate IDs.
+ *
+ * @param {unknown} pilotBatch1Records
+ * @param {readonly string[]} [batch1LockIds]
+ * @returns {{errors: string[]; recordCount: number}}
+ */
+export function validateBatch1Lock(pilotBatch1Records, batch1LockIds = BATCH_1_LOCK_IDS) {
+  const errors = [];
+  if (!Array.isArray(pilotBatch1Records)) {
+    return {
+      errors: ["pilotBatch1Records is not an array"],
+      recordCount: 0,
+    };
+  }
+
+  const recordCount = pilotBatch1Records.length;
+
+  if (recordCount !== batch1LockIds.length) {
+    errors.push(
+      `Batch 1 lock: pilotBatch1Records has ${recordCount} record(s); expected exactly ${batch1LockIds.length}`,
+    );
+  }
+
+  const seen = new Map();
+  for (let i = 0; i < pilotBatch1Records.length; i++) {
+    const rec = pilotBatch1Records[i];
+    if (rec === null || typeof rec !== "object") {
+      errors.push(`Batch 1 lock: record #${i + 1}: must be an object`);
+      continue;
+    }
+    const id = rec.id;
+    if (typeof id !== "string" || id.length === 0) {
+      errors.push(`Batch 1 lock: record #${i + 1}: id must be a non-empty string`);
+      continue;
+    }
+    if (seen.has(id)) {
+      errors.push(
+        `Batch 1 lock: duplicate id '${id}' at #${seen.get(id) + 1} and #${i + 1}`,
+      );
+    } else {
+      seen.set(id, i);
+    }
+  }
+
+  for (const id of batch1LockIds) {
+    if (!seen.has(id)) {
+      errors.push(`Batch 1 lock: missing expected ID '${id}'`);
+    }
+  }
+  for (const id of seen.keys()) {
+    if (!batch1LockIds.includes(id)) {
+      errors.push(`Batch 1 lock: unexpected ID '${id}'`);
+    }
+  }
+
+  return { errors, recordCount };
+}
+
+/**
  * Run the full validation suite against a catalog of records.
  *
  * @param {unknown} catalog -- the records to validate. Must be an array.
@@ -128,7 +197,6 @@ export function isValidIso8601(s) {
 export function validateCatalog(catalog, options = {}) {
   const errors = [];
   const collectionIdSet = options.collectionIdSet;
-  const batch1LockIds = options.batch1LockIds ?? BATCH_1_LOCK_IDS;
 
   if (!Array.isArray(catalog)) {
     return { errors: ["catalog is not an array"], recordCount: 0 };
@@ -140,7 +208,6 @@ export function validateCatalog(catalog, options = {}) {
   const seenIds = new Map();
   const seenSlugs = new Map();
   const bodyHashes = new Map();
-  const batch1IdsInCatalog = new Set();
 
   for (let i = 0; i < catalog.length; i++) {
     const rec = catalog[i];
@@ -161,9 +228,6 @@ export function validateCatalog(catalog, options = {}) {
         );
       } else {
         seenIds.set(rec.id, i);
-      }
-      if (batch1LockIds.includes(rec.id)) {
-        batch1IdsInCatalog.add(rec.id);
       }
     }
     if (typeof rec.slug === "string" && rec.slug.length > 0) {
@@ -188,17 +252,9 @@ export function validateCatalog(catalog, options = {}) {
     }
   }
 
-  // Batch 1 lock: exactly these IDs must be present, no extras.
-  for (const id of batch1LockIds) {
-    if (!seenIds.has(id)) {
-      errors.push(`Batch 1 lock: missing expected ID '${id}'`);
-    }
-  }
-  for (const id of batch1IdsInCatalog) {
-    if (!batch1LockIds.includes(id)) {
-      errors.push(`Batch 1 lock: unexpected ID '${id}'`);
-    }
-  }
+  // The Batch 1 lock is enforced separately against pilotBatch1Records
+  // (see validateBatch1Lock). It is NOT derived from the complete
+  // promptRecords catalog.
 
   return { errors, recordCount };
 }

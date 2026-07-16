@@ -588,7 +588,7 @@ export const pilotBatch1Records: PromptRecord[] = [
       "- Where a section depends on information the inputs did not supply, list the unresolved question in section 5 rather than inventing content.",
     ].join("\n"),
     expectedOutput:
-      "A page skeleton with the six labeled sections. The Skeleton tree can be read top-to-bottom and rebuilt into markup by a frontend engineer without further questions. Section 5 lists every '[needs decision]' item left open by the inputs, with the unresolved question. Where inputs are complete, the skeleton is implementable as written; where inputs are not complete, the remaining decisions stay visible in section 5 rather than being resolved by invented content.",
+      "A page skeleton with the six labeled sections. Complete portions should be directly implementable, while unresolved questions remain explicitly visible in section 5. The Skeleton tree reads top-to-bottom for the parts that are complete, and section 5 lists every '[needs decision]' item left open by the inputs, with the unresolved question. Where inputs are complete, the skeleton is implementable as written; where inputs are not complete, the remaining decisions stay visible in section 5 rather than being resolved by invented content.",
     notes: [
       {
         title: "Why content blocks are a structured input",
@@ -620,7 +620,7 @@ export const pilotBatch1Records: PromptRecord[] = [
       {
         title: "Claiming the skeleton is final",
         body:
-          "Stating that no further questions will ever be needed misrepresents the contract. Where inputs are complete, implementation can proceed; where inputs are not complete, section 5 keeps the remaining decisions visible.",
+          "Stating that no further questions will ever be needed misrepresents the contract. The skeleton is implementable for the parts that are complete; section 5 keeps every remaining decision visible.",
       },
     ],
     collectionIds: ["studio-foundation"],

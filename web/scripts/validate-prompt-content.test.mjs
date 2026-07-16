@@ -17,7 +17,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { validateCatalog, BATCH_1_LOCK_IDS } from "./validate-prompt-content.lib.mjs";
+import {
+  validateCatalog,
+  validateBatch1Lock,
+  BATCH_1_LOCK_IDS,
+} from "./validate-prompt-content.lib.mjs";
 
 /**
  * A known-good base record. Tests override one or two fields to
@@ -67,8 +71,11 @@ const REGISTRY = new Set(["builder-bench", "editor-desk", "operator-playbook", "
 function runWith(records) {
   return validateCatalog(records, {
     collectionIdSet: REGISTRY,
-    batch1LockIds: BATCH_1_LOCK_IDS,
   });
+}
+
+function runLockWith(records) {
+  return validateBatch1Lock(records, BATCH_1_LOCK_IDS);
 }
 
 function assertHasError(result, fragment) {
@@ -250,13 +257,43 @@ test("negative: invalid draft reviewer/timestamp combination", () => {
 });
 
 test("negative: incorrect Batch 1 ID set", () => {
+  // The Batch 1 lock is enforced separately against pilotBatch1Records.
   // Drop one of the required Batch 1 IDs and add a non-canonical one.
   const records = BATCH_1_LOCK_IDS.slice(0, 4).map((id, idx) =>
     baseRecord({ id, slug: id, title: `Record ${idx}` }),
   );
   records.push(baseRecord({ id: "extra-not-in-batch-1", slug: "extra-not-in-batch-1", title: "Extra" }));
-  const r = runWith(records);
+  const r = runLockWith(records);
   assertHasError(r, "Batch 1 lock");
+  assertHasError(r, "missing expected ID 'design-frontend-page-skeleton'");
+  assertHasError(r, "unexpected ID 'extra-not-in-batch-1'");
+});
+
+test("negative: Batch 1 lock with all five required IDs plus an extra valid record", () => {
+  // The Batch 1 lock is enforced against the separately-exported
+  // pilotBatch1Records. The required five IDs are present, but
+  // pilotBatch1Records also contains one additional valid record.
+  // The lock must fail specifically because of the unexpected extra ID.
+  const records = BATCH_1_LOCK_IDS.map((id, idx) =>
+    baseRecord({
+      id,
+      slug: id,
+      title: `Batch 1 record ${idx}`,
+      prompt: `Prompt body for ${id}.\n{input_a}`,
+    }),
+  );
+  records.push(
+    baseRecord({
+      id: "extra-valid-record",
+      slug: "extra-valid-record",
+      title: "Extra valid record",
+      prompt: "Extra valid record prompt body.\n{input_a}",
+    }),
+  );
+  const r = runLockWith(records);
+  assertHasError(r, "Batch 1 lock");
+  assertHasError(r, "has 6 record(s); expected exactly 5");
+  assertHasError(r, "unexpected ID 'extra-valid-record'");
 });
 
 test("negative: cross-record duplicate prompt bodies", () => {

@@ -37,6 +37,7 @@ import ts from "typescript";
 
 import {
   validateCatalog,
+  validateBatch1Lock,
   BATCH_1_LOCK_IDS,
 } from "./validate-prompt-content.lib.mjs";
 
@@ -198,15 +199,37 @@ async function main() {
       rmSync(tmp, { recursive: true, force: true });
       process.exit(1);
     }
+    if (!Array.isArray(mod.pilotBatch1Records)) {
+      console.error(
+        `Emitted module did not export a 'pilotBatch1Records' array: ${emittedIndexPath}`,
+      );
+      rmSync(tmp, { recursive: true, force: true });
+      process.exit(1);
+    }
 
-    // 4. Run pure validation.
+    // 4a. Run the Batch 1 lock check on the separately-exported
+    //     pilotBatch1Records. The lock is not derived from the
+    //     complete promptRecords catalog.
+    const lockResult = validateBatch1Lock(
+      mod.pilotBatch1Records,
+      BATCH_1_LOCK_IDS,
+    );
+    if (lockResult.errors.length > 0) {
+      console.log(
+        `Batch 1 lock failed (${lockResult.errors.length} error${lockResult.errors.length === 1 ? "" : "s"}):`,
+      );
+      for (const e of lockResult.errors) console.log("  - " + e);
+      rmSync(tmp, { recursive: true, force: true });
+      process.exit(1);
+    }
+
+    // 4b. Run pure catalog validation on the complete promptRecords.
     const result14 = validateCatalog(mod.promptRecords, {
       collectionIdSet,
-      batch1LockIds: BATCH_1_LOCK_IDS,
     });
     if (result14.errors.length === 0) {
       console.log(
-        `OK: ${result14.recordCount} canonical prompt record(s) validated.`,
+        `OK: ${lockResult.recordCount} Batch 1 record(s) locked; ${result14.recordCount} canonical prompt record(s) validated.`,
       );
       rmSync(tmp, { recursive: true, force: true });
       process.exit(0);
