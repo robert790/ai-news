@@ -10,25 +10,25 @@ This is the **canonical Web V2 prompt-content pilot**. It is the editorial sourc
 
 - `prompts_data/prompts.json` (the legacy data file) is **untouched**. It still powers the Streamlit production UI.
 - `prompts.py` and `app.py` are unchanged.
-- Records here are written from the same conceptual starting points as the frozen legacy IDs, but every word is OpenRadar-authored. No vendor sample blocks, no product-specific syntax, no living-creator names.
+- Every record in this pilot is a rewrite of a legacy Prompt Bible concept under the same ID. The wording is OpenRadar-authored; legacy wording is not reused. Provenance is recorded on every record as a structured `internal-concept` reference.
 
 ## What lives here
 
 - `types.ts` -- the TypeScript contract for a canonical prompt record.
 - `collections.ts` -- the canonical collection registry (`BUILDER_BENCH`, `EDITOR_DESK`, `OPERATOR_PLAYBOOK`, `STUDIO_FOUNDATION`).
-- `pilot-batch-1.ts` -- the first five canonical records.
-- `__fixtures__/` -- negative-test fixtures used only by the validator tests. Not shipped in any production path.
-- `index.ts` -- barrel export for downstream consumers.
-- `web/scripts/validate-prompt-content.mjs` -- dependency-free structural validator. Built on the installed TypeScript compiler. Run with `npm run content:validate` from `web/`.
-- `web/scripts/validate-prompt-content.test.mjs` -- negative tests for the validator. Run with `npm run content:test` from `web/`.
+- `pilot-batch-1.ts` -- the first five canonical records. Exports `pilotBatch1Records`.
+- `index.ts` -- the **sole catalog source**. Imports every batch explicitly, exports `pilotBatch1Records` and `promptRecords` (the complete catalog). There is no runtime file globbing; the catalog is a static import graph.
+- `web/scripts/validate-prompt-content.mjs` -- the validator. Compiles the canonical index with the installed TypeScript compiler, emits to a temp directory, loads the emitted module with the normal Node loader, then runs the pure validation functions on the loaded catalog. Run with `npm run content:validate` from `web/`.
+- `web/scripts/validate-prompt-content.lib.mjs` -- the pure validation functions. Exported so the negative-test suite can validate supplied record arrays directly, without subprocesses or fixture files.
+- `web/scripts/validate-prompt-content.test.mjs` -- negative tests for the validator, run with `node --test`. Run with `npm run content:test` from `web/`.
 
 ## The canonical contract (v1)
 
 ### Identity
 
-- `id` is lowercase kebab-case, immutable, and stable across the lifetime of the record. It is the canonical identifier.
+- `id` is lowercase kebab-case, immutable, and stable across the lifetime of the record.
 - `slug` is the routing identity. In v1, `slug === id` is enforced.
-- IDs must be unique across all loaded batch files. Slugs must be unique across all loaded batch files.
+- IDs and slugs are unique across the complete catalog.
 
 ### Provenance
 
@@ -36,12 +36,13 @@ This is the **canonical Web V2 prompt-content pilot**. It is the editorial sourc
 - `sourceReferences` is a list of structured references, each with:
   - `kind` -- one of `internal-concept`, `public-framework`, `standard`, `paper`, `external-reference`.
   - `label` -- short, non-empty.
-  - `url` -- optional; must be a valid http/https URL when present.
-  - `note` -- optional; non-empty when present.
+  - `url` -- optional; must be a non-empty valid http/https URL when present.
+  - `note` -- optional; must be a non-empty string when present.
 - Reference count rule per `sourceType`:
-  - `openradar-original`: zero references, or exactly one `internal-concept` reference.
   - `openradar-rewrite`: at least one reference.
   - `external-reference`: at least one reference.
+  - `openradar-original`: zero references, or exactly one `internal-concept` reference.
+- All Batch 1 records are `openradar-rewrite` with a single `internal-concept` reference labelled `Legacy Prompt Bible concept: <record-id>` and a `note` stating the wording was rewritten from first principles.
 
 ### Review metadata (discriminated union)
 
@@ -56,25 +57,19 @@ The record's review state is a discriminated union on `reviewStatus`:
   }
 ```
 
-There is no `legal-review` state. There is no inferred state. The four allowed states are the four above.
-
-Post-draft states carry only the three fields above (`reviewStatus`, `reviewer`, `lastReviewedAt`). No rejection reason. No cleared-for-X list. No extra payloads.
+There is no `legal-review` state. There is no inferred state. Post-draft states carry only the three fields above.
 
 ### Commercial use
 
-`commercialUseStatus` is one of `"pending" | "cleared" | "restricted"`. All current records are `pending`. Promotion to `cleared` is a separate review gate and is not part of this contract.
+`commercialUseStatus` is one of `"pending" | "cleared" | "restricted"`. All current records are `pending`.
 
 ### Safety classification
 
-`safetyClass` is one of:
-
-- `general` -- low-consequence productivity or creative work.
-- `professional` -- software quality, customer communication, incidents, operations, or organizational decisions.
-- `sensitive` -- regulated, safety-critical, high-impact, or abuse-prone.
+`safetyClass` is one of `general`, `professional`, or `sensitive`.
 
 ### Collections
 
-A record belongs to one or more registered collections. The registry is in `collections.ts` and contains exactly:
+A record belongs to one or more registered collections. The registry lives in `collections.ts` and contains exactly:
 
 - `builder-bench`
 - `editor-desk`
@@ -89,7 +84,7 @@ Each declared input in `inputs`:
 
 - `name` is lowercase snake_case, unique within the record.
 - `label` and `description` are non-empty strings.
-- `example` is an optional string.
+- `example` is an optional non-empty string when present.
 
 Placeholder contract:
 
@@ -131,19 +126,20 @@ npm run content:validate
 npm run content:test
 ```
 
-The validator:
+`content:validate`:
 
-- Type-checks the canonical index using the installed TypeScript compiler.
-- Loads each batch file by transpiling it with the installed compiler and reading its `promptRecords` export.
-- Cross-checks every record against the rules above.
-- Enforces the exact five-ID Batch 1 set as a separate rule for `pilot-batch-1.ts`.
+- Type-checks the canonical index with the installed TypeScript compiler.
+- Emits the canonical index graph to a temporary directory.
+- Loads the emitted module via the normal Node loader (CommonJS, extension-less imports).
+- Runs the pure validation functions on the loaded catalog.
+- Cleans up the temporary output.
 
-The negative tests:
+`content:test`:
 
-- Use Node's built-in test runner (`node --test`).
-- Run the validator in a sandbox against fixture batch files under `__fixtures__/`.
-- Assert each fixture fails for its intended reason.
-- Do NOT reimplement validator rules.
+- Imports the pure validation functions directly.
+- Builds malformed record objects in memory.
+- Asserts each malformed record fails for its intended reason.
+- Does NOT spawn subprocesses or copy fixture files.
 
 ## Promotion requirements
 
@@ -179,4 +175,4 @@ The set of IDs that may appear in this pilot is frozen in `docs/content-os/promp
 - `operate-incident-first-15-minutes`
 - `design-frontend-page-skeleton`
 
-Future batches must follow the same frozen scope document. The validator enforces the exact ID set for this batch as a separate rule.
+Future batches are added by importing the new batch file's record array into `index.ts` and spreading it into `promptRecords`. There is no globbing.

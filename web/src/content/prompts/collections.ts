@@ -6,8 +6,12 @@
  * validator cross-checks every record's `collectionIds` against this
  * registry and fails on unknown IDs.
  *
- * Adding a new collection: append the ID here, document it, and ship the
- * validator update with it. There is no second source of truth.
+ * This file exports both:
+ * - The runtime registry: COLLECTION_IDS, COLLECTION_ID_SET.
+ * - The PromptCollectionId type, used by the canonical schema.
+ *
+ * No batch or types file imports from this module's runtime values.
+ * types.ts imports the type only.
  */
 
 export const BUILDER_BENCH = "builder-bench";
@@ -26,7 +30,7 @@ export const COLLECTION_IDS = [
   STUDIO_FOUNDATION,
 ] as const;
 
-export type CollectionId = (typeof COLLECTION_IDS)[number];
+export type PromptCollectionId = (typeof COLLECTION_IDS)[number];
 
 /**
  * Set form for O(1) membership checks. Built once from the array above.

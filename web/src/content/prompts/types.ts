@@ -9,6 +9,8 @@
  * Drafts only. Inclusion does not equal legal or publication approval.
  */
 
+import type { PromptCollectionId } from "./collections";
+
 export type PromptCategory =
   | "code"
   | "write"
@@ -44,13 +46,6 @@ export type PromptSourceReferenceKind =
 
 /**
  * Editorial reference supporting the sourceType claim.
- *
- * Reference kinds:
- * - "internal-concept": an internal OpenRadar concept or running record.
- * - "public-framework": a public framework or body of practice.
- * - "standard": a published specification (W3C, ISO, OWASP, etc.).
- * - "paper": a published research paper with a URL.
- * - "external-reference": any other public reference.
  */
 export interface PromptSourceReference {
   kind: PromptSourceReferenceKind;
@@ -67,41 +62,18 @@ export interface PromptInput {
    * every {name} placeholder in the prompt body must have a declared input.
    */
   name: string;
-  /**
-   * Short label that a user can read. Plain language, no jargon.
-   */
   label: string;
-  /**
-   * One or two sentences explaining what the user should put here, and
-   * what a good value looks like.
-   */
   description: string;
-  /**
-   * Optional example value to make the input concrete.
-   */
   example?: string;
 }
 
 export interface PromptNote {
-  /**
-   * Short heading for the note.
-   */
   title: string;
-  /**
-   * One paragraph explaining why this prompt works, written for a working
-   * practitioner. No marketing language.
-   */
   body: string;
 }
 
 export interface PromptAntiPattern {
-  /**
-   * Short heading naming the failure mode.
-   */
   title: string;
-  /**
-   * One paragraph describing what goes wrong and why.
-   */
   body: string;
 }
 
@@ -129,40 +101,22 @@ export type PromptRecord = PromptReviewMetadata & {
   id: string;
   /** Routing identity. In v1, slug is always equal to id. */
   slug: string;
-  /** Human-readable title. */
   title: string;
-  /** Editorial category. */
   category: PromptCategory;
-  /** Difficulty level. */
   difficulty: PromptDifficulty;
-  /** Who this prompt is for. */
   audience: string;
-  /** Short description of when to use this prompt. */
   useCase: string;
-  /** Structured inputs the user must fill in before sending. */
   inputs: PromptInput[];
-  /** The actual prompt body, with {input_name} placeholders. */
   prompt: string;
-  /** What the model should produce when the prompt is used correctly. */
   expectedOutput: string;
-  /** Editorial notes explaining why the prompt works. */
   notes: PromptNote[];
-  /** Real failure modes the user should avoid. */
   antiPatterns: PromptAntiPattern[];
   /** Registered collection IDs this record belongs to. */
-  collectionIds: string[];
-  /** Where this record came from. */
+  collectionIds: PromptCollectionId[];
   sourceType: PromptSourceType;
-  /**
-   * Structured references supporting the sourceType claim.
-   * Rules per sourceType are enforced by the validator.
-   */
   sourceReferences: PromptSourceReference[];
-  /** Who wrote it. */
   authorship: string;
-  /** Editorial safety classification. */
   safetyClass: PromptSafetyClass;
-  /** Commercial-use editorial state. */
   commercialUseStatus: PromptCommercialUseStatus;
   /** Monotonically increasing editorial version. */
   contentVersion: number;

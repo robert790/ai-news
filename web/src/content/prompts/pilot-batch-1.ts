@@ -3,20 +3,31 @@ import type { PromptRecord } from "./types";
 /**
  * Pilot Batch 1 -- five canonical OpenRadar prompt records.
  *
- * Drafts only. Every record is editorial: OpenRadar-authored wording,
- * tool-agnostic, no vendor sample blocks, no living-creator names, no em
- * dashes in user-facing content, variables explicitly marked and
- * explained, review metadata on the canonical discriminated union, and
- * commercial-use status on the canonical three-state enum.
+ * Every record in this batch is a rewrite of a legacy Prompt Bible
+ * concept under the same ID. The wording is OpenRadar-authored;
+ * legacy wording is not reused. Provenance is recorded as a single
+ * structured reference on every record (see PROVENANCE below).
+ *
+ * Drafts only. Every record is editorial: tool-agnostic, no vendor
+ * sample blocks, no living-creator names, no em dashes in user-facing
+ * content, variables explicitly marked and explained.
  *
  * Inclusion does NOT equal legal clearance or publication approval.
- * Promotion requires editorial review, reviewer metadata, and the
- * explicit checks described in web/src/content/prompts/README.md.
  */
 
+const PROVENANCE_NOTE =
+  "Rewritten from first principles for canonical OpenRadar content. Legacy wording is not reused.";
+
+const provenance = (id: string) => [
+  {
+    kind: "internal-concept" as const,
+    label: `Legacy Prompt Bible concept: ${id}`,
+    note: PROVENANCE_NOTE,
+  },
+];
+
 const baseEditorial = {
-  sourceType: "openradar-original" as const,
-  sourceReferences: [],
+  sourceType: "openradar-rewrite" as const,
   authorship: "OpenRadar editorial",
   reviewStatus: "draft" as const,
   reviewer: null,
@@ -25,7 +36,7 @@ const baseEditorial = {
   commercialUseStatus: "pending" as const,
 };
 
-export const promptRecords: PromptRecord[] = [
+export const pilotBatch1Records: PromptRecord[] = [
   {
     ...baseEditorial,
     id: "code-pr-description",
@@ -112,6 +123,7 @@ export const promptRecords: PromptRecord[] = [
       },
     ],
     collectionIds: ["builder-bench"],
+    sourceReferences: provenance("code-pr-description"),
   },
 
   {
@@ -164,16 +176,20 @@ export const promptRecords: PromptRecord[] = [
       "Concerns to weigh:",
       "{concerns_to_weigh}",
       "",
-      "Start the review with a single first line in this exact form:",
-      "Verdict: approve | approve with comments | request changes",
+      "Pick exactly one of: approve, approve with comments, request changes.",
       "",
-      "Then write the review with the following sections, in this order:",
-      "1. Verdict restated in one sentence, with the reason.",
-      "2. Design -- does the change match the stated intent. Is the shape of the code right for the problem. Are there simpler alternatives that were missed.",
-      "3. Correctness -- race conditions, error paths, invariants, edge cases.",
-      "4. Operability -- logging, metrics, timeouts, retries, rollback, feature flags.",
-      "5. Tests -- what is covered, what is missing, what would you add.",
-      "6. Nitpicks -- small issues that are not blocking but worth a follow-up.",
+      "Start the review with a single first line in this exact form:",
+      "Verdict: <your single choice>",
+      "Replace <your single choice> with the one option you chose. Do not list the three options.",
+      "",
+      "Then write a short rationale explaining why that verdict fits the change.",
+      "",
+      "Then write the following review sections, in this order:",
+      "1. Design -- does the change match the stated intent. Is the shape of the code right for the problem. Are there simpler alternatives that were missed.",
+      "2. Correctness -- race conditions, error paths, invariants, edge cases.",
+      "3. Operability -- logging, metrics, timeouts, retries, rollback, feature flags.",
+      "4. Tests -- what is covered, what is missing, what would you add.",
+      "5. Nitpicks -- small issues that are not blocking but worth a follow-up.",
       "",
       "Calibration rules:",
       "- Distinguish blocking from non-blocking concerns explicitly.",
@@ -185,7 +201,7 @@ export const promptRecords: PromptRecord[] = [
       "- Do not rewrite the entire change. A clearly labelled minimal patch or fix direction is permitted; a full rewrite is not.",
     ].join("\n"),
     expectedOutput:
-      "A code review whose first line is exactly 'Verdict: approve | approve with comments | request changes', followed by the six labeled sections. The verdict and the body agree: blocking concerns appear only under 'request changes', and 'approve' is reserved for reviews with no blocking concerns.",
+      "A code review whose first line is exactly 'Verdict: <one option>', followed by a short rationale, followed by the five labeled sections. The verdict and the body agree: blocking concerns appear only under 'request changes', and 'approve' is reserved for reviews with no blocking concerns.",
     notes: [
       {
         title: "Why the verdict is forced to the first line",
@@ -193,9 +209,9 @@ export const promptRecords: PromptRecord[] = [
           "When the verdict is buried under analysis, reviewers end up re-reading the whole thing to find out whether they should merge. Putting the verdict first forces the analysis to justify itself.",
       },
       {
-        title: "Why blocking and non-blocking must agree",
+        title: "Why exactly one verdict",
         body:
-          "A review whose verdict says 'approve' but whose body lists blocking concerns trains the author to read the body, not the verdict, and trains the merge tooling to ignore the verdict. The verdict and the body must agree on what is blocking.",
+          "Listing all three options in the verdict line invites ambiguity. A single chosen verdict, followed by a rationale, makes the reviewer's call explicit and keeps the body in agreement with the verdict.",
       },
     ],
     antiPatterns: [
@@ -211,6 +227,7 @@ export const promptRecords: PromptRecord[] = [
       },
     ],
     collectionIds: ["builder-bench"],
+    sourceReferences: provenance("code-review-staff"),
   },
 
   {
@@ -255,8 +272,7 @@ export const promptRecords: PromptRecord[] = [
         label: "Cause under investigation?",
         description:
           "Set to 'yes' only when the root cause has not yet been confirmed. The notification will then state that the cause is under investigation, without speculation, and will promise a confirmation or correction later.",
-        example:
-          "yes",
+        example: "yes",
       },
       {
         name: "tentative_cause",
@@ -271,8 +287,7 @@ export const promptRecords: PromptRecord[] = [
         label: "Acknowledgement or apology (optional)",
         description:
           "At most one concise acknowledgement or apology. The prompt must not generate more than one. Leave blank for none.",
-        example:
-          "We are sorry for the disruption.",
+        example: "We are sorry for the disruption.",
       },
     ],
     prompt: [
@@ -304,22 +319,21 @@ export const promptRecords: PromptRecord[] = [
       "- Assign no blame to any individual or team. Do not infer intent.",
       "- When the cause is later confirmed or corrected, the next update will say so.",
       "",
-      "Structure:",
-      "- Short opening paragraph with what is happening right now, who is affected, and what the customer should do.",
-      "- A section on customer impact.",
-      "- A section on what we are doing next.",
-      "- A section on what the customer should do.",
-      "- Optional acknowledgement or apology, at most one, placed where it does not bury the facts.",
+      "Output structure:",
+      "1. Opening status paragraph -- one paragraph that stands on its own and contains the most important facts: what is happening, who is affected, what the customer should do right now.",
+      "2. Customer impact -- the labelled section that states who was affected, how many, for how long, and what they saw.",
+      "3. What we are doing next -- the labelled section that states what the team is doing, what the customer should do, and when the next update will arrive.",
+      "4. Cause status -- the labelled section that states the confirmed cause (if any), or that the cause is under investigation, or a labelled 'preliminary' / 'working theory' with supporting evidence.",
       "",
       "Tone rules:",
       "- Calm, factual, adult. No marketing language.",
-      "- Apologise or acknowledge at most once.",
+      "- Apologise or acknowledge at most once, placed where it does not bury the facts.",
       "- Do not speculate about root cause beyond what the inputs supplied.",
       "- Do not include internal tool names, on-call rotations, or anything the customer cannot act on.",
       "- Length: an initial update or an ongoing update can be three short paragraphs. Do not pad to look thorough.",
     ].join("\n"),
     expectedOutput:
-      "A customer-facing initial or ongoing update with the four labeled sections, an optional single acknowledgement, and an explicit cause status (confirmed, under investigation, or working theory with supporting evidence). The opening paragraph stands on its own and contains the most important facts: what is happening, who is affected, what the customer should do right now.",
+      "A customer-facing initial or ongoing update consisting of one opening status paragraph followed by three explicitly labelled sections: 'Customer impact', 'What we are doing next', and 'Cause status'. The opening paragraph stands on its own. The Cause status section reflects the confirmed-or-under-investigation-or-tentative state of the inputs and never presents a tentative cause as confirmed.",
     notes: [
       {
         title: "Why the cause status is a structured input",
@@ -327,9 +341,9 @@ export const promptRecords: PromptRecord[] = [
           "Notifications drift toward either over-explaining a cause that is not yet confirmed or burying a confirmed cause under impact. Treating cause status as a structured field forces the writer to declare it explicitly and to separate confirmed from tentative.",
       },
       {
-        title: "Why acknowledgement and apology are limited to one",
+        title: "Why the three section names are named in the prompt and the expected output",
         body:
-          "Multiple apologies in a single notification read as either panic or a request for absolution. One concise acknowledgement is enough; additional repetition wastes the customer's reading time.",
+          "When the prompt names 'Customer impact', 'What we are doing next', and 'Cause status', and the expected output names the same three, both ends of the contract agree. A reader can find any of the three sections without guessing.",
       },
     ],
     antiPatterns: [
@@ -350,6 +364,7 @@ export const promptRecords: PromptRecord[] = [
       },
     ],
     collectionIds: ["editor-desk"],
+    sourceReferences: provenance("write-customer-notification"),
   },
 
   {
@@ -371,7 +386,7 @@ export const promptRecords: PromptRecord[] = [
         description:
           "The alert, the customer report, or the symptom that triggered the response. Quote it verbatim if possible. State what is currently firing and what is currently quiet.",
         example:
-          "PagerDuty: checkout error rate above 5 percent for 3 minutes. Customer support ticket volume up. No change in upstream provider status.",
+          "Incident alert: checkout error rate above 5 percent for 3 minutes. Customer support ticket volume up. No change in upstream provider status.",
       },
       {
         name: "blast_radius",
@@ -413,6 +428,14 @@ export const promptRecords: PromptRecord[] = [
         example:
           "Dashboard: checkout-errors-overview. Log query: service=checkout level=error last=10m. Runbook: runbooks/checkout-errors.md. Rollback: argo-rollouts undo deploy/checkout. Channel: #incident-eu.",
       },
+      {
+        name: "authorization_and_constraints",
+        label: "Authorization and constraints",
+        description:
+          "Who is authorized to approve changes to production, rollback, fail over, disable systems, or escalate privileges. State the approval scope, the responsible approver, and the rollback or stop condition for any such action. When absent, no action that touches production is authorized by the prompt alone.",
+        example:
+          "Approver for production changes during the first 15 minutes: on-call incident commander. Rollback condition: error rate above 3 percent for two consecutive minutes after rollback. Stop condition: if rollback fails twice, escalate to the next on-call and pause further changes until cleared.",
+      },
     ],
     prompt: [
       "Generate a structured opening playbook for the first fifteen minutes of an incident.",
@@ -435,6 +458,9 @@ export const promptRecords: PromptRecord[] = [
       "Known dashboards, logs, runbooks, rollback controls, channels:",
       "{known_observability_and_controls}",
       "",
+      "Authorization and constraints:",
+      "{authorization_and_constraints}",
+      "",
       "Produce the following sections:",
       "1. One-line status -- a sentence that fits in a status page update.",
       "2. Roles -- three slots: incident commander, operator/responder, communications and scribe (combined when staffing requires it).",
@@ -450,9 +476,14 @@ export const promptRecords: PromptRecord[] = [
       "- Do not invent fixed defaults for who is the commander or the scribe.",
       "- Prefer reversible actions over irreversible ones.",
       "- Assume you have at most three people available in the first fifteen minutes.",
+      "",
+      "Authorization rules:",
+      "- Any recommendation that changes production, rolls back, fails over, disables a system, or escalates privileges is a proposal only. Do not state or imply that the model executed or authorized the action.",
+      "- For any such proposal, the output must name the approval scope, the responsible approver, and the rollback or stop condition, drawn from the 'authorization_and_constraints' input when supplied. When the input is absent, the output must state that no production-touching action is authorized by the prompt alone and that an authorized responder must approve before execution.",
+      "- Use generic wording for paging and alerting systems (for example: 'incident alert', 'paging system', 'on-call rotation'). Do not name a specific vendor.",
     ].join("\n"),
     expectedOutput:
-      "A playbook with the six labeled sections. The one-line status is copy-pasteable into a status page. Each immediate check names a signal or evidence category to inspect, and uses internal resource names only when the inputs supplied them. Role slots are filled from the inputs; any unfilled slot is written 'unassigned'.",
+      "A playbook with the six labeled sections. The one-line status is copy-pasteable into a status page. Each immediate check names a signal or evidence category to inspect, and uses internal resource names only when the inputs supplied them. Role slots are filled from the inputs; any unfilled slot is written 'unassigned'. Any proposal that touches production carries the required approval scope, approver, and rollback or stop condition; the prompt never states or implies that it executed or authorized an operational action.",
     notes: [
       {
         title: "Why role slots are filled from inputs",
@@ -460,9 +491,9 @@ export const promptRecords: PromptRecord[] = [
           "A default like 'incident commander is whoever acks the page' looks convenient but it embeds a guess about how a specific team staffs incidents. The inputs are the only place that guess can live; the prompt must read from there and stay silent otherwise.",
       },
       {
-        title: "Why internal resource names must come from inputs",
+        title: "Why authorization is a separate input",
         body:
-          "Inventing a dashboard name or a runbook path produces an opening playbook that no one on the team can actually open. The first fifteen minutes are too short to discover that the model pointed at the wrong dashboard.",
+          "Recommendations about rollback, fail over, or privilege escalation can be dangerous if read as actions. Treating authorization as a structured input keeps those recommendations explicit, attributable, and reversible until an authorized responder approves them.",
       },
     ],
     antiPatterns: [
@@ -481,8 +512,14 @@ export const promptRecords: PromptRecord[] = [
         body:
           "Naming an internal dashboard or runbook that was not in the inputs produces an opening playbook that the response cannot act on. When nothing relevant is supplied, name the signal or evidence category to inspect and stop.",
       },
+      {
+        title: "Imply the prompt executed or authorized an operational action",
+        body:
+          "Statements like 'the rollback has been initiated' or 'the system has been disabled' are out of scope for a planning prompt. The output is a proposal until an authorized responder approves it.",
+      },
     ],
     collectionIds: ["operator-playbook"],
+    sourceReferences: provenance("operate-incident-first-15-minutes"),
   },
 
   {
@@ -549,10 +586,9 @@ export const promptRecords: PromptRecord[] = [
       "- Do not include pixel sizes or hex colors. Layout, not visual design.",
       "- Do not add design-token support, theme tokens, or color palettes in this skeleton. Visual design tokens live in a separate document.",
       "- Where a section depends on information the inputs did not supply, list the unresolved question in section 5 rather than inventing content.",
-      "- Describe the result as implementable where inputs are complete, with unresolved decisions explicitly identified in section 5.",
     ].join("\n"),
     expectedOutput:
-      "A page skeleton with the six labeled sections. The Skeleton tree can be read top-to-bottom and rebuilt into markup by a frontend engineer without further questions. Section 5 lists every '[needs decision]' item left open by the inputs, with the unresolved question, and no invented content appears anywhere else.",
+      "A page skeleton with the six labeled sections. The Skeleton tree can be read top-to-bottom and rebuilt into markup by a frontend engineer without further questions. Section 5 lists every '[needs decision]' item left open by the inputs, with the unresolved question. Where inputs are complete, the skeleton is implementable as written; where inputs are not complete, the remaining decisions stay visible in section 5 rather than being resolved by invented content.",
     notes: [
       {
         title: "Why content blocks are a structured input",
@@ -581,7 +617,13 @@ export const promptRecords: PromptRecord[] = [
         body:
           "Filling in a placeholder string or example text to make the layout look complete hides the fact that a real input was missing. Use '[needs decision]' so the gap is visible.",
       },
+      {
+        title: "Claiming the skeleton is final",
+        body:
+          "Stating that no further questions will ever be needed misrepresents the contract. Where inputs are complete, implementation can proceed; where inputs are not complete, section 5 keeps the remaining decisions visible.",
+      },
     ],
     collectionIds: ["studio-foundation"],
+    sourceReferences: provenance("design-frontend-page-skeleton"),
   },
 ];
