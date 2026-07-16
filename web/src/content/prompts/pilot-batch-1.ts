@@ -8,7 +8,7 @@ import type { PromptRecord } from "./types";
  * legacy wording is not reused. Provenance is recorded as a single
  * structured reference on every record (see PROVENANCE below).
  *
- * Drafts only. Every record is editorial: tool-agnostic, no vendor
+ * Pilot Batch 1 records are owner-approved, commercially cleared, and eligible for future Prompt Kits integration. Eligibility does not mean they are currently wired into the public route.
  * sample blocks, no living-creator names, no em dashes in user-facing
  * content, variables explicitly marked and explained.
  *
@@ -29,11 +29,12 @@ const provenance = (id: string) => [
 const baseEditorial = {
   sourceType: "openradar-rewrite" as const,
   authorship: "OpenRadar editorial",
-  reviewStatus: "draft" as const,
-  reviewer: null,
-  lastReviewedAt: null,
+  reviewStatus: "approved" as const,
+  reviewer: "Robert Voicu",
+  lastReviewedAt: "2026-07-16T19:12:27Z",
   contentVersion: 1,
-  commercialUseStatus: "pending" as const,
+  commercialUseStatus: "cleared" as const,
+  publicationEligibility: "prompt-kits" as const,
 };
 
 export const pilotBatch1Records: PromptRecord[] = [
