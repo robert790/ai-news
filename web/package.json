@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "content:validate": "node scripts/validate-prompt-content.mjs"
+    "content:validate": "node scripts/validate-prompt-content.mjs",
+    "content:test": "node --test scripts/validate-prompt-content.test.mjs"
   },
   "dependencies": {
     "next": "14.2.18",

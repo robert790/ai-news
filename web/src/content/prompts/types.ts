@@ -1,11 +1,10 @@
 /**
  * Canonical Prompt Record contract for OpenRadar Web V2.
  *
- * This file is the single source of truth for the editorial shape of a
- * canonical prompt record. It is intentionally explicit so the dependency-free
- * validator (web/scripts/validate-prompt-content.mjs) can check the same
- * shape against the runtime JSON emitted by pilot-batch-*.ts without needing
- * a TypeScript toolchain.
+ * Single source of truth for the editorial shape of a canonical prompt
+ * record. The TypeScript compiler is what enforces the contract at write
+ * time; the validator (web/scripts/validate-prompt-content.mjs) uses the
+ * installed compiler to enforce it again at validation time.
  *
  * Drafts only. Inclusion does not equal legal or publication approval.
  */
@@ -28,19 +27,44 @@ export type PromptSourceType =
 
 export type PromptReviewStatus =
   | "draft"
-  | "editorial-review"
-  | "legal-review"
-  | "approved";
+  | "editor-reviewed"
+  | "approved"
+  | "rejected";
 
-export type PromptSafetyClass =
-  | "general"
-  | "professional"
-  | "sensitive";
+export type PromptCommercialUseStatus = "pending" | "cleared" | "restricted";
+
+export type PromptSafetyClass = "general" | "professional" | "sensitive";
+
+export type PromptSourceReferenceKind =
+  | "internal-concept"
+  | "public-framework"
+  | "standard"
+  | "paper"
+  | "external-reference";
+
+/**
+ * Editorial reference supporting the sourceType claim.
+ *
+ * Reference kinds:
+ * - "internal-concept": an internal OpenRadar concept or running record.
+ * - "public-framework": a public framework or body of practice.
+ * - "standard": a published specification (W3C, ISO, OWASP, etc.).
+ * - "paper": a published research paper with a URL.
+ * - "external-reference": any other public reference.
+ */
+export interface PromptSourceReference {
+  kind: PromptSourceReferenceKind;
+  label: string;
+  url?: string;
+  note?: string;
+}
 
 export interface PromptInput {
   /**
    * Stable name of the input, used as the placeholder key inside the prompt
-   * body. Always lowercase, hyphen-separated, no spaces.
+   * body. Always lowercase snake_case, no spaces. Unique within a record.
+   * Every declared input must appear in the prompt body as {name}, and
+   * every {name} placeholder in the prompt body must have a declared input.
    */
   name: string;
   /**
@@ -81,10 +105,29 @@ export interface PromptAntiPattern {
   body: string;
 }
 
-export interface PromptRecord {
-  /** Stable canonical ID, must match the frozen scope document. */
+/**
+ * Review metadata is a discriminated union on `reviewStatus`.
+ *
+ * Draft carries null reviewer and null timestamp. Post-draft states
+ * ("editor-reviewed" | "approved" | "rejected") carry a non-empty
+ * reviewer and a valid ISO-8601 timestamp. No additional payloads.
+ */
+export type PromptReviewMetadata =
+  | {
+      reviewStatus: "draft";
+      reviewer: null;
+      lastReviewedAt: null;
+    }
+  | {
+      reviewStatus: "editor-reviewed" | "approved" | "rejected";
+      reviewer: string;
+      lastReviewedAt: string;
+    };
+
+export type PromptRecord = PromptReviewMetadata & {
+  /** Stable canonical ID, lowercase kebab-case, immutable. */
   id: string;
-  /** URL-safe slug derived from id, must be unique. */
+  /** Routing identity. In v1, slug is always equal to id. */
   slug: string;
   /** Human-readable title. */
   title: string;
@@ -106,24 +149,21 @@ export interface PromptRecord {
   notes: PromptNote[];
   /** Real failure modes the user should avoid. */
   antiPatterns: PromptAntiPattern[];
-  /** Collection IDs this record belongs to. */
+  /** Registered collection IDs this record belongs to. */
   collectionIds: string[];
   /** Where this record came from. */
   sourceType: PromptSourceType;
-  /** Free-form references supporting the sourceType claim. */
-  sourceReferences: string[];
+  /**
+   * Structured references supporting the sourceType claim.
+   * Rules per sourceType are enforced by the validator.
+   */
+  sourceReferences: PromptSourceReference[];
   /** Who wrote it. */
   authorship: string;
-  /** Where this record sits in the editorial pipeline. */
-  reviewStatus: PromptReviewStatus;
-  /** Reviewer identifier when reviewStatus is past draft, otherwise null. */
-  reviewer: string | null;
-  /** ISO-8601 timestamp of last review, or null while in draft. */
-  lastReviewedAt: string | null;
-  /** Monotonically increasing editorial version. */
-  contentVersion: number;
   /** Editorial safety classification. */
   safetyClass: PromptSafetyClass;
-  /** Whether this prompt's wording is cleared for commercial publication. */
-  commercialUseAllowed: boolean;
-}
+  /** Commercial-use editorial state. */
+  commercialUseStatus: PromptCommercialUseStatus;
+  /** Monotonically increasing editorial version. */
+  contentVersion: number;
+};
