@@ -12,18 +12,18 @@
 .page-shell[data-page="prompt-kits"] .kits-searchbar__inner,
 .page-shell[data-page="prompt-kits"] .kits-searchbar__field,
 .page-shell[data-page="prompt-kits"] .kits-searchbar__chips,
-.page-shell[data-page="prompt-kits"] .kits-featured-section,
+.page-shell[data-page="prompt-kits"] .kits-pilot-section,
 .page-shell[data-page="prompt-kits"] .kits-results-section,
 .page-shell[data-page="prompt-kits"] .kits-section__head,
 .page-shell[data-page="prompt-kits"] .kits-results,
-.page-shell[data-page="prompt-kits"] .kits-feature__body,
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__body,
 .page-shell[data-page="prompt-kits"] .kits-state {
   display: block;
 }
 
 /* Override shared .module min-height inside /prompt-kits only. */
 .page-shell[data-page="prompt-kits"] .module { min-width: 0; min-height: 0; }
-.page-shell[data-page="prompt-kits"] .kits-feature .module-body,
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .module-body,
 .page-shell[data-page="prompt-kits"] .kits-search-module .module-body,
 .page-shell[data-page="prompt-kits"] .kits-results-module .module-body,
 .page-shell[data-page="prompt-kits"] .kits-empty .module-body {
@@ -168,24 +168,27 @@
 .page-shell[data-page="prompt-kits"] .kits-reset:hover { color: var(--accent); border-color: var(--accent); }
 .page-shell[data-page="prompt-kits"] .kits-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* --- Featured cards --- */
-.page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
+/* --- Pilot kits primary grid ---
+ * Equal treatment for all five canonical records. Three columns at
+ * desktop, two at tablet, hidden on mobile (the compact index is the
+ * single primary presentation on mobile). */
+.page-shell[data-page="prompt-kits"] .kits-pilot-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature .module-body {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .module-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature__lede {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__lede {
   margin: 0;
   color: #c4beac;
   font-size: 13px;
   line-height: 1.5;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature__meta {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px 12px;
@@ -194,19 +197,19 @@
   border-top: 1px solid #282b23;
   list-style: none;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature__meta li {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__meta li {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature__meta span {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__meta span {
   color: #979384;
   font: 8.5px var(--or-font-mono);
   text-transform: uppercase;
   letter-spacing: .09em;
 }
-.page-shell[data-page="prompt-kits"] .kits-feature__meta strong {
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__meta strong {
   color: var(--accent);
   font: 600 10px var(--or-font-mono);
   letter-spacing: .06em;
@@ -515,42 +518,6 @@
   color: #07120a;
   box-shadow: inset 0 1px #c9f1ce, 0 0 12px rgba(143, 220, 160, 0.45);
 }
-.page-shell[data-page="prompt-kits"] .kit-row__facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 6px 16px;
-  margin: 0;
-}
-.page-shell[data-page="prompt-kits"] .kit-row__facts > div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.page-shell[data-page="prompt-kits"] .kit-row__facts dt {
-  margin: 0;
-  color: #979384;
-  font: 600 8px var(--or-font-mono);
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-.page-shell[data-page="prompt-kits"] .kit-row__facts dd {
-  margin: 0;
-  color: #cfc9b6;
-  font-size: 12px;
-  line-height: 1.45;
-}
-.page-shell[data-page="prompt-kits"] .kit-row__prompt-preview {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  line-clamp: 3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #b5b09f;
-  font: 12px var(--or-font-mono);
-  white-space: pre-wrap;
-}
 
 /* Visually-hidden summary line used inside the expanded region
    (it provides a complete sentence for screen readers while the
@@ -580,6 +547,7 @@
   white-space: nowrap;
   border: 0;
 }
+
 /* Outbound notice — single banner above the compact index. */
 .page-shell[data-page="prompt-kits"] .kits-outbound-notice {
   margin: 0 0 8px;
@@ -592,7 +560,7 @@
   line-height: 1.5;
 }
 
-/* Empty + loading states */
+/* Empty + failure states */
 .page-shell[data-page="prompt-kits"] .kits-state {
   display: flex;
   flex-direction: column;
@@ -632,59 +600,25 @@
   outline-offset: 2px;
 }
 
-/* OpenRadar disclosure control — bronze border, dark surface, cream
-   text, 44px+ height, full-width on mobile, no native grey. */
-.page-shell[data-page="prompt-kits"] .kits-disclosure {
-  display: flex;
-  padding: 10px 0 4px;
-  border-top: 1px solid #292b24;
-}
-.page-shell[data-page="prompt-kits"] .kits-disclosure__btn {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 1px solid #62543b;
-  background: linear-gradient(#151713, #0b0d0a);
-  color: #c9c3b0;
-  font: 600 9.5px var(--or-font-mono);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  cursor: pointer;
-  box-shadow: inset 0 1px #2d2d25, 0 1px 0 #050605;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:hover {
-  border-color: #8c7657;
-  color: #ddd8c6;
-}
-.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:active {
-  background: linear-gradient(#1c1e19, #0d0f0b);
-  transform: translateY(1px);
-}
-.page-shell[data-page="prompt-kits"] .kits-disclosure__btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.page-shell[data-page="prompt-kits"] .kits-disclosure__btn[aria-expanded="true"] {
-  border-color: #8c7657;
-  color: #ddd8c6;
+/* --- Tablet (768-1023): two-column pilot grid --- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .page-shell[data-page="prompt-kits"] .kits-pilot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* --- Mobile (≤760) --- */
 @media (max-width: 760px) {
-  .page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
-    grid-template-columns: 1fr;
+  /* Hide the large primary-card section on mobile. The compact
+     interactive index is the single primary five-prompt presentation. */
+  .page-shell[data-page="prompt-kits"] .kits-pilot-section {
+    display: none;
   }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
     /* Three collapsed bands:
        1. mark + name/use-case
-       2. category + difficulty + setup
-       3. Details + Copy
+       2. category + difficulty + collection
+       3. Open + Copy
        Expanded summary spans the full row. */
     grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
     grid-template-areas:
@@ -714,12 +648,26 @@
     grid-column: 1 / -1;
     margin-top: 0;
   }
-}
-
-/* --- Tablet (768-1023) --- */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .page-shell[data-page="prompt-kits"] .kits-featured-section .module-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* ≥44px touch targets for primary controls on mobile. */
+  .page-shell[data-page="prompt-kits"] .kits-searchbar__field input {
+    min-height: 44px;
+    height: 44px;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-chip {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-reset {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+  .page-shell[data-page="prompt-kits"] .kits-state__clear {
+    min-height: 44px;
+    padding: 8px 16px;
+  }
+  .page-shell[data-page="prompt-kits"] .kit-detail__copy {
+    min-height: 44px;
+    padding: 6px 14px;
   }
 }
 

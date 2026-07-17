@@ -3,7 +3,7 @@
  * Pilot V1 wiring tests for the Web V2 /prompt-kits selector.
  *
  * These tests import the pure selector from
- * `web/src/content/prompts/selectors.mjs` and exercise it against:
+ * `web/src/content/prompts/selectors.ts` and exercise it against:
  *   - in-memory record arrays (for negative cases),
  *   - the live canonical catalog loaded through the TypeScript
  *     compiler + CommonJS emit (for positive cases), using the same
@@ -11,6 +11,12 @@
  *     exercised against the real source of truth.
  *
  * Run via `npm run content:test` (which uses `node --test`).
+ *
+ * This suite is intentionally narrower than the canonical validator
+ * suite. It covers only the exact-five fail-closed contract, the
+ * five-field eligibility predicate, professional-safety mapping,
+ * copy-source equals canonical prompt body, and a live-catalog
+ * smoke check.
  */
 
 import { test } from "node:test";
@@ -91,9 +97,6 @@ function loadSelectors() {
     const req = createRequire(import.meta.url);
     return req(emittedPath);
   } finally {
-    // Keep the dir alive for the duration of the process; only clean
-    // up on process exit. The test process is short-lived, so this
-    // is fine.
     process.on("exit", () => {
       try {
         rmSync(tmp, { recursive: true, force: true });
@@ -216,7 +219,7 @@ function canonicalBatch1() {
   ];
 }
 
-// ---------------- Eligibility ----------------
+// ---------------- Eligibility predicate ----------------
 
 test("eligibility: draft record is rejected", () => {
   const r = baseRecord({
@@ -287,7 +290,88 @@ test("eligibility: internal publicationEligibility is rejected", () => {
   assert.equal(isPromptKitsEligible(r), false);
 });
 
-test("eligibility: approved + cleared + prompt-kits passes", () => {
+test("eligibility: empty reviewer is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Empty reviewer",
+    reviewer: "",
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: whitespace-only reviewer is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Whitespace reviewer",
+    reviewer: "   ",
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: null reviewer is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Null reviewer",
+    reviewer: null,
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: missing reviewer is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Missing reviewer",
+  });
+  // delete the reviewer field entirely
+  delete r.reviewer;
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: empty lastReviewedAt is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Empty timestamp",
+    lastReviewedAt: "",
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: null lastReviewedAt is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Null timestamp",
+    lastReviewedAt: null,
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: missing lastReviewedAt is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Missing timestamp",
+  });
+  delete r.lastReviewedAt;
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: invalid lastReviewedAt is rejected", () => {
+  const r = baseRecord({
+    id: "code-pr-description",
+    slug: "code-pr-description",
+    title: "Invalid timestamp",
+    lastReviewedAt: "not-a-real-date",
+  });
+  assert.equal(isPromptKitsEligible(r), false);
+});
+
+test("eligibility: approved + cleared + prompt-kits + valid reviewer + valid lastReviewedAt passes", () => {
   const r = baseRecord({});
   assert.equal(isPromptKitsEligible(r), true);
 });
@@ -318,7 +402,7 @@ test("selector: pilot lock is exactly five ids", () => {
   assert.equal(PILOT_V1_LOCK_IDS.length, 5);
 });
 
-// ---------------- Exact-five + canonical order ----------------
+// ---------------- Exact-five positive behavior ----------------
 
 test("selector: returns exactly 5 records from canonical Batch 1", () => {
   const records = canonicalBatch1();
@@ -343,23 +427,9 @@ test("selector: returns records in canonical Batch 1 lock order", () => {
   );
 });
 
-test("selector: duplicates are deduplicated by id", () => {
-  const records = [...canonicalBatch1(), ...canonicalBatch1()];
-  const out = selectPromptKitsPilotV1(records);
-  assert.equal(out.length, 5);
-  assert.deepEqual(
-    out.map((r) => r.id),
-    [
-      "code-pr-description",
-      "code-review-staff",
-      "write-customer-notification",
-      "operate-incident-first-15-minutes",
-      "design-frontend-page-skeleton",
-    ],
-  );
-});
-
 test("selector: drops records that pass eligibility but are not in the lock", () => {
+  // A non-lock record that is otherwise eligible must be ignored;
+  // the result must still be the canonical five.
   const records = [
     ...canonicalBatch1(),
     baseRecord({
@@ -381,7 +451,24 @@ test("selector: drops records that pass eligibility but are not in the lock", ()
   );
 });
 
-test("selector: throws PilotV1UnavailableError on empty catalog", () => {
+// ---------------- Exact-five fail-closed negatives ----------------
+
+test("selector: throws when promptRecords is not an array", () => {
+  assert.throws(
+    () => selectPromptKitsPilotV1(null),
+    (err) => err instanceof PromptKitsPilotV1UnavailableError,
+  );
+  assert.throws(
+    () => selectPromptKitsPilotV1("not-an-array"),
+    (err) => err instanceof PromptKitsPilotV1UnavailableError,
+  );
+  assert.throws(
+    () => selectPromptKitsPilotV1({}),
+    (err) => err instanceof PromptKitsPilotV1UnavailableError,
+  );
+});
+
+test("selector: throws on empty catalog", () => {
   assert.throws(
     () => selectPromptKitsPilotV1([]),
     (err) => err instanceof PromptKitsPilotV1UnavailableError,
@@ -425,19 +512,248 @@ test("selector: throws when only non-lock ids are present", () => {
   );
 });
 
-test("selector: tolerates a partial lock (missing ids are omitted, not thrown)", () => {
-  // If the catalog has 4 of 5 lock ids, the selector still
-  // returns the 4 it can find. Throwing is reserved for the
-  // zero-eligible case.
+test("selector: throws on duplicate lock ids in the catalog", () => {
+  const records = [
+    ...canonicalBatch1(),
+    baseRecord({
+      id: "code-pr-description",
+      slug: "code-pr-description-dup",
+      title: "Duplicate of code-pr-description",
+      collectionIds: ["builder-bench"],
+      category: "code",
+      difficulty: "beginner",
+      safetyClass: "general",
+    }),
+  ];
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(
+    String(thrown.message).includes("duplicate lock id"),
+    `expected duplicate-id error, got: ${thrown.message}`,
+  );
+  assert.ok(
+    String(thrown.message).includes("code-pr-description"),
+    `expected error to mention the duplicate id, got: ${thrown.message}`,
+  );
+});
+
+test("selector: throws when any required lock id is missing", () => {
+  // Remove the last required id and verify the diagnostic lists
+  // exactly the missing ids.
   const records = canonicalBatch1().filter(
     (r) => r.id !== "design-frontend-page-skeleton",
   );
-  const out = selectPromptKitsPilotV1(records);
-  assert.equal(out.length, 4);
-  assert.equal(
-    out.some((r) => r.id === "design-frontend-page-skeleton"),
-    false,
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(
+    String(thrown.message).includes("missing required lock id"),
+    `expected missing-id error, got: ${thrown.message}`,
   );
+  assert.ok(
+    String(thrown.message).includes("design-frontend-page-skeleton"),
+    `expected error to name the missing id, got: ${thrown.message}`,
+  );
+});
+
+test("selector: throws when more than one required lock id is missing", () => {
+  // Remove TWO required ids; the error must name both.
+  const records = canonicalBatch1().filter(
+    (r) =>
+      r.id !== "design-frontend-page-skeleton" &&
+      r.id !== "operate-incident-first-15-minutes",
+  );
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  const msg = String(thrown.message);
+  assert.ok(msg.includes("design-frontend-page-skeleton"));
+  assert.ok(msg.includes("operate-incident-first-15-minutes"));
+});
+
+test("selector: throws when removing each individual required record (one-by-one)", () => {
+  // For each of the five lock ids, run a four-of-five fixture and
+  // assert the selector fails closed with that id in the message.
+  for (const missingId of PILOT_V1_LOCK_IDS) {
+    const records = canonicalBatch1().filter((r) => r.id !== missingId);
+    let thrown = null;
+    try {
+      selectPromptKitsPilotV1(records);
+    } catch (err) {
+      thrown = err;
+    }
+    assert.ok(
+      thrown instanceof PromptKitsPilotV1UnavailableError,
+      `expected throw when removing ${missingId}`,
+    );
+    assert.ok(
+      String(thrown.message).includes(missingId),
+      `expected error to name ${missingId}, got: ${thrown.message}`,
+    );
+  }
+});
+
+test("selector: throws when any required record is changed to an ineligible state", () => {
+  // For each lock id, mutate that record into an ineligible state
+  // and assert the selector fails closed.
+  const cases = [
+    { id: "code-pr-description", mutate: (r) => ({ ...r, reviewStatus: "draft" }) },
+    { id: "code-review-staff", mutate: (r) => ({ ...r, commercialUseStatus: "pending" }) },
+    { id: "write-customer-notification", mutate: (r) => ({ ...r, publicationEligibility: "internal" }) },
+    { id: "operate-incident-first-15-minutes", mutate: (r) => ({ ...r, reviewer: "" }) },
+    { id: "design-frontend-page-skeleton", mutate: (r) => ({ ...r, lastReviewedAt: "bogus" }) },
+  ];
+  for (const { id, mutate } of cases) {
+    const records = canonicalBatch1().map((r) =>
+      r.id === id ? mutate(r) : r,
+    );
+    let thrown = null;
+    try {
+      selectPromptKitsPilotV1(records);
+    } catch (err) {
+      thrown = err;
+    }
+    assert.ok(
+      thrown instanceof PromptKitsPilotV1UnavailableError,
+      `expected throw when ${id} is ineligible`,
+    );
+    assert.ok(
+      String(thrown.message).includes("ineligible"),
+      `expected ineligible error, got: ${thrown.message}`,
+    );
+    assert.ok(
+      String(thrown.message).includes(id),
+      `expected error to name ${id}, got: ${thrown.message}`,
+    );
+  }
+});
+
+test("selector: throws when a required record has an empty reviewer", () => {
+  const records = canonicalBatch1().map((r) =>
+    r.id === "code-pr-description" ? { ...r, reviewer: "" } : r,
+  );
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(String(thrown.message).includes("reviewer"));
+  assert.ok(String(thrown.message).includes("code-pr-description"));
+});
+
+test("selector: throws when a required record has a missing reviewer", () => {
+  const records = canonicalBatch1().map((r) => {
+    if (r.id !== "code-pr-description") return r;
+    const { reviewer, ...rest } = r;
+    return rest;
+  });
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(String(thrown.message).includes("reviewer"));
+});
+
+test("selector: throws when a required record has a null lastReviewedAt", () => {
+  const records = canonicalBatch1().map((r) =>
+    r.id === "code-pr-description"
+      ? { ...r, lastReviewedAt: null }
+      : r,
+  );
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(String(thrown.message).includes("lastReviewedAt"));
+});
+
+test("selector: throws when a required record has a missing lastReviewedAt", () => {
+  const records = canonicalBatch1().map((r) => {
+    if (r.id !== "code-pr-description") return r;
+    const { lastReviewedAt, ...rest } = r;
+    return rest;
+  });
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(String(thrown.message).includes("lastReviewedAt"));
+});
+
+test("selector: throws when a required record has an invalid lastReviewedAt", () => {
+  const records = canonicalBatch1().map((r) =>
+    r.id === "code-pr-description"
+      ? { ...r, lastReviewedAt: "not-a-real-date" }
+      : r,
+  );
+  let thrown = null;
+  try {
+    selectPromptKitsPilotV1(records);
+  } catch (err) {
+    thrown = err;
+  }
+  assert.ok(thrown instanceof PromptKitsPilotV1UnavailableError);
+  assert.ok(String(thrown.message).includes("lastReviewedAt"));
+});
+
+test("selector: returns canonical PromptRecord objects unchanged", () => {
+  const records = canonicalBatch1();
+  const out = selectPromptKitsPilotV1(records);
+  // Each returned record must be the EXACT same object reference
+  // (no shallow copy / no metadata mutation).
+  for (const rec of records) {
+    const matched = out.find((r) => r.id === rec.id);
+    assert.ok(matched, `selector dropped canonical record ${rec.id}`);
+    assert.equal(matched, rec);
+  }
+});
+
+// ---------------- Copy source = canonical prompt body ----------------
+
+test("copy: every record's selected prompt equals its canonical prompt body", () => {
+  // The page's Copy action writes `kit.prompt` directly. This test
+  // pins that the selector returns the canonical prompt body
+  // unchanged — i.e. the route's copy source equals the canonical
+  // record's `prompt` field.
+  const records = canonicalBatch1();
+  for (const rec of records) {
+    const out = selectPromptKitsPilotV1(records);
+    const matched = out.find((r) => r.id === rec.id);
+    assert.ok(matched, `selector dropped canonical record ${rec.id}`);
+    assert.equal(matched.prompt, rec.prompt);
+    // No placeholders were substituted by the selector.
+    const placeholders = rec.prompt.match(/\{[a-z][a-z0-9_]*\}/g) ?? [];
+    for (const ph of placeholders) {
+      assert.ok(
+        matched.prompt.includes(ph),
+        `placeholder ${ph} was modified by the selector`,
+      );
+    }
+  }
 });
 
 // ---------------- Safety notice mapping ----------------
@@ -511,16 +827,6 @@ test("safety: general records return null (no banner)", () => {
   assert.equal(professionalSafetyNoticeFor(r2), null);
 });
 
-test("safety: professional record with an unmapped id returns null", () => {
-  const r = baseRecord({
-    id: "write-release-notes",
-    slug: "write-release-notes",
-    title: "Release notes",
-    safetyClass: "professional",
-  });
-  assert.equal(professionalSafetyNoticeFor(r), null);
-});
-
 test("safety: notice map is frozen and keyed by the three required ids", () => {
   assert.equal(Object.isFrozen(PROFESSIONAL_SAFETY_NOTICES), true);
   for (const id of [
@@ -532,30 +838,6 @@ test("safety: notice map is frozen and keyed by the three required ids", () => {
       Object.prototype.hasOwnProperty.call(PROFESSIONAL_SAFETY_NOTICES, id),
       `PROFESSIONAL_SAFETY_NOTICES missing required id '${id}'`,
     );
-  }
-});
-
-// ---------------- Copy source = canonical prompt body ----------------
-
-test("copy: every record's selected prompt equals its canonical prompt body", () => {
-  // The page's Copy action writes `kit.prompt` directly. This test
-  // pins that the selector returns the canonical prompt body
-  // unchanged — i.e. the route's copy source equals the canonical
-  // record's `prompt` field.
-  const records = canonicalBatch1();
-  for (const rec of records) {
-    const out = selectPromptKitsPilotV1(records);
-    const matched = out.find((r) => r.id === rec.id);
-    assert.ok(matched, `selector dropped canonical record ${rec.id}`);
-    assert.equal(matched.prompt, rec.prompt);
-    // No placeholders were substituted by the selector.
-    const placeholders = rec.prompt.match(/\{[a-z][a-z0-9_]*\}/g) ?? [];
-    for (const ph of placeholders) {
-      assert.ok(
-        matched.prompt.includes(ph),
-        `placeholder ${ph} was modified by the selector`,
-      );
-    }
   }
 });
 
@@ -649,18 +931,21 @@ test("live catalog: returns records in canonical lock order", async () => {
   );
 });
 
-test("live catalog: every returned record has safetyClass and copyable prompt body", async () => {
+test("live catalog: every returned record passes the five-field eligibility predicate", async () => {
   const catalog = await loadCanonicalCatalog();
   const out = selectPromptKitsPilotV1(catalog);
   for (const rec of out) {
-    assert.equal(typeof rec.prompt, "string");
-    assert.ok(rec.prompt.length > 0, `empty prompt for ${rec.id}`);
+    assert.equal(isPromptKitsEligible(rec), true, `in live catalog: ${rec.id}`);
     assert.equal(rec.reviewStatus, "approved");
     assert.equal(rec.commercialUseStatus, "cleared");
     assert.equal(rec.publicationEligibility, "prompt-kits");
     assert.ok(
-      ["general", "professional", "sensitive"].includes(rec.safetyClass),
-      `unexpected safetyClass for ${rec.id}: ${rec.safetyClass}`,
+      typeof rec.reviewer === "string" && rec.reviewer.length > 0,
+      `${rec.id}: reviewer must be a non-empty string`,
+    );
+    assert.ok(
+      typeof rec.lastReviewedAt === "string" && rec.lastReviewedAt.length > 0,
+      `${rec.id}: lastReviewedAt must be a non-empty string`,
     );
   }
 });

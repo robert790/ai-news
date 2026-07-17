@@ -9,40 +9,60 @@
  *    fallback or duplicated dataset inside the page route.
  *
  * 2. A record is eligible for the /prompt-kits surface only when ALL
- *    three hold:
+ *    FIVE fields hold:
  *      - reviewStatus           === "approved"
  *      - commercialUseStatus    === "cleared"
  *      - publicationEligibility === "prompt-kits"
+ *      - reviewer               is a non-empty string
+ *      - lastReviewedAt         is a non-empty valid ISO-8601 timestamp
  *
  * 3. The set of IDs that may appear in the Web V2 /prompt-kits pilot
- *    is exactly the canonical Batch 1 lock:
- *      - code-pr-description
- *      - code-review-staff
- *      - write-customer-notification
- *      - operate-incident-first-15-minutes
- *      - design-frontend-page-skeleton
+ *    is exactly the canonical Pilot V1 lock, in this order:
+ *      1. code-pr-description
+ *      2. code-review-staff
+ *      3. write-customer-notification
+ *      4. operate-incident-first-15-minutes
+ *      5. design-frontend-page-skeleton
  *
  *    Other canonical records (including any future Batch 2) are
  *    explicitly excluded until they are owner-promoted and added to
  *    the lock.
  *
- * 4. The returned records are ordered to match the canonical lock
- *    sequence. Order in `promptRecords` is ignored.
+ * 4. EXACT-FIVE FAIL-CLOSED CONTRACT.
+ *    `selectPromptKitsPilotV1` MUST return all five lock records in
+ *    canonical order, or it MUST throw `PromptKitsPilotV1UnavailableError`.
+ *    The selector never returns a partial Pilot V1 set.
  *
- * 5. `selectPromptKitsPilotV1` throws `PromptKitsPilotV1UnavailableError`
- *    if zero records are eligible. This is the dev-time fail-fast
- *    signal that the wiring has been broken.
+ *    It throws when:
+ *      - promptRecords is not an array,
+ *      - any required lock id is missing from the catalog,
+ *      - any required lock id is duplicated,
+ *      - any required lock record fails the five-field eligibility
+ *        predicate (including: empty reviewer, missing reviewer,
+ *        null lastReviewedAt, missing lastReviewedAt, invalid
+ *        lastReviewedAt, or any non-promotion triple failure).
  *
- * 6. Draft, pending, restricted, rejected, or internal records are
+ *    The error message may include the list of failing / missing
+ *    / duplicated ids. The route surfaces a product-safe copy and
+ *    does not render the diagnostic string to the public.
+ *
+ * 5. Draft, pending, restricted, rejected, or internal records are
  *    never surfaced through this selector.
+ *
+ * 6. The returned records are returned unchanged. No field is
+ *    mutated; no placeholder is substituted; no metadata is
+ *    prepended.
  */
 
 import type { PromptRecord } from "./types";
 
 /**
- * The canonical Batch 1 lock. Frozen for v1 of the Web V2 pilot.
+ * The canonical Pilot V1 lock. Frozen for v1 of the Web V2 pilot.
  * MUST stay in lock-step with `BATCH_1_LOCK_IDS` in
  * `web/scripts/validate-prompt-content.lib.mjs`.
+ *
+ * The order of these ids IS the canonical rendering order on the
+ * page. Do not reorder without an owner-promoted canonical change.
  */
 export const PILOT_V1_LOCK_IDS: ReadonlyArray<string> = Object.freeze([
   "code-pr-description",
@@ -73,7 +93,7 @@ export const PROFESSIONAL_SAFETY_NOTICES: Readonly<Record<string, string>> =
 
 /**
  * Sentinel thrown by `selectPromptKitsPilotV1` when the canonical
- * catalog contains zero records that satisfy the eligibility triple.
+ * catalog cannot satisfy the exact-five fail-closed contract.
  */
 export class PromptKitsPilotV1UnavailableError extends Error {
   constructor(message: string) {
@@ -83,8 +103,15 @@ export class PromptKitsPilotV1UnavailableError extends Error {
 }
 
 /**
- * Test whether a single record satisfies the eligibility triple for
- * the /prompt-kits surface.
+ * Test whether a single record satisfies the five-field eligibility
+ * predicate for the /prompt-kits surface.
+ *
+ * Fields required (all five must hold):
+ *   - reviewStatus           === "approved"
+ *   - commercialUseStatus    === "cleared"
+ *   - publicationEligibility === "prompt-kits"
+ *   - reviewer               is a non-empty string
+ *   - lastReviewedAt         is a non-empty valid ISO-8601 timestamp
  *
  * Exported so the negative-test suite can pin the predicate.
  */
@@ -94,7 +121,12 @@ export function isPromptKitsEligible(rec: unknown): rec is PromptRecord {
   return (
     r.reviewStatus === "approved" &&
     r.commercialUseStatus === "cleared" &&
-    r.publicationEligibility === "prompt-kits"
+    r.publicationEligibility === "prompt-kits" &&
+    typeof r.reviewer === "string" &&
+    r.reviewer.trim().length > 0 &&
+    typeof r.lastReviewedAt === "string" &&
+    r.lastReviewedAt.length > 0 &&
+    isValidIsoTimestamp(r.lastReviewedAt)
   );
 }
 
@@ -106,13 +138,75 @@ export function isPilotV1LockId(id: unknown): id is string {
 }
 
 /**
- * Select the Pilot V1 records for the /prompt-kits surface.
+ * Minimal ISO-8601 timestamp validator. Mirrors the canonical
+ * validator's semantics for the lastReviewedAt field: accepts
+ * YYYY-MM-DD and YYYY-MM-DDTHH:MM:SS[.fraction][Z|±HH:MM].
+ */
+function isValidIsoTimestamp(s: string): boolean {
+  if (
+    !/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/.test(
+      s,
+    )
+  ) {
+    return false;
+  }
+  const d = new Date(s);
+  return !Number.isNaN(d.getTime());
+}
+
+/**
+ * Detail the reasons a single record fails the eligibility
+ * predicate. Used by `selectPromptKitsPilotV1` to build a
+ * developer-actionable diagnostic message; not surfaced to public
+ * UI.
+ */
+function eligibilityFailures(rec: unknown): string[] {
+  const fails: string[] = [];
+  if (rec === null || typeof rec !== "object") {
+    return ["not-an-object"];
+  }
+  const r = rec as Record<string, unknown>;
+  const id =
+    typeof r.id === "string" && r.id.length > 0 ? r.id : "<missing-id>";
+
+  if (r.reviewStatus !== "approved") {
+    fails.push(`${id}: reviewStatus is not 'approved'`);
+  }
+  if (r.commercialUseStatus !== "cleared") {
+    fails.push(`${id}: commercialUseStatus is not 'cleared'`);
+  }
+  if (r.publicationEligibility !== "prompt-kits") {
+    fails.push(`${id}: publicationEligibility is not 'prompt-kits'`);
+  }
+  if (typeof r.reviewer !== "string" || r.reviewer.trim().length === 0) {
+    fails.push(`${id}: reviewer is missing or empty`);
+  }
+  if (typeof r.lastReviewedAt !== "string" || r.lastReviewedAt.length === 0) {
+    fails.push(`${id}: lastReviewedAt is missing or empty`);
+  } else if (!isValidIsoTimestamp(r.lastReviewedAt)) {
+    fails.push(`${id}: lastReviewedAt is not a valid ISO-8601 timestamp`);
+  }
+  return fails;
+}
+
+/**
+ * Select the Pilot V1 records for the /prompt-kits surface under the
+ * EXACT-FIVE FAIL-CLOSED contract.
  *
  * Behavior:
- *  - Filters by the eligibility triple.
- *  - Intersects with the canonical lock id set (drops non-lock ids).
- *  - Reorders the result to match the canonical lock sequence.
- *  - Throws when the result is empty (dev-time fail-fast).
+ *  - Rejects non-array input by throwing.
+ *  - Walks the input and identifies every record whose id is a
+ *    lock id.
+ *  - Detects duplicates among lock ids; throws on any duplicate.
+ *  - Detects lock ids that are missing entirely from the input;
+ *    throws listing the missing ids.
+ *  - For each lock id that is present, applies the five-field
+ *    eligibility predicate. Any ineligible lock record causes a
+ *    throw listing the failing ids and a short reason per id.
+ *  - On success, returns the five records in canonical lock order.
+ *
+ * The returned `PromptRecord` objects are the catalog records
+ * unchanged.
  */
 export function selectPromptKitsPilotV1(
   promptRecords: unknown,
@@ -123,36 +217,68 @@ export function selectPromptKitsPilotV1(
     );
   }
 
-  // First pass: keep only eligibility-passing records whose id is in
-  // the lock. Use a Map for O(1) lookup keyed by id.
-  const byId = new Map<string, PromptRecord>();
-  for (const candidate of promptRecords) {
-    if (!isPromptKitsEligible(candidate)) continue;
-    if (!isPilotV1LockId(candidate.id)) continue;
-    if (!byId.has(candidate.id)) {
-      byId.set(candidate.id, candidate);
+  // Walk input. For each lock-id record, capture the FIRST occurrence
+  // and flag any duplicate lock ids.
+  const seenLockIds = new Map<string, number>(); // id -> first occurrence index
+  const lockRecordsById = new Map<string, PromptRecord>();
+  const duplicateLockIds: string[] = [];
+
+  for (let i = 0; i < promptRecords.length; i++) {
+    const candidate = promptRecords[i] as Record<string, unknown> | null;
+    if (candidate === null || typeof candidate !== "object") continue;
+    const id = candidate.id;
+    if (typeof id !== "string" || !isPilotV1LockId(id)) continue;
+
+    if (seenLockIds.has(id)) {
+      if (!duplicateLockIds.includes(id)) duplicateLockIds.push(id);
+      continue;
     }
+    seenLockIds.set(id, i);
+    lockRecordsById.set(id, candidate as unknown as PromptRecord);
   }
 
-  // Second pass: emit in canonical lock order. If a lock id is
-  // missing from the catalog, it is simply omitted from the result
-  // (the canonical validator already enforces the lock on the
-  // catalog itself; this selector tolerates a catalog that has not
-  // yet been promoted to the full lock without crashing the page).
-  const ordered: PromptRecord[] = [];
-  for (const id of PILOT_V1_LOCK_IDS) {
-    const rec = byId.get(id);
-    if (rec) ordered.push(rec);
-  }
-
-  if (ordered.length === 0) {
+  if (duplicateLockIds.length > 0) {
     throw new PromptKitsPilotV1UnavailableError(
-      "selectPromptKitsPilotV1: zero canonical Pilot V1 records available. " +
-        "Expected the canonical Batch 1 lock (5 ids) to be present and eligible.",
+      "selectPromptKitsPilotV1: duplicate lock id(s) in catalog: " +
+        duplicateLockIds.join(", "),
     );
   }
 
-  return ordered;
+  const missingLockIds = PILOT_V1_LOCK_IDS.filter(
+    (id) => !lockRecordsById.has(id),
+  );
+  if (missingLockIds.length > 0) {
+    throw new PromptKitsPilotV1UnavailableError(
+      "selectPromptKitsPilotV1: missing required lock id(s): " +
+        missingLockIds.join(", "),
+    );
+  }
+
+  // Apply the five-field eligibility predicate to every lock record.
+  const ineligibleIds: string[] = [];
+  const failureLines: string[] = [];
+  for (const id of PILOT_V1_LOCK_IDS) {
+    const rec = lockRecordsById.get(id);
+    if (!rec) continue; // already handled above
+    if (!isPromptKitsEligible(rec)) {
+      ineligibleIds.push(id);
+      failureLines.push(...eligibilityFailures(rec));
+    }
+  }
+  if (ineligibleIds.length > 0) {
+    throw new PromptKitsPilotV1UnavailableError(
+      "selectPromptKitsPilotV1: ineligible lock record(s) [" +
+        ineligibleIds.join(", ") +
+        "]: " +
+        failureLines.join("; "),
+    );
+  }
+
+  // Emit in canonical lock order. By construction every lock id is
+  // present and eligible.
+  return PILOT_V1_LOCK_IDS.map(
+    (id) => lockRecordsById.get(id) as PromptRecord,
+  );
 }
 
 /**
