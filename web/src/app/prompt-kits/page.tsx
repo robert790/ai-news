@@ -11,17 +11,43 @@ import {
   Footer,
 } from "../components";
 
+import { promptRecords } from "@/content/prompts";
+import {
+  selectPromptKitsPilotV1,
+  professionalSafetyNoticeFor,
+  PromptKitsPilotV1UnavailableError,
+} from "@/content/prompts/selectors";
+import type {
+  PromptRecord,
+  PromptCategory,
+  PromptDifficulty,
+  PromptSafetyClass,
+} from "@/content/prompts";
+
 /**
  * OpenRadar /prompt-kits — practical reusable prompt kits.
  *
- * Internal + external-facing. Helps users discover vetted prompt
- * kits with practical utility. Static data only; no API calls,
- * no ingestion. Reuses the accepted chassis, tokens, and the
- * component library.
+ * Pilot V1 wiring: the page reads its record set exclusively from the
+ * canonical prompt-content pilot (`web/src/content/prompts/index.ts`)
+ * via `selectPromptKitsPilotV1`. There is no duplicated prompt text
+ * or static fallback dataset in this file.
  *
- * Client-side: search by title/useCase, filter by category,
- * per-row copy action with visible success feedback. Mobile
- * disclosure (Show more / Show less) on the compact index.
+ * Eligibility is enforced inside the selector (five-field predicate).
+ * The selector is exact-five fail-closed: it either returns all five
+ * canonical records in canonical lock order, or it throws
+ * `PromptKitsPilotV1UnavailableError`.
+ *
+ * If the selector throws, the page renders a product-safe failure
+ * panel and never exposes the underlying diagnostic message,
+ * missing ids, source paths, npm commands, or stack traces.
+ *
+ * Copy semantics: the Copy button writes the canonical `prompt`
+ * body verbatim. No title prefix, no use-case wrapping, no
+ * placeholder substitution.
+ *
+ * Safety notice: records with safetyClass "professional" render a
+ * restrained human-review notice inside the expanded detail region.
+ * General records render no notice.
  */
 
 const PROMPT_NAV = [
@@ -32,264 +58,239 @@ const PROMPT_NAV = [
   { label: "Jobs", href: "/jobs" },
 ];
 
-type Category = "Build" | "Research" | "Decide" | "Write" | "Operate";
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
+/**
+ * View-model shape exposed by the route. Built from a canonical
+ * `PromptRecord` plus a small UI-only presentation label. The
+ * canonical record is preserved unchanged on the view-model as
+ * `record` so the detail surface can render inputs, notes, and
+ * anti-patterns directly from the source.
+ */
 type Kit = {
   id: string;
+  /** Two-letter mark used for the kit-row badge. */
   mark: string;
   title: string;
-  category: Category;
+  category: string;
+  categoryId: PromptCategory;
   audience: string;
   difficulty: Difficulty;
-  setupMin: number;
   useCase: string;
   expectedOutput: string;
+  /** Canonical prompt body, copied verbatim by the Copy action. */
   prompt: string;
-  featured?: boolean;
+  /** Safety classification as defined by the canonical contract. */
+  safetyClass: PromptSafetyClass;
+  /** Collection ids this record belongs to (display only). */
+  collections: string[];
+  /** Inputs as declared on the canonical record. */
+  inputs: PromptRecord["inputs"];
+  /** Notes as declared on the canonical record. */
+  notes: PromptRecord["notes"];
+  /** Anti-patterns as declared on the canonical record. */
+  antiPatterns: PromptRecord["antiPatterns"];
+  /** The canonical record itself, preserved for downstream surfaces. */
+  record: PromptRecord;
 };
 
-const KITS: ReadonlyArray<Kit> = [
-  {
-    id: "code-review",
-    mark: "CR",
-    title: "Code review checklist",
-    category: "Build",
-    audience: "Developers",
-    difficulty: "Beginner",
-    setupMin: 5,
-    useCase: "Catch regressions before merge with a reusable review pass",
-    expectedOutput: "A focused review with one or two concrete change suggestions per file.",
-    prompt:
-      "You are a senior reviewer. Review the diff for correctness, edge cases, security, readability, and test coverage. Output a verdict (approve/changes), a numbered list of findings, and concrete patch suggestions for each.",
-    featured: true,
-  },
-  {
-    id: "ship-feature",
-    mark: "SF",
-    title: "Ship a feature, end to end",
-    category: "Build",
-    audience: "Builders",
-    difficulty: "Intermediate",
-    setupMin: 15,
-    useCase: "Plan, scaffold, implement, test, and document a small feature",
-    expectedOutput: "A shippable diff plus a 5-line note on what to test and what to watch.",
-    prompt:
-      "Plan a vertical slice for the following feature. Produce: (1) user story + acceptance criteria, (2) file-level plan, (3) test plan, (4) implementation diff, (5) rollback plan.",
-    featured: true,
-  },
-  {
-    id: "compare-ai-tools",
-    mark: "CT",
-    title: "Compare AI tools side by side",
-    category: "Decide",
-    audience: "Operators",
-    difficulty: "Beginner",
-    setupMin: 5,
-    useCase: "Make a defensible tool choice between 2–5 candidates",
-    expectedOutput: "A short ranked comparison with explicit trade-offs and a clear recommendation.",
-    prompt:
-      "Build a weighted decision matrix for the listed tools across capability, fit, cost, latency, privacy, and vendor risk. Recommend a primary pick and a fallback with reasons.",
-    featured: true,
-  },
-  {
-    id: "research-brief",
-    mark: "RB",
-    title: "Source-grounded research brief",
-    category: "Research",
-    audience: "Researchers",
-    difficulty: "Intermediate",
-    setupMin: 20,
-    useCase: "Synthesize a topic into a brief with cited sources",
-    expectedOutput: "A one-page brief with cited sources, key findings, and three open questions.",
-    prompt:
-      "Produce a 1-page brief on the topic. Cite each non-trivial claim with an inline marker [n] tied to a numbered references list. Flag any claim that cannot be supported.",
-    featured: true,
-  },
-  {
-    id: "incident-postmortem",
-    mark: "PM",
-    title: "Incident postmortem",
-    category: "Operate",
-    audience: "Operators",
-    difficulty: "Intermediate",
-    setupMin: 30,
-    useCase: "Run a blameless review that produces corrective actions",
-    expectedOutput: "A blameless timeline, root cause hypothesis, and concrete follow-up actions.",
-    prompt:
-      "Draft a blameless postmortem: timeline, contributing factors (Swiss-cheese), customer impact, what went well, what didn't, action items with owners and due dates.",
-  },
-  {
-    id: "outreach",
-    mark: "OR",
-    title: "Write cold outreach that earns a reply",
-    category: "Write",
-    audience: "Operators",
-    difficulty: "Beginner",
-    setupMin: 10,
-    useCase: "Short, specific, value-anchored cold email that respects the reader",
-    expectedOutput: "Three personalized cold-outreach drafts tuned to the same recipient profile.",
-    prompt:
-      "Draft a 90-word cold email to the recipient for the stated purpose. Open with a specific observation about their work, state a concrete value claim, and end with a low-friction ask.",
-  },
-  {
-    id: "meeting-summary",
-    mark: "MS",
-    title: "Meeting summary with action ledger",
-    category: "Write",
-    audience: "Operators",
-    difficulty: "Beginner",
-    setupMin: 5,
-    useCase: "Capture decisions, owners, and due dates from a transcript",
-    expectedOutput: "A clean summary with decisions, action items, owners, and deadlines.",
-    prompt:
-      "Summarize the transcript into: TL;DR (≤3 sentences), decisions made, action ledger (owner / action / due date), open questions. Use plain prose; no headers above the TL;DR.",
-  },
-  {
-    id: "system-design",
-    mark: "SD",
-    title: "System design under constraints",
-    category: "Build",
-    audience: "Builders",
-    difficulty: "Advanced",
-    setupMin: 45,
-    useCase: "Pressure-test an architecture for the stated workload",
-    expectedOutput: "A short design doc with constraints, options, and a recommended approach.",
-    prompt:
-      "For the stated requirements, produce: top-level diagram (ASCII), data model, scaling model, failure modes + mitigations, cost envelope, and 3 concrete risks we should monitor.",
-  },
-  {
-    id: "user-interview",
-    mark: "UI",
-    title: "User interview script",
-    category: "Research",
-    audience: "Researchers",
-    difficulty: "Beginner",
-    setupMin: 10,
-    useCase: "Open-ended script that surfaces behavior, not opinions",
-    expectedOutput: "A scripted interview guide with probes for the assumptions that matter most.",
-    prompt:
-      "Draft a 30-minute user interview script. Open with a warm-up, then 5 behavior-first questions (past tense), each with 2–3 neutral follow-ups. Close without leading.",
-  },
-  {
-    id: "decision-log",
-    mark: "DL",
-    title: "Architecture decision record",
-    category: "Decide",
-    audience: "Builders",
-    difficulty: "Beginner",
-    setupMin: 10,
-    useCase: "Capture context, options, trade-offs, and the chosen path",
-    expectedOutput: "A one-page decision record with context, options, decision, and consequences.",
-    prompt:
-      "Write an ADR: title, status, context, decision drivers, considered options with pros/cons, decision, and consequences (positive, negative, neutral).",
-  },
-  {
-    id: "release-notes",
-    mark: "RN",
-    title: "Release notes for humans",
-    category: "Write",
-    audience: "Operators",
-    difficulty: "Beginner",
-    setupMin: 5,
-    useCase: "Short, user-facing changelog that respects the reader",
-    expectedOutput: "Plain-language release notes grouped by user impact, not by file change.",
-    prompt:
-      "From the raw commit list, draft user-facing release notes. Group by impact (New / Improved / Fixed), 1 line per item, no jargon, name the user-visible behavior change.",
-  },
-  {
-    id: "playbook",
-    mark: "PB",
-    title: "Operations playbook",
-    category: "Operate",
-    audience: "Operators",
-    difficulty: "Intermediate",
-    setupMin: 30,
-    useCase: "Turn tribal knowledge into a runnable procedure",
-    expectedOutput: "A repeatable playbook with triggers, steps, owners, and exit criteria.",
-    prompt:
-      "Interview the operator (answers below) and produce a numbered playbook with decision points, escalation paths, and rollback steps.",
-  },
-  {
-    id: "competitive-scan",
-    mark: "CS",
-    title: "Competitive landscape scan",
-    category: "Research",
-    audience: "Operators",
-    difficulty: "Intermediate",
-    setupMin: 25,
-    useCase: "Map the space without copying anyone",
-    expectedOutput: "A 2x2 positioning matrix, a parity table, and a candid differentiation read.",
-    prompt:
-      "From the listed competitors, produce a 2x2 positioning matrix (axes of your choice, justified), a feature parity table, and a candid assessment of where we are differentiated.",
-  },
-  {
-    id: "pricing-test",
-    mark: "PT",
-    title: "Pricing page test plan",
-    category: "Decide",
-    audience: "Operators",
-    difficulty: "Beginner",
-    setupMin: 10,
-    useCase: "Decide between pricing variants without lying to yourself",
-    expectedOutput: "A 2-week A/B test plan with hypothesis, primary metric, and decision rule.",
-    prompt:
-      "Design a 2-week pricing A/B test: hypothesis, primary metric (and guardrails), minimum sample size, decision rule, and stop-loss. State what would invalidate the test.",
-  },
-  {
-    id: "bug-triage",
-    mark: "BT",
-    title: "Bug triage queue",
-    category: "Operate",
-    audience: "Developers",
-    difficulty: "Beginner",
-    setupMin: 5,
-    useCase: "Sort the incoming bug queue by impact and reversibility",
-    expectedOutput: "A sorted triage with severity, owner queue, and a 24h action per report.",
-    prompt:
-      "For each report: classify (bug / regression / docs / dup / wontfix), assign severity (S0–S3) with a one-line reason, suggest an owner queue, and propose a 24h action.",
-  },
-  {
-    id: "spec-from-conversation",
-    mark: "SC",
-    title: "Spec from a customer conversation",
-    category: "Build",
-    audience: "Builders",
-    difficulty: "Intermediate",
-    setupMin: 20,
-    useCase: "Turn notes into a buildable spec without losing nuance",
-    expectedOutput: "A buildable spec with stories, success metric, and explicit assumptions.",
-    prompt:
-      "From the transcript, produce a spec: problem statement, success metric, non-goals, user stories, open questions, and a v1 surface list. Mark every assumption that came from inference.",
-  },
-];
+const CATEGORY_LABEL: Record<string, string> = {
+  code: "Build",
+  write: "Write",
+  research: "Research",
+  decide: "Decide",
+  operate: "Operate",
+  design: "Design",
+  agent: "Build",
+};
 
-const CATEGORIES: ReadonlyArray<{ id: Category | "All"; label: string; count: number }> = [
-  { id: "All", label: "All", count: KITS.length },
-  { id: "Build", label: "Build", count: KITS.filter((k) => k.category === "Build").length },
-  { id: "Research", label: "Research", count: KITS.filter((k) => k.category === "Research").length },
-  { id: "Decide", label: "Decide", count: KITS.filter((k) => k.category === "Decide").length },
-  { id: "Write", label: "Write", count: KITS.filter((k) => k.category === "Write").length },
-  { id: "Operate", label: "Operate", count: KITS.filter((k) => k.category === "Operate").length },
-];
+const DIFFICULTY_LABEL: Record<PromptDifficulty, Difficulty> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+/**
+ * Two-letter mark derived from the canonical id. Stable across edits
+ * because the id is immutable.
+ */
+function markFor(id: string): string {
+  const parts = id.split("-").filter(Boolean);
+  if (parts.length === 0) return "··";
+  if (parts.length === 1) return (parts[0] ?? "").slice(0, 2).toUpperCase();
+  const first = parts[0]?.[0] ?? "";
+  const last = parts[parts.length - 1]?.[0] ?? "";
+  return `${first}${last}`.toUpperCase();
+}
+
+/**
+ * Build the page view-model from a canonical record. Pure.
+ */
+function toKit(rec: PromptRecord): Kit {
+  return {
+    id: rec.id,
+    mark: markFor(rec.id),
+    title: rec.title,
+    category: CATEGORY_LABEL[rec.category] ?? rec.category,
+    categoryId: rec.category,
+    audience: rec.audience,
+    difficulty: DIFFICULTY_LABEL[rec.difficulty],
+    useCase: rec.useCase,
+    expectedOutput: rec.expectedOutput,
+    prompt: rec.prompt,
+    safetyClass: rec.safetyClass,
+    collections: [...rec.collectionIds],
+    inputs: rec.inputs,
+    notes: rec.notes,
+    antiPatterns: rec.antiPatterns,
+    record: rec,
+  };
+}
+
+/**
+ * Read the canonical catalog and select the Pilot V1 records. The
+ * selector throws on any exact-five fail-closed failure; the page
+ * catches and surfaces a product-safe failure panel.
+ */
+function loadKits(): Kit[] {
+  const records = selectPromptKitsPilotV1(promptRecords);
+  return records.map(toKit);
+}
 
 function KitMark({ mark }: { mark: string }) {
   return <span className="kit-mark">{mark}</span>;
 }
 
-function FeaturedKitCard({ kit }: { kit: Kit }) {
+function PilotKitCard({ kit }: { kit: Kit }) {
   return (
-    <Module title={kit.title} code={kit.mark} className="kits-feature">
-      <div className="kits-feature__body">
-        <p className="kits-feature__lede">{kit.useCase}</p>
-        <ul className="kits-feature__meta">
+    <Module title={kit.title} code={kit.mark} className="kits-pilot-card">
+      <div className="kits-pilot-card__body">
+        <p className="kits-pilot-card__lede">{kit.useCase}</p>
+        <ul className="kits-pilot-card__meta">
           <li><span>Category</span><strong>{kit.category}</strong></li>
           <li><span>Audience</span><strong>{kit.audience}</strong></li>
           <li><span>Level</span><strong>{kit.difficulty}</strong></li>
-          <li><span>Setup</span><strong>~{kit.setupMin} min</strong></li>
+          <li><span>Collection</span><strong>{kit.collections[0] ?? "—"}</strong></li>
         </ul>
       </div>
     </Module>
+  );
+}
+
+/**
+ * Expanded detail surface for a single canonical Pilot V1 record.
+ * Renders:
+ *   - title and use case
+ *   - input variables with labels and descriptions
+ *   - the full canonical prompt body (verbatim)
+ *   - expected output
+ *   - notes
+ *   - anti-patterns
+ *   - copy-prompt action
+ *   - restrained human-review notice when safetyClass === "professional"
+ *
+ * The detail surface is rendered inline below the row using the
+ * existing kit-row expandable-region pattern; no new route is used.
+ */
+function KitDetail({
+  kit,
+  onCopy,
+  copied,
+}: {
+  kit: Kit;
+  onCopy: () => void;
+  copied: boolean;
+}) {
+  const safetyNotice =
+    kit.safetyClass === "professional"
+      ? professionalSafetyNoticeFor(kit.record)
+      : null;
+  return (
+    <div className="kit-detail">
+      <div className="kit-detail__section">
+        <h4 className="kit-detail__heading">Use case</h4>
+        <p className="kit-detail__prose">{kit.useCase}</p>
+      </div>
+
+      {safetyNotice && (
+        <div
+          className="kit-detail__safety"
+          role="note"
+          aria-label="Human-review notice"
+        >
+          <span className="kit-detail__safety-tag">Human review</span>
+          <p className="kit-detail__safety-body">{safetyNotice}</p>
+        </div>
+      )}
+
+      {kit.inputs.length > 0 && (
+        <div className="kit-detail__section">
+          <h4 className="kit-detail__heading">Input variables</h4>
+          <dl className="kit-detail__inputs">
+            {kit.inputs.map((input) => (
+              <div key={input.name} className="kit-detail__input">
+                <dt>
+                  <code className="kit-detail__input-name">{`{${input.name}}`}</code>
+                  <span className="kit-detail__input-label">{input.label}</span>
+                </dt>
+                <dd>{input.description}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
+      <div className="kit-detail__section">
+        <div className="kit-detail__section-head">
+          <h4 className="kit-detail__heading">Prompt body</h4>
+          <button
+            type="button"
+            className={`kit-detail__copy${copied ? " kit-detail__copy--ok" : ""}`}
+            onClick={onCopy}
+            aria-label={`Copy canonical prompt body for ${kit.title}`}
+            title="Copy the canonical prompt body to your clipboard"
+          >
+            {copied ? "Copied" : "Copy prompt"}
+          </button>
+        </div>
+        <pre className="kit-detail__prompt" tabIndex={0}>
+          <code>{kit.prompt}</code>
+        </pre>
+      </div>
+
+      <div className="kit-detail__section">
+        <h4 className="kit-detail__heading">Expected output</h4>
+        <p className="kit-detail__prose">{kit.expectedOutput}</p>
+      </div>
+
+      {kit.notes.length > 0 && (
+        <div className="kit-detail__section">
+          <h4 className="kit-detail__heading">Notes</h4>
+          <ul className="kit-detail__list">
+            {kit.notes.map((n, idx) => (
+              <li key={`${kit.id}-note-${idx}`}>
+                <strong>{n.title}</strong>
+                <span>{n.body}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {kit.antiPatterns.length > 0 && (
+        <div className="kit-detail__section">
+          <h4 className="kit-detail__heading">Anti-patterns</h4>
+          <ul className="kit-detail__list kit-detail__list--warn">
+            {kit.antiPatterns.map((a, idx) => (
+              <li key={`${kit.id}-anti-${idx}`}>
+                <strong>{a.title}</strong>
+                <span>{a.body}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -308,16 +309,13 @@ function KitRow({
 }) {
   const toggleId = `kit-toggle-${kit.id}`;
   const regionId = `kit-summary-${kit.id}`;
-  const summary = `${kit.title} details — ${kit.category}, ${kit.difficulty}, ~${kit.setupMin}m setup`;
-  // Limit prompt preview to ~240 chars to keep the expanded region
-  // visually bounded to about three lines at default zoom.
-  const PREVIEW_LIMIT = 240;
-  const promptPreview =
-    kit.prompt.length > PREVIEW_LIMIT
-      ? kit.prompt.slice(0, PREVIEW_LIMIT).trimEnd() + "…"
-      : kit.prompt;
+  const summary = `${kit.title} details — ${kit.category}, ${kit.difficulty}, collection ${kit.collections.join(", ") || "—"}`;
   return (
-    <div className={`kit-row${expanded ? " kit-row--open" : ""}`}>
+    <div
+      className={`kit-row${expanded ? " kit-row--open" : ""}`}
+      data-kit-id={kit.id}
+      data-safety-class={kit.safetyClass}
+    >
       <KitMark mark={kit.mark} />
       <span>
         <strong>{kit.title}</strong>
@@ -325,7 +323,7 @@ function KitRow({
       </span>
       <em>{kit.category}</em>
       <em>{kit.difficulty}</em>
-      <em aria-label={`Setup time ${kit.setupMin} minutes`}>~{kit.setupMin}m</em>
+      <em>{kit.collections[0] ?? "—"}</em>
       <button
         type="button"
         id={toggleId}
@@ -334,14 +332,14 @@ function KitRow({
         aria-controls={regionId}
         onClick={onToggleDetails}
       >
-        {expanded ? "Hide" : "Details"}
+        {expanded ? "Hide" : "Open"}
       </button>
       <button
         type="button"
         className={`kit-copy${copied ? " kit-copy--ok" : ""}`}
         onClick={onCopy}
         aria-label={`Copy prompt for ${kit.title}`}
-        title="Copy the full prompt to your clipboard"
+        title="Copy the full canonical prompt body to your clipboard"
       >
         {copied ? "Copied" : "Copy"}
       </button>
@@ -352,23 +350,14 @@ function KitRow({
         hidden={!expanded}
         className="kit-row__summary"
       >
-        <dl className="kit-row__facts">
-          <div>
-            <dt>USE CASE</dt>
-            <dd>{kit.useCase}</dd>
-          </div>
-          <div>
-            <dt>PROMPT PREVIEW</dt>
-            <dd className="kit-row__prompt-preview">{promptPreview}</dd>
-          </div>
-          <div>
-            <dt>EXPECTED OUTPUT</dt>
-            <dd>{kit.expectedOutput}</dd>
-          </div>
-        </dl>
-        <p className="kit-row__summary-sr sr-only" aria-hidden="true">
-          {summary}
-        </p>
+        {expanded && (
+          <>
+            <KitDetail kit={kit} onCopy={onCopy} copied={copied} />
+            <p className="kit-row__summary-sr sr-only" aria-hidden="true">
+              {summary}
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -381,11 +370,11 @@ function CategoryChip({
   active,
   onSelect,
 }: {
-  id: Category | "All";
+  id: string;
   label: string;
   count: number;
   active: boolean;
-  onSelect: (id: Category | "All") => void;
+  onSelect: (id: string) => void;
 }) {
   return (
     <button
@@ -421,68 +410,152 @@ function EmptyState({ onClear }: { onClear: () => void }) {
   );
 }
 
+/**
+ * Product-safe failure panel. Shown when the canonical selector
+ * cannot satisfy the exact-five fail-closed contract. The public
+ * UI never sees the underlying diagnostic string.
+ */
+function PilotUnavailable() {
+  return (
+    <Module
+      title="Prompt Kits are temporarily unavailable."
+      code="··"
+      className="kits-empty"
+    >
+      <div className="kits-state">
+        <p className="kits-state__title">
+          Prompt Kits are temporarily unavailable.
+        </p>
+        <p className="kits-state__body">
+          The approved Pilot V1 catalog could not be loaded. Please try
+          again later.
+        </p>
+      </div>
+    </Module>
+  );
+}
+
 export default function PromptKits() {
   const [query, setQuery] = React.useState("");
-  const [category, setCategory] = React.useState<Category | "All">("All");
+  const [category, setCategory] = React.useState<string>("All");
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
   // Exactly one kit row may be expanded at a time.
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
-  // Polite live region announcement (e.g. "Copied: Bug triage queue").
+  // Polite live region announcement (e.g. "Copied: …").
   const [liveMessage, setLiveMessage] = React.useState<string>("");
-  const [mobileExpanded, setMobileExpanded] = React.useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
+
+  // Compute the canonical Pilot V1 view-model once per render. The
+  // selector throws when zero records are eligible; we catch and
+  // surface a product-safe failure state instead of crashing the page.
+  const loaded = React.useMemo<
+    { ok: true; kits: Kit[] } | { ok: false }
+  >(() => {
+    try {
+      return { ok: true, kits: loadKits() };
+    } catch (err) {
+      if (err instanceof PromptKitsPilotV1UnavailableError) {
+        return { ok: false };
+      }
+      throw err;
+    }
+  }, []);
+
+  const KITS: ReadonlyArray<Kit> = React.useMemo(
+    () => (loaded.ok ? loaded.kits : []),
+    [loaded],
+  );
+  const pilotUnavailable = !loaded.ok;
+
+  /**
+   * Build the category chip set from categories ACTUALLY PRESENT in
+   * the selected five records. Zero-count categories are never shown.
+   * Order: All, then categories by their first appearance in the
+   * canonical five (Build, Write, Operate, Design for the V1 pilot).
+   */
+  const CATEGORIES: ReadonlyArray<{ id: string; label: string; count: number }> =
+    React.useMemo(() => {
+      const counts = new Map<string, number>();
+      const firstSeen = new Map<string, number>();
+      KITS.forEach((k, idx) => {
+        counts.set(k.categoryId, (counts.get(k.categoryId) ?? 0) + 1);
+        if (!firstSeen.has(k.categoryId)) {
+          firstSeen.set(k.categoryId, idx);
+        }
+      });
+      const present = [...counts.entries()]
+        .filter(([, n]) => n > 0)
+        .sort((a, b) => (firstSeen.get(a[0]) ?? 0) - (firstSeen.get(b[0]) ?? 0))
+        .map(([id]) => id);
+      return [
+        { id: "All", label: "All", count: KITS.length },
+        ...present.map((id) => ({
+          id,
+          label: CATEGORY_LABEL[id] ?? id,
+          count: counts.get(id) ?? 0,
+        })),
+      ];
+    }, [KITS]);
+
+  /**
+   * Human-readable summary of the categories currently surfaced on
+   * the page. Used in the "All kits" subhead so the copy never claims
+   * an absent group is present.
+   */
+  const categorySummary = React.useMemo(() => {
+    const present = CATEGORIES.filter((c) => c.id !== "All").map(
+      (c) => c.label.toLowerCase(),
+    );
+    if (present.length === 0) return "No categories available.";
+    if (present.length === 1) return `Across ${present[0]}.`;
+    if (present.length === 2) return `Across ${present[0]} and ${present[1]}.`;
+    const head = present.slice(0, -1).join(", ");
+    const tail = present[present.length - 1];
+    return `Across ${head}, and ${tail}.`;
+  }, [CATEGORIES]);
 
   const toggleDetails = React.useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
 
   // Close expanded state and clear stale Copied feedback when
-  // filters, the manual reset, or the mobile disclosure change.
+  // filters change. The selector is fixed-five on this page so
+  // there is no mobile disclosure to collapse.
   React.useEffect(() => {
     setExpandedId(null);
     setCopiedId(null);
     setLiveMessage("");
-  }, [query, category, mobileExpanded]);
+  }, [query, category]);
 
+  // Drop expandedId that points at a row no longer in the visible
+  // (filtered) set, so the one-open-at-a-time invariant holds when
+  // the user narrows by category or search.
   React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 760px)");
-    const sync = () => setIsMobile(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  const MOBILE_LIMIT = 6;
+    if (expandedId === null) return;
+    const stillVisible = KITS.some(
+      (k) =>
+        k.id === expandedId &&
+        (category === "All" || k.categoryId === category),
+    );
+    if (!stillVisible) setExpandedId(null);
+  }, [KITS, category, query, expandedId]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return KITS.filter((k) => {
-      const matchCat = category === "All" || k.category === category;
+      const matchCat = category === "All" || k.categoryId === category;
       const matchQuery =
         q === "" ||
         k.title.toLowerCase().includes(q) ||
         k.useCase.toLowerCase().includes(q);
       return matchCat && matchQuery;
     });
-  }, [query, category]);
-
-  const featured = React.useMemo(
-    () => filtered.filter((k) => k.featured).slice(0, 4),
-    [filtered],
-  );
-  const compact = filtered;
-
-  const isMobileLimited = isMobile && compact.length > MOBILE_LIMIT;
-  const isMobileCollapsed = isMobile && !mobileExpanded && isMobileLimited;
-  const compactVisible = isMobileCollapsed ? compact.slice(0, MOBILE_LIMIT) : compact;
-  const compactHiddenCount = isMobileLimited ? compact.length - MOBILE_LIMIT : 0;
+  }, [KITS, query, category]);
 
   const countFor = React.useCallback(
-    (id: Category | "All") => {
+    (id: string) => {
       const q = query.trim().toLowerCase();
       return KITS.filter((k) => {
-        const matchCat = id === "All" || k.category === id;
+        const matchCat = id === "All" || k.categoryId === id;
         const matchQuery =
           q === "" ||
           k.title.toLowerCase().includes(q) ||
@@ -490,11 +563,13 @@ export default function PromptKits() {
         return matchCat && matchQuery;
       }).length;
     },
-    [query],
+    [KITS, query],
   );
 
   const handleCopy = React.useCallback(async (kit: Kit) => {
-    const text = `${kit.title}\n\n${kit.useCase}\n\n${kit.prompt}`;
+    // The canonical prompt body is copied verbatim. No title prefix,
+    // no use-case wrapping, no placeholder substitution.
+    const text = kit.prompt;
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
@@ -510,7 +585,7 @@ export default function PromptKits() {
         document.body.removeChild(ta);
       }
       setCopiedId(kit.id);
-      setLiveMessage(`Copied: ${kit.title}`);
+      setLiveMessage(`Copied prompt: ${kit.title}`);
       window.setTimeout(() => {
         setCopiedId((current) => (current === kit.id ? null : current));
       }, 1600);
@@ -519,22 +594,24 @@ export default function PromptKits() {
     }
   }, []);
 
-  // Whether the active state is the unfiltered default (no search,
-  // category = All). Only in this default state do we surface the
-  // Featured kits grid; otherwise we hide Featured entirely.
   const isDefaultState = query.trim() === "" && category === "All";
-
-  // Collapse mobile disclosure whenever filters change so the user
-  // is shown only the first 6 rows of the new filtered set.
-  React.useEffect(() => {
-    setMobileExpanded(false);
-  }, [query, category]);
 
   const handleClearFilters = React.useCallback(() => {
     setQuery("");
     setCategory("All");
-    setMobileExpanded(false);
   }, []);
+
+  // The visible summary-card grid is desktop/tablet only. At <=760px
+  // the page hides it and uses the compact index as the single
+  // primary five-prompt presentation.
+  const showPilotGrid = isDefaultState && KITS.length > 0;
+
+  // Total surfaced category groups (excluding the synthetic "All"
+  // entry), used for the StatusRail. Falls back to 0 on pilot
+  // unavailable so the rail does not overstate.
+  const surfacedCategoryCount = pilotUnavailable
+    ? 0
+    : CATEGORIES.filter((c) => c.id !== "All").length;
 
   return (
     <main className="page-shell" data-page="prompt-kits">
@@ -550,10 +627,9 @@ export default function PromptKits() {
               Practical reuse.
             </>
           }
-          lede="A focused library of prompt kits for engineers, builders, and operators. Searchable by category, with audience, difficulty, and setup time for each entry."
+          lede="A focused library of prompt kits for engineers, builders, and operators. Searchable by category, with audience, difficulty, and collection for each entry."
           actions={[
             { primary: true, href: "#search", label: <>Search the kits <b>→</b></> },
-            { href: "#featured", label: "Featured kits" },
             { href: "#all", label: "Browse all" },
           ]}
           overview={{ href: "#search", label: "How to read this preview" }}
@@ -563,10 +639,10 @@ export default function PromptKits() {
           ariaLabel="Prompt kits preview status"
           items={[
             { icon: <i className="status-icon">ϟ</i>, label: "Index", detail: `${filtered.length} / ${KITS.length}` },
-            { icon: <i className="status-icon">⌘</i>, label: "Categories", detail: "5 groups" },
-            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Static preview" },
-            { icon: <i className="pulse" />, label: "Source", detail: "Curated sample" },
-            { icon: <i className="status-icon">◷</i>, label: "Status", detail: "Sample data" },
+            { icon: <i className="status-icon">⌘</i>, label: "Categories", detail: `${surfacedCategoryCount} ${surfacedCategoryCount === 1 ? "group" : "groups"}` },
+            { icon: <i className="status-icon">▱</i>, label: "Updated", detail: "Canonical pilot" },
+            { icon: <i className="pulse" />, label: "Source", detail: "Approved prompt pilot" },
+            { icon: <i className="status-icon">◷</i>, label: "Status", detail: "Pilot V1" },
           ]}
         />
 
@@ -583,7 +659,7 @@ export default function PromptKits() {
                 <input
                   type="search"
                   name="q"
-                  placeholder="Try 'code review', 'cold outreach', 'ADR'…"
+                  placeholder="Try 'code review', 'incident', 'page skeleton'…"
                   aria-label="Search kits by title or use case"
                   autoComplete="off"
                   value={query}
@@ -618,14 +694,18 @@ export default function PromptKits() {
           </Module>
         </section>
 
-        {isDefaultState && featured.length > 0 && (
-          <section id="featured" className="kits-featured-section" aria-label="Featured kits">
+        {showPilotGrid && (
+          <section id="pilot" className="kits-pilot-section" aria-label="Pilot kits">
             <header className="kits-section__head">
-              <h2>Featured kits</h2>
-              <p>Hand-picked kits with broad utility and clear reuse paths.</p>
+              <h2>Pilot kits</h2>
+              <p>All five approved Pilot V1 prompts in canonical order.</p>
             </header>
-            <div className="module-grid" aria-label="Featured kits grid">
-              {featured.map((k) => <FeaturedKitCard key={k.id} kit={k} />)}
+            <div className="kits-pilot-grid" role="list" aria-label="Pilot kits grid">
+              {KITS.map((k) => (
+                <div role="listitem" key={`pilot-${k.id}`}>
+                  <PilotKitCard kit={k} />
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -635,12 +715,12 @@ export default function PromptKits() {
             <h2>
               All kits
               <span className="kits-section__count" aria-live="polite">
-                {compact.length} {compact.length === 1 ? "entry" : "entries"}
+                {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
               </span>
             </h2>
             <p>
-              {category === "All"
-                ? "Across build, research, decide, write, and operate."
+              {isDefaultState
+                ? categorySummary
                 : `Filtered to ${category.toLowerCase()}.`}
               {query.trim() && ` Matches "${query.trim()}".`}
             </p>
@@ -653,16 +733,18 @@ export default function PromptKits() {
           >
             {liveMessage}
           </p>
-          {compact.length === 0 ? (
+          {pilotUnavailable ? (
+            <PilotUnavailable />
+          ) : filtered.length === 0 ? (
             <EmptyState onClear={handleClearFilters} />
           ) : (
             <>
               <p className="kits-outbound-notice" role="note">
-                Each kit is a copy-and-paste prompt — the Copy button writes the full kit (title, use case, prompt body) to your clipboard. No outbound network calls.
+                Each kit is sourced from the canonical OpenRadar prompt-content pilot. The Copy button writes the exact canonical prompt body to your clipboard; placeholders are preserved. These prompts do not execute tools, send messages, or change production.
               </p>
               <Module title="Compact index" code="··" className="kits-results-module">
                 <div className="kits-results" role="list">
-                  {compactVisible.map((k) => (
+                  {filtered.map((k) => (
                     <div role="listitem" key={k.id}>
                       <KitRow
                         kit={k}
@@ -674,21 +756,6 @@ export default function PromptKits() {
                     </div>
                   ))}
                 </div>
-                {isMobileLimited && compactHiddenCount > 0 && (
-                  <div className="kits-disclosure">
-                    <button
-                      type="button"
-                      className="kits-disclosure__btn"
-                      onClick={() => setMobileExpanded((v) => !v)}
-                      aria-expanded={mobileExpanded}
-                    >
-                      {mobileExpanded
-                        ? "Show less"
-                        : `Show ${compactHiddenCount} more`}
-                      <span aria-hidden="true">{mobileExpanded ? " ↑" : " ↓"}</span>
-                    </button>
-                  </div>
-                )}
               </Module>
             </>
           )}
@@ -728,7 +795,7 @@ export default function PromptKits() {
                 <ul>
                   <li>Copy is local <i /></li>
                   <li>No tracking <i /></li>
-                  <li>Static preview <i /></li>
+                  <li>Canonical pilot <i /></li>
                 </ul>
               ),
             },
@@ -743,11 +810,11 @@ export default function PromptKits() {
               Practical reuse.
             </>
           }
-          markSubtitle="A static preview of the kits. Copy-and-paste prompts for real work."
+          markSubtitle="A canonical pilot of vetted prompts. Copy-and-paste wording that does not execute tools or change production."
           meta={[
             { dt: "Surface", dd: "/prompt-kits" },
             { dt: "Audience", dd: "Engineers" },
-            { dt: "Source", dd: "Representative data" },
+            { dt: "Source", dd: "Canonical pilot V1" },
             { dt: "Static", dd: "Preview" },
           ]}
           subscribe={{
@@ -762,7 +829,7 @@ export default function PromptKits() {
             { kind: "link", value: "Home", href: "/" },
             { kind: "link", value: "Tools", href: "/tools" },
             { kind: "link", value: "System", href: "/system" },
-            { kind: "small", value: "Static · no live content" },
+            { kind: "small", value: "Canonical · pilot V1" },
           ]}
         />
       </Machine>
