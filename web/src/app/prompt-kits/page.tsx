@@ -19,7 +19,6 @@ import {
 } from "@/content/prompts/selectors";
 import type {
   PromptRecord,
-  PromptCategory,
   PromptDifficulty,
   PromptSafetyClass,
 } from "@/content/prompts";
@@ -48,6 +47,14 @@ import type {
  * Safety notice: records with safetyClass "professional" render a
  * restrained human-review notice inside the expanded detail region.
  * General records render no notice.
+ *
+ * Presentation:
+ *   - Desktop / tablet (>760px): all five Pilot cards in a single
+ *     3-column primary grid. Each card carries Open/Hide + Copy.
+ *     The compact index block is hidden — no desktop duplication.
+ *   - Mobile (<=760px): the Pilot-card grid is hidden; the compact
+ *     five-record interactive index is the single primary
+ *     presentation, with all five in canonical order.
  */
 
 const PROMPT_NAV = [
@@ -57,6 +64,13 @@ const PROMPT_NAV = [
   { label: "Learn", href: "/learn" },
   { label: "Jobs", href: "/jobs" },
 ];
+
+/**
+ * Page-level trust statement. Visible on both desktop and mobile;
+ * relocated (not duplicated) per the owner-acceptance refinement.
+ */
+const TRUST_STATEMENT =
+  "These prompts do not execute tools, send messages, or change production.";
 
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
@@ -73,7 +87,7 @@ type Kit = {
   mark: string;
   title: string;
   category: string;
-  categoryId: PromptCategory;
+  categoryId: PromptRecord["category"];
   audience: string;
   difficulty: Difficulty;
   useCase: string;
@@ -161,22 +175,6 @@ function KitMark({ mark }: { mark: string }) {
   return <span className="kit-mark">{mark}</span>;
 }
 
-function PilotKitCard({ kit }: { kit: Kit }) {
-  return (
-    <Module title={kit.title} code={kit.mark} className="kits-pilot-card">
-      <div className="kits-pilot-card__body">
-        <p className="kits-pilot-card__lede">{kit.useCase}</p>
-        <ul className="kits-pilot-card__meta">
-          <li><span>Category</span><strong>{kit.category}</strong></li>
-          <li><span>Audience</span><strong>{kit.audience}</strong></li>
-          <li><span>Level</span><strong>{kit.difficulty}</strong></li>
-          <li><span>Collection</span><strong>{kit.collections[0] ?? "—"}</strong></li>
-        </ul>
-      </div>
-    </Module>
-  );
-}
-
 /**
  * Expanded detail surface for a single canonical Pilot V1 record.
  * Renders:
@@ -189,8 +187,8 @@ function PilotKitCard({ kit }: { kit: Kit }) {
  *   - copy-prompt action
  *   - restrained human-review notice when safetyClass === "professional"
  *
- * The detail surface is rendered inline below the row using the
- * existing kit-row expandable-region pattern; no new route is used.
+ * Used inside both the mobile compact row and the desktop Pilot
+ * card. Single implementation; no second detail surface exists.
  */
 function KitDetail({
   kit,
@@ -291,6 +289,88 @@ function KitDetail({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Actionable desktop Pilot card. Carries Open/Hide + Copy directly,
+ * and renders the inline <KitDetail> surface when expanded. Reuses
+ * the single KitDetail component — no second detail implementation
+ * exists.
+ *
+ * Closed-card metadata is intentionally compact (title, short use
+ * case, category, difficulty, collection). The full audience text
+ * and all other complete metadata remain available inside the
+ * expanded detail surface.
+ */
+function PilotKitCard({
+  kit,
+  expanded,
+  copied,
+  onToggleDetails,
+  onCopy,
+}: {
+  kit: Kit;
+  expanded: boolean;
+  copied: boolean;
+  onToggleDetails: () => void;
+  onCopy: () => void;
+}) {
+  const toggleId = `pilot-toggle-${kit.id}`;
+  const regionId = `pilot-summary-${kit.id}`;
+  return (
+    <article
+      className={`module kits-pilot-card${expanded ? " kits-pilot-card--open" : ""}`}
+      data-kit-id={kit.id}
+      data-safety-class={kit.safetyClass}
+    >
+      <header className="module-head">
+        <span className="module-code">{kit.mark}</span>
+        <h2>{kit.title}</h2>
+        <button
+          type="button"
+          id={toggleId}
+          className="kit-details"
+          aria-expanded={expanded}
+          aria-controls={regionId}
+          onClick={onToggleDetails}
+        >
+          {expanded ? "Hide" : "Open"}
+        </button>
+      </header>
+      <div className="module-body">
+        <div className="kits-pilot-card__body">
+          <p className="kits-pilot-card__lede">{kit.useCase}</p>
+          <ul className="kits-pilot-card__meta">
+            <li><span>Category</span><strong>{kit.category}</strong></li>
+            <li><span>Level</span><strong>{kit.difficulty}</strong></li>
+            <li><span>Collection</span><strong>{kit.collections[0] ?? "—"}</strong></li>
+          </ul>
+          <div className="kits-pilot-card__actions">
+            <button
+              type="button"
+              className={`kit-copy${copied ? " kit-copy--ok" : ""}`}
+              onClick={onCopy}
+              aria-label={`Copy prompt for ${kit.title}`}
+              title="Copy the full canonical prompt body to your clipboard"
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+        </div>
+        <div
+          id={regionId}
+          role="region"
+          aria-labelledby={toggleId}
+          hidden={!expanded}
+          className="kit-row__summary"
+        >
+          {expanded && (
+            <KitDetail kit={kit} onCopy={onCopy} copied={copied} />
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -439,7 +519,8 @@ export default function PromptKits() {
   const [query, setQuery] = React.useState("");
   const [category, setCategory] = React.useState<string>("All");
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
-  // Exactly one kit row may be expanded at a time.
+  // Exactly one kit card / row may be expanded at a time. The same
+  // state powers the desktop Pilot card and the mobile compact row.
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   // Polite live region announcement (e.g. "Copied: …").
   const [liveMessage, setLiveMessage] = React.useState<string>("");
@@ -496,37 +577,19 @@ export default function PromptKits() {
       ];
     }, [KITS]);
 
-  /**
-   * Human-readable summary of the categories currently surfaced on
-   * the page. Used in the "All kits" subhead so the copy never claims
-   * an absent group is present.
-   */
-  const categorySummary = React.useMemo(() => {
-    const present = CATEGORIES.filter((c) => c.id !== "All").map(
-      (c) => c.label.toLowerCase(),
-    );
-    if (present.length === 0) return "No categories available.";
-    if (present.length === 1) return `Across ${present[0]}.`;
-    if (present.length === 2) return `Across ${present[0]} and ${present[1]}.`;
-    const head = present.slice(0, -1).join(", ");
-    const tail = present[present.length - 1];
-    return `Across ${head}, and ${tail}.`;
-  }, [CATEGORIES]);
-
   const toggleDetails = React.useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
 
   // Close expanded state and clear stale Copied feedback when
-  // filters change. The selector is fixed-five on this page so
-  // there is no mobile disclosure to collapse.
+  // filters change.
   React.useEffect(() => {
     setExpandedId(null);
     setCopiedId(null);
     setLiveMessage("");
   }, [query, category]);
 
-  // Drop expandedId that points at a row no longer in the visible
+  // Drop expandedId that points at a record no longer in the visible
   // (filtered) set, so the one-open-at-a-time invariant holds when
   // the user narrows by category or search.
   React.useEffect(() => {
@@ -594,17 +657,20 @@ export default function PromptKits() {
     }
   }, []);
 
-  const isDefaultState = query.trim() === "" && category === "All";
-
   const handleClearFilters = React.useCallback(() => {
     setQuery("");
     setCategory("All");
   }, []);
 
-  // The visible summary-card grid is desktop/tablet only. At <=760px
-  // the page hides it and uses the compact index as the single
-  // primary five-prompt presentation.
-  const showPilotGrid = isDefaultState && KITS.length > 0;
+  // The Pilot-card grid is the primary desktop / tablet surface.
+  // It shows the filtered set (not only the default unfiltered set),
+  // and it is hidden on mobile (<=760px) via CSS where the compact
+  // index is the only primary presentation.
+  const showPilotGrid = KITS.length > 0;
+
+  // The desktop compact index is hidden to avoid duplication of the
+  // five cards. Mobile keeps it.
+  const showDesktopCompactIndex = false;
 
   // Total surfaced category groups (excluding the synthetic "All"
   // entry), used for the StatusRail. Falls back to 0 on pilot
@@ -630,7 +696,7 @@ export default function PromptKits() {
           lede="A focused library of prompt kits for engineers, builders, and operators. Searchable by category, with audience, difficulty, and collection for each entry."
           actions={[
             { primary: true, href: "#search", label: <>Search the kits <b>→</b></> },
-            { href: "#all", label: "Browse all" },
+            { href: "#pilot", label: "Browse all" },
           ]}
           overview={{ href: "#search", label: "How to read this preview" }}
         />
@@ -700,66 +766,72 @@ export default function PromptKits() {
               <h2>Pilot kits</h2>
               <p>All five approved Pilot V1 prompts in canonical order.</p>
             </header>
+            <p className="kits-trust-statement" role="note">
+              {TRUST_STATEMENT}
+            </p>
             <div className="kits-pilot-grid" role="list" aria-label="Pilot kits grid">
-              {KITS.map((k) => (
+              {filtered.map((k) => (
                 <div role="listitem" key={`pilot-${k.id}`}>
-                  <PilotKitCard kit={k} />
+                  <PilotKitCard
+                    kit={k}
+                    expanded={expandedId === k.id}
+                    copied={copiedId === k.id}
+                    onToggleDetails={() => toggleDetails(k.id)}
+                    onCopy={() => handleCopy(k)}
+                  />
                 </div>
               ))}
             </div>
           </section>
         )}
 
-        <section id="all" className="kits-results-section" aria-label="All kits">
-          <header className="kits-section__head">
-            <h2>
-              All kits
-              <span className="kits-section__count" aria-live="polite">
-                {filtered.length} {filtered.length === 1 ? "entry" : "entries"}
-              </span>
-            </h2>
-            <p>
-              {isDefaultState
-                ? categorySummary
-                : `Filtered to ${category.toLowerCase()}.`}
-              {query.trim() && ` Matches "${query.trim()}".`}
-            </p>
-          </header>
-          <p
-            className="kits-live-region"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {liveMessage}
-          </p>
-          {pilotUnavailable ? (
+        {pilotUnavailable ? (
+          <section className="kits-results-section" aria-label="All kits">
             <PilotUnavailable />
-          ) : filtered.length === 0 ? (
-            <EmptyState onClear={handleClearFilters} />
-          ) : (
-            <>
-              <p className="kits-outbound-notice" role="note">
-                Each kit is sourced from the canonical OpenRadar prompt-content pilot. The Copy button writes the exact canonical prompt body to your clipboard; placeholders are preserved. These prompts do not execute tools, send messages, or change production.
-              </p>
-              <Module title="Compact index" code="··" className="kits-results-module">
-                <div className="kits-results" role="list">
-                  {filtered.map((k) => (
-                    <div role="listitem" key={k.id}>
-                      <KitRow
-                        kit={k}
-                        copied={copiedId === k.id}
-                        expanded={expandedId === k.id}
-                        onToggleDetails={() => toggleDetails(k.id)}
-                        onCopy={() => handleCopy(k)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </Module>
-            </>
-          )}
-        </section>
+          </section>
+        ) : (
+          <section
+            id="all"
+            className={`kits-results-section${showDesktopCompactIndex ? "" : " kits-results-section--mobile-only"}`}
+            aria-label="All kits"
+          >
+            <p
+              className="kits-live-region"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {liveMessage}
+            </p>
+            {filtered.length === 0 ? (
+              <EmptyState onClear={handleClearFilters} />
+            ) : (
+              <>
+                <p className="kits-outbound-notice" role="note">
+                  Each kit is sourced from the canonical OpenRadar prompt-content pilot. The Copy button writes the exact canonical prompt body to your clipboard; placeholders are preserved.
+                </p>
+                <p className="kits-trust-statement" role="note">
+                  {TRUST_STATEMENT}
+                </p>
+                <Module title="Compact index" code="··" className="kits-results-module">
+                  <div className="kits-results" role="list">
+                    {filtered.map((k) => (
+                      <div role="listitem" key={k.id}>
+                        <KitRow
+                          kit={k}
+                          copied={copiedId === k.id}
+                          expanded={expandedId === k.id}
+                          onToggleDetails={() => toggleDetails(k.id)}
+                          onCopy={() => handleCopy(k)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Module>
+              </>
+            )}
+          </section>
+        )}
 
         <LowerBank
           panels={[
