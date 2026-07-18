@@ -6,6 +6,22 @@
  * chassis. Adds zero new tokens. Scoped via
  * .page-shell[data-page="prompt-kits"] so it cannot affect Home,
  * /tools, or /system.
+ *
+ * Stage 7C.2B owner-acceptance refinements:
+ *   - Desktop Pilot cards are now the actionable primary
+ *     interaction: Open/Hide + Copy live directly on each card.
+ *   - The desktop compact index is removed to eliminate the
+ *     five-then-five duplication.
+ *   - Closed card metadata is compact (title, short use case,
+ *     category, difficulty, collection). Full audience lives only
+ *     inside the expanded detail surface.
+ *   - Hero + search area is compressed (~10–15%) so the
+ *     "Pilot kits" heading and the top of the first card row sit
+ *     inside the 1440x900 initial viewport.
+ *   - Mobile compact index remains the single primary presentation;
+ *     Pilot-card grid hidden below 760px.
+ *   - Trust statement is rendered inside the desktop Pilot section
+ *     and inside the mobile compact-index block, never duplicated.
  */
 
 .page-shell[data-page="prompt-kits"] .kits-searchbar,
@@ -32,19 +48,70 @@
   min-width: 0;
 }
 
+/* --- Hero compression (page-local) ---
+ * Tightens the chassis above the Pilot section by ~10–15% of the
+ * vertical footprint while preserving radar proportions and
+ * typography direction. Shared hero-deck tokens are untouched;
+ * this is a page-local override only. */
+.page-shell[data-page="prompt-kits"] .hero-deck {
+  padding: 6px 14px 8px;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .hero-copy { gap: 4px; }
+.page-shell[data-page="prompt-kits"] .hero-deck .kicker { margin: 0; }
+.page-shell[data-page="prompt-kits"] .hero-deck h1 {
+  font-size: 22px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .lede {
+  font-size: 11.5px;
+  line-height: 1.35;
+  margin: 0;
+  max-width: 56ch;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .hero-actions {
+  margin-top: 2px;
+  gap: 6px;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .hero-actions a {
+  padding: 3px 9px;
+  font-size: 8.5px;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .overview {
+  margin-top: 2px;
+  font-size: 9px;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .radar-rig {
+  padding: 2px;
+}
+.page-shell[data-page="prompt-kits"] .hero-deck .radar-bezel {
+  width: 124px;
+  height: 124px;
+}
+.page-shell[data-page="prompt-kits"] .status-rail {
+  padding: 4px 10px;
+  gap: 6px;
+}
+.page-shell[data-page="prompt-kits"] .status-rail > div {
+  padding: 2px 6px;
+}
+.page-shell[data-page="prompt-kits"] .status-rail > div > span small {
+  font-size: 10.5px;
+}
+
 /* --- Section heading --- */
 .page-shell[data-page="prompt-kits"] .kits-section__head {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 16px;
-  margin-bottom: 10px;
+  gap: 3px;
+  margin-top: 8px;
+  margin-bottom: 6px;
   padding: 0 4px;
 }
 .page-shell[data-page="prompt-kits"] .kits-section__head h2 {
   margin: 0;
   color: #ddd8c6;
-  font: 600 18px var(--or-font-display);
+  font: 600 16px var(--or-font-display);
   letter-spacing: -.01em;
 }
 .page-shell[data-page="prompt-kits"] .kits-section__head p {
@@ -67,17 +134,17 @@
 }
 
 /* --- Search bar --- */
-.page-shell[data-page="prompt-kits"] .kits-searchbar { margin-top: 12px; }
+.page-shell[data-page="prompt-kits"] .kits-searchbar { margin-top: 6px; margin-bottom: 4px; }
 .page-shell[data-page="prompt-kits"] .kits-searchbar__inner {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
 }
 .page-shell[data-page="prompt-kits"] .kits-searchbar__field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .page-shell[data-page="prompt-kits"] .kits-searchbar__label {
   display: flex;
@@ -96,7 +163,7 @@
 }
 .page-shell[data-page="prompt-kits"] .kits-searchbar__field input {
   width: 100%;
-  height: 36px;
+  height: 34px;
   padding: 0 12px;
   border: 1px solid #38382e;
   background: #060806;
@@ -130,7 +197,7 @@
   letter-spacing: .08em;
   cursor: pointer;
   box-shadow: inset 0 1px #1f201a;
-  min-height: 30px;
+  min-height: 28px;
 }
 .page-shell[data-page="prompt-kits"] .kits-chip:hover {
   border-color: var(--accent);
@@ -154,7 +221,7 @@
   opacity: .8;
 }
 .page-shell[data-page="prompt-kits"] .kits-reset {
-  min-height: 30px;
+  min-height: 28px;
   padding: 5px 10px;
   border: 0;
   border-bottom: 1px solid #62543b;
@@ -168,16 +235,47 @@
 .page-shell[data-page="prompt-kits"] .kits-reset:hover { color: var(--accent); border-color: var(--accent); }
 .page-shell[data-page="prompt-kits"] .kits-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* --- Trust statement ---
+ * Single line, sits between section heading and grid / list. Rendered
+ * inside the desktop Pilot section and inside the mobile compact
+ * index block, never duplicated on the same surface. */
+.page-shell[data-page="prompt-kits"] .kits-trust-statement {
+  margin: 0 0 6px;
+  padding: 4px 8px;
+  border: 1px solid #36352c;
+  background: #0b0d0a;
+  color: #b5b09f;
+  font: 9px var(--or-font-mono);
+  letter-spacing: .04em;
+  line-height: 1.4;
+}
+
 /* --- Pilot kits primary grid ---
- * Equal treatment for all five canonical records. Three columns at
- * desktop, two at tablet, hidden on mobile (the compact index is the
- * single primary presentation on mobile). */
+ * Actionable cards. Equal treatment, equal styling. Open/Hide and
+ * Copy live directly on each card. */
 .page-shell[data-page="prompt-kits"] .kits-pilot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 .page-shell[data-page="prompt-kits"] .kits-pilot-card .module-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .module-head {
+  /* Open/Hide button replaces the inherited "View all ›" link on
+     /prompt-kits only. We hide the link node when it is empty
+     (actionHref unset) so it does not leave an empty ::after glyph. */
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .module-head a {
+  display: none;
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .module-head .kit-details {
+  align-self: center;
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__body {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -185,13 +283,20 @@
 .page-shell[data-page="prompt-kits"] .kits-pilot-card__lede {
   margin: 0;
   color: #c4beac;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12.5px;
+  line-height: 1.4;
+  /* Compact use case for closed card: clamp to 2 lines so all
+     five cards stay visually equal-height and short. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
 }
 .page-shell[data-page="prompt-kits"] .kits-pilot-card__meta {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 10px;
   margin: 0;
   padding: 8px 0 0;
   border-top: 1px solid #282b23;
@@ -214,15 +319,38 @@
   font: 600 10px var(--or-font-mono);
   letter-spacing: .06em;
 }
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card__actions .kit-copy {
+  margin-left: 0;
+}
+/* Selected/open card has a restrained visual treatment: outline +
+   slightly stronger top divider. No glow, no chromatic change. */
+.page-shell[data-page="prompt-kits"] .kits-pilot-card--open {
+  border-color: var(--accent);
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card--open > .module-head {
+  border-bottom-color: var(--accent);
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card--open .kits-pilot-card__meta {
+  border-top-color: var(--accent);
+}
 
-/* --- Compact index (uses Home's .kit-row baseline + extra cols) --- */
+/* --- Compact index (mobile primary surface) ---
+ * Used on mobile only after Stage 7C.2B. The desktop presentation
+ * hides this section via .kits-results-section--mobile-only. */
 .page-shell[data-page="prompt-kits"] .kits-results {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+.page-shell[data-page="prompt-kits"] .kits-results-section--mobile-only {
+  display: none;
+}
 .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
-  /* compact summary row: mark, name/use-case, category, difficulty, setup, Details, Copy */
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) auto auto auto auto auto;
   grid-template-areas:
@@ -247,7 +375,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 12px;
   border: 1px solid var(--accent-cta-border);
   background: linear-gradient(var(--accent-strong), var(--accent-cta-end));
@@ -279,12 +407,13 @@
 }
 
 /* Kit Details button — secondary dark/bronze outline; visually quieter
-   than the primary Copy action. */
+   than the primary Copy action. Used both inside the module head of
+   the desktop Pilot card and inside the mobile compact row. */
 .page-shell[data-page="prompt-kits"] .kit-details {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 12px;
   border: 1px solid #62543b;
   background: #0b0d0a;
@@ -304,21 +433,30 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+.page-shell[data-page="prompt-kits"] .kits-pilot-card--open .kit-details {
+  border-color: var(--accent);
+  color: #ddd8c6;
+}
 .page-shell[data-page="prompt-kits"] .kit-row--open > .kit-details {
   border-color: var(--accent);
   color: #ddd8c6;
 }
 
-/* Expanded summary panel for /prompt-kits compact rows. */
+/* Expanded summary panel shared by both desktop Pilot card and
+   mobile compact row. */
 .page-shell[data-page="prompt-kits"] .kit-row__summary {
   grid-column: 1 / -1;
-  margin-top: 4px;
+  margin-top: 8px;
   padding: 10px 12px;
   background: #0b0d0a;
   border: 1px solid #36352c;
   border-radius: 4px;
   min-width: 0;
   overflow-x: auto;
+}
+.page-shell[data-page="prompt-kits"] .kits-pilot-card .kit-row__summary {
+  /* Inside a Pilot card the summary is full-width below the body. */
+  margin-top: 8px;
 }
 
 /* --- Pilot V1 inline detail surface ---
@@ -548,7 +686,8 @@
   border: 0;
 }
 
-/* Outbound notice — single banner above the compact index. */
+/* Outbound notice — single banner above the compact index (mobile
+   only). The desktop trust statement uses .kits-trust-statement. */
 .page-shell[data-page="prompt-kits"] .kits-outbound-notice {
   margin: 0 0 8px;
   padding: 8px 12px;
@@ -605,21 +744,20 @@
   .page-shell[data-page="prompt-kits"] .kits-pilot-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .page-shell[data-page="prompt-kits"] .kits-pilot-card__meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-/* --- Mobile (≤760) --- */
+/* --- Mobile (<=760): hide Pilot grid; surface compact index --- */
 @media (max-width: 760px) {
-  /* Hide the large primary-card section on mobile. The compact
-     interactive index is the single primary five-prompt presentation. */
   .page-shell[data-page="prompt-kits"] .kits-pilot-section {
     display: none;
   }
+  .page-shell[data-page="prompt-kits"] .kits-results-section--mobile-only {
+    display: block;
+  }
   .page-shell[data-page="prompt-kits"] .kits-results .kit-row {
-    /* Three collapsed bands:
-       1. mark + name/use-case
-       2. category + difficulty + collection
-       3. Open + Copy
-       Expanded summary spans the full row. */
     grid-template-columns: 34px minmax(0, 1fr) auto auto auto;
     grid-template-areas:
       "mark name name name name"
@@ -671,7 +809,7 @@
   }
 }
 
-/* --- TopDeck shrink override for /prompt-kits at ≤1023 (same pattern as
+/* --- TopDeck shrink override for /prompt-kits at <=1023 (same pattern as
    /tools and /system) so the chassis fits at 768 without touching Home. --- */
 @media (max-width: 1023px) {
   .page-shell[data-page="prompt-kits"] .top-deck {
