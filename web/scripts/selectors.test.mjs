@@ -958,3 +958,197 @@ test("live catalog: exactly three records have a human-review notice", async () 
   ).length;
   assert.equal(noticeCount, 3);
 });
+
+// ---------------- Batch 2 invariants ----------------
+
+const BATCH_2_IDS = Object.freeze([
+  "code-refactor-no-driveby",
+  "write-incident-postmortem",
+  "research-source-triangulate",
+  "decide-pre-mortem",
+  "operate-auto-rollback-conditions",
+]);
+
+test("live catalog: complete catalog has exactly 10 records (Batch 1 + Batch 2)", async () => {
+  const catalog = await loadCanonicalCatalog();
+  assert.equal(catalog.length, 10);
+});
+
+test("live catalog: canonical catalog exposes Batch 1 and Batch 2 separately", async () => {
+  const mod = loadCatalogExports();
+  assert.equal(mod.pilotBatch1Records.length, 5);
+  assert.equal(mod.pilotBatch2Records.length, 5);
+  assert.equal(
+    [...mod.pilotBatch2Records.map((r) => r.id)].sort().join(","),
+    [...BATCH_2_IDS].sort().join(","),
+  );
+});
+
+test("live catalog: Batch 2 IDs are absent from the public Prompt Kits selector", async () => {
+  const catalog = await loadCanonicalCatalog();
+  const out = selectPromptKitsPilotV1(catalog);
+  const outIds = new Set(out.map((r) => r.id));
+  for (const id of BATCH_2_IDS) {
+    assert.equal(
+      outIds.has(id),
+      false,
+      `Batch 2 id '${id}' leaked into the public selector`,
+    );
+  }
+});
+
+test("live catalog: public Prompt Kits selector still returns exactly 5 records", async () => {
+  const catalog = await loadCanonicalCatalog();
+  const out = selectPromptKitsPilotV1(catalog);
+  assert.equal(out.length, 5);
+});
+
+test("live catalog: public Prompt Kits IDs and order are unchanged after Batch 2", async () => {
+  const catalog = await loadCanonicalCatalog();
+  const out = selectPromptKitsPilotV1(catalog);
+  assert.deepEqual(
+    out.map((r) => r.id),
+    [
+      "code-pr-description",
+      "code-review-staff",
+      "write-customer-notification",
+      "operate-incident-first-15-minutes",
+      "design-frontend-page-skeleton",
+    ],
+  );
+});
+
+test("live catalog: every Batch 2 record is draft, pending, and internally-eligible only", async () => {
+  const mod = loadCatalogExports();
+  for (const rec of mod.pilotBatch2Records) {
+    assert.equal(rec.reviewStatus, "draft", `${rec.id}: reviewStatus must be 'draft'`);
+    assert.equal(rec.reviewer, null, `${rec.id}: reviewer must be null when draft`);
+    assert.equal(
+      rec.lastReviewedAt,
+      null,
+      `${rec.id}: lastReviewedAt must be null when draft`,
+    );
+    assert.equal(
+      rec.commercialUseStatus,
+      "pending",
+      `${rec.id}: commercialUseStatus must be 'pending'`,
+    );
+    assert.equal(
+      rec.publicationEligibility,
+      "internal",
+      `${rec.id}: publicationEligibility must be 'internal'`,
+    );
+    assert.equal(
+      rec.sourceType,
+      "openradar-original",
+      `${rec.id}: sourceType must be 'openradar-original'`,
+    );
+    assert.equal(
+      rec.authorship,
+      "OpenRadar editorial",
+      `${rec.id}: authorship must be 'OpenRadar editorial'`,
+    );
+    assert.equal(
+      rec.contentVersion,
+      1,
+      `${rec.id}: contentVersion must be 1`,
+    );
+    assert.equal(
+      rec.safetyClass,
+      "professional",
+      `${rec.id}: safetyClass must be 'professional'`,
+    );
+    // Provenance: exactly one internal-concept reference.
+    assert.equal(
+      rec.sourceReferences.length,
+      1,
+      `${rec.id}: sourceReferences must be exactly one entry`,
+    );
+    assert.equal(
+      rec.sourceReferences[0].kind,
+      "internal-concept",
+      `${rec.id}: sourceReference kind must be 'internal-concept'`,
+    );
+  }
+});
+
+test("live catalog: no Batch 2 record passes the public eligibility predicate", async () => {
+  const mod = loadCatalogExports();
+  for (const rec of mod.pilotBatch2Records) {
+    assert.equal(
+      isPromptKitsEligible(rec),
+      false,
+      `Batch 2 record '${rec.id}' must not be Prompt Kits eligible`,
+    );
+  }
+});
+
+/**
+ * Compile the canonical index and load the emitted CJS module so the
+ * Batch 2 invariant tests can read the separately-exported
+ * pilotBatch1Records and pilotBatch2Records. Mirrors the
+ * loadCanonicalCatalog() helper but additionally captures the
+ * pilotBatch2Records export.
+ */
+function loadCatalogExports() {
+  const program = ts.createProgram([INDEX_PATH], {
+    noEmit: false,
+    strict: true,
+    module: ts.ModuleKind.CommonJS,
+    moduleResolution: ts.ModuleResolutionKind.Node10,
+    target: ts.ScriptTarget.ES2022,
+    skipLibCheck: true,
+    jsx: ts.JsxEmit.Preserve,
+    esModuleInterop: true,
+    allowSyntheticDefaultImports: true,
+  });
+  const diag = ts.getPreEmitDiagnostics(program);
+  if (diag.length > 0) {
+    const messages = diag
+      .map((d) => ts.flattenDiagnosticMessageText(d.messageText, "\n"))
+      .join("\n");
+    throw new Error(`Canonical catalog compile failed: ${messages}`);
+  }
+  const tmp = mkdtempSync(join(tmpdir(), "openradar-batch2-exports-"));
+  try {
+    const emit = ts.createProgram([INDEX_PATH], {
+      noEmit: false,
+      strict: true,
+      module: ts.ModuleKind.CommonJS,
+      moduleResolution: ts.ModuleResolutionKind.Node10,
+      target: ts.ScriptTarget.ES2022,
+      skipLibCheck: true,
+      jsx: ts.JsxEmit.Preserve,
+      esModuleInterop: true,
+      allowSyntheticDefaultImports: true,
+      outDir: tmp,
+      rootDir: WEB_ROOT,
+    });
+    const result = emit.emit();
+    const emitDiags = ts.getPreEmitDiagnostics(emit).concat(result.diagnostics);
+    if (emitDiags.length > 0) {
+      throw new Error(
+        "Canonical catalog emit failed: " +
+          emitDiags.map((d) => ts.flattenDiagnosticMessageText(d.messageText, "\n")).join("\n"),
+      );
+    }
+    const emittedIndexPath = join(
+      tmp,
+      "src",
+      "content",
+      "prompts",
+      "index.js",
+    );
+    const req = createRequire(import.meta.url);
+    const mod = req(emittedIndexPath);
+    if (!Array.isArray(mod.pilotBatch1Records)) {
+      throw new Error("Canonical catalog did not export pilotBatch1Records");
+    }
+    if (!Array.isArray(mod.pilotBatch2Records)) {
+      throw new Error("Canonical catalog did not export pilotBatch2Records");
+    }
+    return mod;
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+}

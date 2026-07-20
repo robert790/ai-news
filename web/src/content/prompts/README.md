@@ -204,3 +204,22 @@ The set of IDs that may appear in this pilot is frozen in `docs/content-os/promp
 - `design-frontend-page-skeleton`
 
 Future batches are added by importing the new batch file's record array into `index.ts` and spreading it into `promptRecords`. There is no globbing.
+
+### Batch 2 (drafts, not yet eligible for Prompt Kits)
+
+Batch 2 (`pilot-batch-2.ts`) adds the next five canonical records as drafts. They are not yet wired into the public selector and are not part of `PILOT_V1_LOCK_IDS` in `selectors.ts`. Each Batch 2 record carries:
+
+- `reviewStatus: "draft"`, `reviewer: null`, `lastReviewedAt: null`.
+- `commercialUseStatus: "pending"` and `publicationEligibility: "internal"`.
+- `sourceType: "openradar-original"` with one `internal-concept` `sourceReferences` entry that names the frozen concept ID and notes that the wording was rewritten from first principles.
+- `safetyClass: "professional"` and `contentVersion: 1`.
+
+Batch 2 IDs:
+
+- `code-refactor-no-driveby` (builder-bench)
+- `write-incident-postmortem` (operator-playbook)
+- `research-source-triangulate` (research-desk)
+- `decide-pre-mortem` (decision-room)
+- `operate-auto-rollback-conditions` (operator-playbook)
+
+Batch 2 also extends the collection registry in `collections.ts` with `research-desk` and `decision-room`.

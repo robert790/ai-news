@@ -20,7 +20,20 @@ export const OPERATOR_PLAYBOOK = "operator-playbook";
 export const STUDIO_FOUNDATION = "studio-foundation";
 
 /**
- * The canonical registry. Frozen for v1 of the Web V2 pilot. Any new
+ * Batch 2 collections. Added when Batch 2 was authored as drafts.
+ * Kept in this file (and only in this file) so the validator's
+ * registry check stays a single source of truth.
+ *
+ * Short product-appropriate labels:
+ *   - research-desk: structured research and source-evaluation work.
+ *   - decision-room: decision framing, pre-mortems, and option shaping.
+ */
+export const RESEARCH_DESK = "research-desk";
+export const DECISION_ROOM = "decision-room";
+
+/**
+ * The canonical registry. The v1 pilot froze four collections. Batch 2
+ * (drafts, not yet eligible for Prompt Kits) adds two more. Any future
  * collection is an explicit registry change, not a record-level change.
  */
 export const COLLECTION_IDS = [
@@ -28,6 +41,8 @@ export const COLLECTION_IDS = [
   EDITOR_DESK,
   OPERATOR_PLAYBOOK,
   STUDIO_FOUNDATION,
+  RESEARCH_DESK,
+  DECISION_ROOM,
 ] as const;
 
 export type PromptCollectionId = (typeof COLLECTION_IDS)[number];
