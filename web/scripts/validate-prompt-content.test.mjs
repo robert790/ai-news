@@ -487,3 +487,143 @@ test("positive: full Batch 1 catalog passes", () => {
   const r = runWith(records);
   assert.equal(r.errors.length, 0, JSON.stringify(r.errors, null, 2));
 });
+
+// ---------------- Batch 2 shape ----------------
+
+/**
+ * Base record for the Batch 2 shape: openradar-original, draft,
+ * null reviewer and timestamp, pending commercialUseStatus, internal
+ * publication eligibility, professional safetyClass. One internal-concept
+ * reference is the only allowed reference for openradar-original.
+ */
+function baseBatch2Record(overrides = {}) {
+  return {
+    id: "code-refactor-no-driveby",
+    slug: "code-refactor-no-driveby",
+    title: "Refactor that stays inside the boundary you were given",
+    category: "code",
+    difficulty: "advanced",
+    audience: "Engineers asked to refactor part of a codebase.",
+    useCase: "When the task is a refactor and the change is at risk of growing.",
+    inputs: [
+      {
+        name: "refactor_boundary",
+        label: "Refactor boundary",
+        description: "The exact scope of the refactor.",
+      },
+    ],
+    prompt: "Prompt body. {refactor_boundary}",
+    expectedOutput: "Expected output.",
+    notes: [{ title: "Note", body: "Note body." }],
+    antiPatterns: [{ title: "Anti", body: "Anti body." }],
+    collectionIds: ["builder-bench"],
+    sourceType: "openradar-original",
+    sourceReferences: [
+      {
+        kind: "internal-concept",
+        label: "Legacy Prompt Bible concept: code-refactor-no-driveby",
+        note: "Frozen concept reference. Wording rewritten from first principles.",
+      },
+    ],
+    authorship: "OpenRadar editorial",
+    reviewStatus: "draft",
+    reviewer: null,
+    lastReviewedAt: null,
+    contentVersion: 1,
+    safetyClass: "professional",
+    commercialUseStatus: "pending",
+    publicationEligibility: "internal",
+    ...overrides,
+  };
+}
+
+test("positive: Batch 2 shape (openradar-original + draft + internal + one internal-concept ref) passes", () => {
+  // Use the Batch 2-aware registry that includes research-desk and
+  // decision-room, since the Batch 2 records reference them.
+  const REGISTRY_BATCH_2 = new Set([
+    "builder-bench",
+    "editor-desk",
+    "operator-playbook",
+    "studio-foundation",
+    "research-desk",
+    "decision-room",
+  ]);
+  const r = validateCatalog([baseBatch2Record()], {
+    collectionIdSet: REGISTRY_BATCH_2,
+  });
+  assert.equal(r.errors.length, 0, JSON.stringify(r.errors, null, 2));
+});
+
+test("negative: draft + prompt-kits is still rejected for Batch 2-shaped records", () => {
+  const r = runWith([
+    baseBatch2Record({
+      reviewStatus: "draft",
+      reviewer: null,
+      lastReviewedAt: null,
+      commercialUseStatus: "pending",
+      publicationEligibility: "prompt-kits",
+    }),
+  ]);
+  assertHasError(r, "reviewStatus 'draft' cannot be paired with publicationEligibility 'prompt-kits'");
+});
+
+test("negative: Batch 2 record with reviewer set is rejected", () => {
+  const r = runWith([
+    baseBatch2Record({ reviewer: "should-be-null" }),
+  ]);
+  assertHasError(r, "reviewer must be null");
+});
+
+test("positive: selector invariants, not the generic validator, pin Batch 2 provenance kinds", () => {
+  // openradar-original is allowed to have zero references, or
+  // exactly one internal-concept reference. A 'public-framework'
+  // reference on an openradar-original record still passes the
+  // openradar-rewrite rule (not enforced for openradar-original),
+  // but the generic validator does NOT enforce openradar-original's
+  // narrower rule. The Batch 2 invariant is enforced by the
+  // selectors test suite, which checks sourceReferences[0].kind
+  // === 'internal-concept' for the four openradar-original records
+  // and sourceReferences[0].kind === 'public-framework' (no URL)
+  // for decide-pre-mortem. This validator test pins the current
+  // behavior of the generic validator so the invariant picture is
+  // complete: the generic validator does not enforce
+  // openradar-original's reference shape; the selectors tests do.
+  const REGISTRY_BATCH_2 = new Set([
+    "builder-bench",
+    "editor-desk",
+    "operator-playbook",
+    "studio-foundation",
+    "research-desk",
+    "decision-room",
+  ]);
+  const r = validateCatalog(
+    [
+      baseBatch2Record({
+        sourceReferences: [
+          {
+            kind: "public-framework",
+            label: "External framework",
+            note: "Not allowed for Batch 2 provenance.",
+          },
+        ],
+      }),
+    ],
+    { collectionIdSet: REGISTRY_BATCH_2 },
+  );
+  // The validator does not enforce openradar-original's reference
+  // shape. The Batch 2 invariant is enforced by the selectors test
+  // suite, which checks sourceReferences[0].kind === 'internal-concept'.
+  // Pin the validator's current behavior here.
+  assert.equal(
+    r.errors.length,
+    0,
+    "validator does not enforce openradar-original reference shape; selectors test does",
+  );
+});
+
+test("negative: Batch 2 record referencing unregistered collection fails validator", () => {
+  const r = runWith([
+    baseBatch2Record({ collectionIds: ["nonexistent-collection"] }),
+  ]);
+  assertHasError(r, "is not in the registered collection registry");
+});

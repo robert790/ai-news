@@ -10,6 +10,7 @@
  */
 
 import { pilotBatch1Records } from "./pilot-batch-1";
+import { pilotBatch2Records } from "./pilot-batch-2";
 
 import type { PromptCollectionId } from "./collections";
 
@@ -21,11 +22,20 @@ import type { PromptCollectionId } from "./collections";
 export { pilotBatch1Records };
 
 /**
+ * Batch 2 records, exposed for downstream consumers that want to
+ * reference Batch 2 specifically (for example the Batch 2
+ * invariant tests). Every Batch 2 record is a draft, is not yet
+ * eligible for the public Prompt Kits surface, and is invisible
+ * to the public selector until owner-promoted.
+ */
+export { pilotBatch2Records };
+
+/**
  * The complete catalog. New batches are added by importing their
  * record array and spreading it into this array. There is no
  * globbing; the structure of the catalog is a static import graph.
  */
-export const promptRecords = [...pilotBatch1Records];
+export const promptRecords = [...pilotBatch1Records, ...pilotBatch2Records];
 
 // Type-only re-exports keep `types` and `collections` out of the
 // runtime dependency graph for downstream consumers that only need

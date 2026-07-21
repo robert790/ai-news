@@ -17,14 +17,15 @@ As of Pilot V1 owner authorization on 2026-07-16:
 
 - `prompts_data/prompts.json` (the legacy data file) is **untouched**. It still powers the Streamlit production UI.
 - `prompts.py` and `app.py` are unchanged.
-- Every record in this pilot is a rewrite of a legacy Prompt Bible concept under the same ID. The wording is OpenRadar-authored; legacy wording is not reused. Provenance is recorded on every record as a structured `internal-concept` reference.
+- Batch 1 records are rewrites of legacy Prompt Bible concepts under the same ID, with provenance recorded as a structured `internal-concept` reference on every record. Batch 2 records are not rewrites of legacy content in the same shape; they use OpenRadar-authored wording developed around frozen internal concept IDs, with the per-record exception noted under "Batch 2" below.
 
 ## What lives here
 
 - `types.ts` -- the TypeScript contract for a canonical prompt record.
-- `collections.ts` -- the canonical collection registry (`BUILDER_BENCH`, `EDITOR_DESK`, `OPERATOR_PLAYBOOK`, `STUDIO_FOUNDATION`).
+- `collections.ts` -- the canonical collection registry (`BUILDER_BENCH`, `EDITOR_DESK`, `OPERATOR_PLAYBOOK`, `STUDIO_FOUNDATION`, `RESEARCH_DESK`, `DECISION_ROOM`).
 - `pilot-batch-1.ts` -- the first five canonical records. Exports `pilotBatch1Records`.
-- `index.ts` -- the **sole catalog source**. Imports every batch explicitly, exports `pilotBatch1Records` and `promptRecords` (the complete catalog). There is no runtime file globbing; the catalog is a static import graph.
+- `pilot-batch-2.ts` -- the next five canonical records, currently all `draft` and `pending`. Exports `pilotBatch2Records`.
+- `index.ts` -- the **sole catalog source**. Imports every batch explicitly, exports `pilotBatch1Records`, `pilotBatch2Records`, and `promptRecords` (the complete catalog). There is no runtime file globbing; the catalog is a static import graph.
 - `web/scripts/validate-prompt-content.mjs` -- the validator. Compiles the canonical index with the installed TypeScript compiler, emits to a temp directory, loads the emitted module with the normal Node loader, then runs the pure validation functions on the loaded catalog. Run with `npm run content:validate` from `web/`.
 - `web/scripts/validate-prompt-content.lib.mjs` -- the pure validation functions. Exported so the negative-test suite can validate supplied record arrays directly, without subprocesses or fixture files.
 - `web/scripts/validate-prompt-content.test.mjs` -- negative tests for the validator, run with `node --test`. Run with `npm run content:test` from `web/`.
@@ -50,6 +51,7 @@ As of Pilot V1 owner authorization on 2026-07-16:
   - `external-reference`: at least one reference.
   - `openradar-original`: zero references, or exactly one `internal-concept` reference.
 - All Batch 1 records are `openradar-rewrite` with a single `internal-concept` reference labelled `Legacy Prompt Bible concept: <record-id>` and a `note` stating the wording was rewritten from first principles.
+- Batch 2 records do not all share this shape. See "Batch 2" below for the per-record provenance. The reference-count rule per `sourceType` still applies; the validator enforces it on every record regardless of batch.
 
 ### Review metadata (discriminated union)
 
@@ -103,6 +105,8 @@ A record belongs to one or more registered collections. The registry lives in `c
 - `editor-desk`
 - `operator-playbook`
 - `studio-foundation`
+- `research-desk`
+- `decision-room`
 
 The validator rejects any `collectionIds` value that is not in this registry.
 
@@ -182,7 +186,7 @@ Until then, treat every record here as a working draft and do not publish it ext
 
 ## Disclaimer
 
-Automated checks do not prove originality, factual correctness, editorial quality, or safe execution. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. The wording has been editorially reviewed and approved for the OpenRadar canonical pilot, but no automated or human check can prove factual correctness of a model response or guarantee safe execution of an operational action. Use the structure; do not rely on the prose for safety-critical decisions.
+Automated checks do not prove originality, factual correctness, editorial quality, or safe execution. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. Batch 1 Pilot V1 wording has been editorially reviewed and approved. Batch 2 remains draft, commercially pending, internally eligible only, and not editorially approved. No automated or human check can prove factual correctness of a model response or guarantee safe execution of an operational action. Use the structure; do not rely on the prose for safety-critical decisions.
 
 ## Editing rules
 
@@ -204,3 +208,30 @@ The set of IDs that may appear in this pilot is frozen in `docs/content-os/promp
 - `design-frontend-page-skeleton`
 
 Future batches are added by importing the new batch file's record array into `index.ts` and spreading it into `promptRecords`. There is no globbing.
+
+### Batch 2 (drafts, not yet eligible for Prompt Kits)
+
+Batch 2 (`pilot-batch-2.ts`) adds the next five canonical records as drafts. They are not yet wired into the public selector and are not part of `PILOT_V1_LOCK_IDS` in `selectors.ts`. Each Batch 2 record carries:
+
+- `reviewStatus: "draft"`, `reviewer: null`, `lastReviewedAt: null`.
+- `commercialUseStatus: "pending"` and `publicationEligibility: "internal"`.
+- `safetyClass: "professional"` and `contentVersion: 1`.
+- `authorship: "OpenRadar editorial"`.
+
+Every Batch 1 record is a rewrite of a legacy Prompt Bible concept under the same ID. Batch 2 records use OpenRadar-authored wording developed around frozen internal concept IDs unless a record explicitly identifies a public framework. Every record carries structured provenance appropriate to its source type.
+
+All Batch 2 records remain draft, commercially pending, internally eligible only, and not editorially approved.
+
+Concretely, four Batch 2 records are `openradar-original` with one `internal-concept` `sourceReferences` entry naming the frozen concept ID and noting that the wording was rewritten from first principles. `decide-pre-mortem` is `openradar-rewrite` with one `public-framework` reference for the named pre-mortem method; no URL is attached because none has been verified for inclusion. The pre-mortem wording was rewritten from first principles around that public framework name.
+
+The AMBER Batch 2 records remain pending until owner and legal-trust review resolves attribution concerns.
+
+Batch 2 IDs:
+
+- `code-refactor-no-driveby` (builder-bench)
+- `write-incident-postmortem` (operator-playbook)
+- `research-source-triangulate` (research-desk)
+- `decide-pre-mortem` (decision-room, openradar-rewrite)
+- `operate-auto-rollback-conditions` (operator-playbook)
+
+Batch 2 also extends the collection registry in `collections.ts` with `research-desk` and `decision-room`.
