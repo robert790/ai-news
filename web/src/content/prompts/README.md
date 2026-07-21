@@ -186,7 +186,7 @@ Until then, treat every record here as a working draft and do not publish it ext
 
 ## Disclaimer
 
-Automated checks do not prove originality, factual correctness, editorial quality, or safe execution. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. The wording has been editorially reviewed and approved for the OpenRadar canonical pilot, but no automated or human check can prove factual correctness of a model response or guarantee safe execution of an operational action. Use the structure; do not rely on the prose for safety-critical decisions.
+Automated checks do not prove originality, factual correctness, editorial quality, or safe execution. Inclusion in this directory does **not** equal legal clearance, public publication, or commercial use. Batch 1 Pilot V1 wording has been editorially reviewed and approved. Batch 2 remains draft, commercially pending, internally eligible only, and not editorially approved. No automated or human check can prove factual correctness of a model response or guarantee safe execution of an operational action. Use the structure; do not rely on the prose for safety-critical decisions.
 
 ## Editing rules
 

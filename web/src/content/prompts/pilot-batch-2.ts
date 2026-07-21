@@ -371,7 +371,7 @@ export const pilotBatch2Records: PromptRecord[] = [
       "- Assign no blame to any individual or team. Describe actions and decisions, not character or intent.",
       "- Use 'confirmed', 'estimated', 'working theory', 'unresolved', 'not supplied', and 'source not supplied' as the honest labels for non-trivial claims. Do not introduce other labels.",
       "- When a corrective action is listed without a supplied owner or target date, mark it '[needs decision: <unresolved question>]'. Do not invent dates or assignees.",
-      "- Distinguish facts from assumptions in the executive summary. The summary must remain accurate when the cause is later confirmed, corrected, or left unresolved.",
+      "- Distinguish facts from assumptions in the executive summary. The summary reflects the evidence available for the current draft. If later review changes the cause state, update the summary before reuse.",
       "- Use supplied source identifiers verbatim. Otherwise use generic tool wording and do not invent vendor names.",
       "- The postmortem is a draft until an authorized reviewer confirms the evidence and the corrective actions. Treat the output as a proposal for review.",
     ].join("\n"),
@@ -408,7 +408,7 @@ export const pilotBatch2Records: PromptRecord[] = [
       {
         title: "Writing the postmortem before the incident is resolved",
         body:
-          "Generating a 'postmortem' inside the first hour of an incident produces a plausible-looking artifact that is wrong about key facts. A postmortem is a document of confirmed facts; the first-hour artifact is a status update, not a postmortem.",
+          "Generating a 'postmortem' inside the first hour of an incident produces a plausible-looking artifact that is wrong about key facts. A postmortem is an evidence-based document that may include confirmed facts, estimates, working theories, unresolved questions, and missing-source labels. During active response, use a status update rather than presenting the postmortem draft as final.",
       },
     ],
     collectionIds: ["operator-playbook"],
@@ -795,7 +795,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "thresholds_supplied",
         label: "Thresholds (when supplied)",
         description:
-          "Any thresholds the inputs already commit to. When the input is empty, the prompt proposes candidate thresholds and marks each '[needs decision: <unresolved question>]'.",
+          "Any thresholds the inputs already commit to. When the input is empty, do not propose a numeric threshold. Mark the required comparator, direction, unit, scope, baseline, and trigger class as unresolved decisions; keep the policy manual-only where the missing threshold affects safe automatic operation.",
         example:
           "Error rate above baseline plus 2 percent for two consecutive minutes. Login latency p95 above 1500 ms for two consecutive minutes.",
       },
@@ -803,7 +803,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "evaluation_window_supplied",
         label: "Evaluation window (when supplied)",
         description:
-          "The window over which a signal must breach before triggering, and the minimum sample or traffic required for the signal to be considered meaningful. When the input is empty, the prompt proposes candidate windows and minimum samples, each marked '[needs decision: <unresolved question>]'.",
+          "The window over which a signal must breach before triggering, and the minimum sample or traffic required for the signal to be considered meaningful. When the input is empty, do not propose numeric windows or minimum samples. Mark each missing window, persistence, sample, freshness, stabilization, and low-traffic rule as an unresolved decision.",
         example:
           "Two consecutive one-minute windows. Minimum traffic: 100 checkouts per minute in the affected region.",
       },
@@ -819,7 +819,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "false_positive_safeguards",
         label: "False-positive safeguards (when supplied)",
         description:
-          "Cool-down rules, hysteresis, confirmation steps, or persistence rules the inputs commit to. When the input is empty, the prompt proposes candidates and marks each '[needs decision: <unresolved question>]'.",
+          "Cool-down rules, hysteresis, confirmation steps, or persistence rules the inputs commit to. When the input is empty, do not propose numeric cooldown, hysteresis, confirmation, or persistence values. Mark each missing safeguard as an unresolved decision.",
         example:
           "Persist the trigger across two consecutive windows. Cool-down: do not auto-rollback more than once per 30 minutes.",
       },
