@@ -574,16 +574,20 @@ test("negative: Batch 2 record with reviewer set is rejected", () => {
   assertHasError(r, "reviewer must be null");
 });
 
-test("negative: Batch 2 record with non-internal-concept reference is rejected by validator", () => {
+test("positive: selector invariants, not the generic validator, pin Batch 2 provenance kinds", () => {
   // openradar-original is allowed to have zero references, or
   // exactly one internal-concept reference. A 'public-framework'
   // reference on an openradar-original record still passes the
   // openradar-rewrite rule (not enforced for openradar-original),
-  // but the validator does NOT enforce openradar-original's
-  // narrower rule. Pin the current behavior: the validator
-  // accepts the openradar-original record regardless of reference
-  // kind, so this test asserts the records still validate when a
-  // non-internal-concept reference is attached to an openradar-original.
+  // but the generic validator does NOT enforce openradar-original's
+  // narrower rule. The Batch 2 invariant is enforced by the
+  // selectors test suite, which checks sourceReferences[0].kind
+  // === 'internal-concept' for the four openradar-original records
+  // and sourceReferences[0].kind === 'public-framework' (no URL)
+  // for decide-pre-mortem. This validator test pins the current
+  // behavior of the generic validator so the invariant picture is
+  // complete: the generic validator does not enforce
+  // openradar-original's reference shape; the selectors tests do.
   const REGISTRY_BATCH_2 = new Set([
     "builder-bench",
     "editor-desk",
