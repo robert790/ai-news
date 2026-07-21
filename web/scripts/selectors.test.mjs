@@ -1039,11 +1039,6 @@ test("live catalog: every Batch 2 record is draft, pending, and internally-eligi
       `${rec.id}: publicationEligibility must be 'internal'`,
     );
     assert.equal(
-      rec.sourceType,
-      "openradar-original",
-      `${rec.id}: sourceType must be 'openradar-original'`,
-    );
-    assert.equal(
       rec.authorship,
       "OpenRadar editorial",
       `${rec.id}: authorship must be 'OpenRadar editorial'`,
@@ -1058,18 +1053,65 @@ test("live catalog: every Batch 2 record is draft, pending, and internally-eligi
       "professional",
       `${rec.id}: safetyClass must be 'professional'`,
     );
-    // Provenance: exactly one internal-concept reference.
+    // Provenance: every Batch 2 record carries exactly one source reference.
     assert.equal(
       rec.sourceReferences.length,
       1,
       `${rec.id}: sourceReferences must be exactly one entry`,
     );
-    assert.equal(
-      rec.sourceReferences[0].kind,
-      "internal-concept",
-      `${rec.id}: sourceReference kind must be 'internal-concept'`,
-    );
+    // Four records are openradar-original with an internal-concept
+    // reference. decide-pre-mortem is openradar-rewrite with a
+    // public-framework reference for the named pre-mortem method,
+    // per the Batch 2 corrections; no URL is attached.
+    if (rec.id === "decide-pre-mortem") {
+      assert.equal(
+        rec.sourceType,
+        "openradar-rewrite",
+        `${rec.id}: sourceType must be 'openradar-rewrite'`,
+      );
+      assert.equal(
+        rec.sourceReferences[0].kind,
+        "public-framework",
+        `${rec.id}: sourceReference kind must be 'public-framework'`,
+      );
+      assert.equal(
+        rec.sourceReferences[0].url,
+        undefined,
+        `${rec.id}: sourceReference must not carry an unverified URL`,
+      );
+    } else {
+      assert.equal(
+        rec.sourceType,
+        "openradar-original",
+        `${rec.id}: sourceType must be 'openradar-original'`,
+      );
+      assert.equal(
+        rec.sourceReferences[0].kind,
+        "internal-concept",
+        `${rec.id}: sourceReference kind must be 'internal-concept'`,
+      );
+    }
   }
+});
+
+test("live catalog: decide-pre-mortem carries a public-framework reference with no URL", async () => {
+  const mod = loadCatalogExports();
+  const rec = mod.pilotBatch2Records.find((r) => r.id === "decide-pre-mortem");
+  assert.ok(rec, "decide-pre-mortem must exist in the canonical catalog");
+  assert.equal(rec.sourceType, "openradar-rewrite");
+  assert.equal(rec.sourceReferences.length, 1);
+  assert.equal(rec.sourceReferences[0].kind, "public-framework");
+  // Truthful label/note; no fabricated URL.
+  assert.ok(
+    typeof rec.sourceReferences[0].label === "string" &&
+      rec.sourceReferences[0].label.trim().length > 0,
+    "decide-pre-mortem public-framework label must be a non-empty string",
+  );
+  assert.equal(
+    rec.sourceReferences[0].url,
+    undefined,
+    "decide-pre-mortem public-framework must not carry an unverified URL",
+  );
 });
 
 test("live catalog: no Batch 2 record passes the public eligibility predicate", async () => {

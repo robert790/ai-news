@@ -211,15 +211,21 @@ Batch 2 (`pilot-batch-2.ts`) adds the next five canonical records as drafts. The
 
 - `reviewStatus: "draft"`, `reviewer: null`, `lastReviewedAt: null`.
 - `commercialUseStatus: "pending"` and `publicationEligibility: "internal"`.
-- `sourceType: "openradar-original"` with one `internal-concept` `sourceReferences` entry that names the frozen concept ID and notes that the wording was rewritten from first principles.
 - `safetyClass: "professional"` and `contentVersion: 1`.
+- `authorship: "OpenRadar editorial"`.
+
+Every Batch 1 record is a rewrite of a legacy Prompt Bible concept under the same ID. Batch 2 records use OpenRadar-authored wording developed around frozen internal concept IDs unless a record explicitly identifies a public framework. Every record carries structured provenance appropriate to its source type.
+
+Concretely, four Batch 2 records are `openradar-original` with one `internal-concept` `sourceReferences` entry naming the frozen concept ID and noting that the wording was rewritten from first principles. `decide-pre-mortem` is `openradar-rewrite` with one `public-framework` reference for the named pre-mortem method; no URL is attached because none has been verified for inclusion. The pre-mortem wording was rewritten from first principles around that public framework name.
+
+The AMBER Batch 2 records remain pending until owner and legal-trust review resolves attribution concerns.
 
 Batch 2 IDs:
 
 - `code-refactor-no-driveby` (builder-bench)
 - `write-incident-postmortem` (operator-playbook)
 - `research-source-triangulate` (research-desk)
-- `decide-pre-mortem` (decision-room)
+- `decide-pre-mortem` (decision-room, openradar-rewrite)
 - `operate-auto-rollback-conditions` (operator-playbook)
 
 Batch 2 also extends the collection registry in `collections.ts` with `research-desk` and `decision-room`.

@@ -48,6 +48,26 @@ const provenance = (id: string) => [
   },
 ];
 
+/**
+ * Provenance for the one Batch 2 record that names a public framework
+ * rather than only a frozen internal concept. The pre-mortem method
+ * is a named public framework; the record treats the wording as an
+ * OpenRadar rewrite of that framework, with no URL or citation that
+ * has not been verified.
+ *
+ * The label names the method. The note explicitly disclaims a URL:
+ * any external reference would need to be verified before attachment,
+ * and the validator rejects URLs that are not valid http/https.
+ */
+const publicFrameworkRewriteProvenance = () => [
+  {
+    kind: "public-framework" as const,
+    label: "Pre-mortem method (public decision-analysis framework)",
+    note:
+      "OpenRadar rewrite of the named pre-mortem method. No URL or citation has been verified for attachment; the reference is included by framework name only. Owner/legal-trust review must verify any external citation before this reference is promoted out of draft.",
+  },
+];
+
 export const pilotBatch2Records: PromptRecord[] = [
   {
     ...baseEditorial,
@@ -86,6 +106,14 @@ export const pilotBatch2Records: PromptRecord[] = [
           "The retry helper is called from 11 call sites; two of them rely on the helper logging a specific warning string; one test pins the warning text in a snapshot.",
       },
       {
+        name: "repository_access",
+        label: "Repository access",
+        description:
+          "State whether the prompt has actual repository access (and which tool: filesystem, version-control tool, code search, language server) or whether all inspection will be drawn from supplied text. When no actual access is available, every inspection item must be labelled 'planned, not performed'.",
+        example:
+          "Actual access: filesystem and grep over the repo root. No language server. Supplied diff was pasted from the change-management tool.",
+      },
+      {
         name: "unrelated_cleanup_seen",
         label: "Unrelated cleanup seen along the way",
         description:
@@ -101,6 +129,14 @@ export const pilotBatch2Records: PromptRecord[] = [
         example:
           "Run the unit tests for src/clients and the integration test suite. Manually exercise one flaky-upstream scenario. Confirm error type and message stay identical for the timeout case.",
       },
+      {
+        name: "rejected_scope_expansion",
+        label: "Rejected scope-expansion requests",
+        description:
+          "Drive-by changes the inputs tempted toward but the user explicitly rejected (or that the boundary explicitly forbids). These belong in section 7, not in the diff.",
+        example:
+          "Reject: reformatting the call sites. Reject: renaming the helper. Reject: pulling the timeout values into a config file.",
+      },
     ],
     prompt: [
       "You are performing a refactor. Your job is to make the requested change and only the requested change, without growing scope and without quietly changing behavior that was not part of the task.",
@@ -114,35 +150,44 @@ export const pilotBatch2Records: PromptRecord[] = [
       "Investigation findings (if supplied):",
       "{investigation_findings}",
       "",
+      "Repository access:",
+      "{repository_access}",
+      "",
       "Unrelated cleanup seen along the way:",
       "{unrelated_cleanup_seen}",
       "",
       "Verification plan:",
       "{verification_plan}",
       "",
-      "Produce the following sections:",
+      "Rejected scope-expansion requests:",
+      "{rejected_scope_expansion}",
+      "",
+      "Produce the following sections, in this order:",
       "1. Boundary restatement -- one short paragraph that restates what is in scope and what is explicitly out of scope, in your own words. If anything in the inputs is ambiguous, list the ambiguity here as an unresolved question rather than guessing.",
       "2. Behavior contract -- the list of externally observable behaviors that must not change. Mark each item as confirmed, assumed, or not-required.",
-      "3. Investigation before editing -- the evidence you read before opening the diff. When 'investigation_findings' is empty, do not invent findings; instead list the files or components you would actually open and what you would look for in each.",
-      "4. Required changes -- the edits that the refactor must make. Each change must trace to the boundary restatement or the behavior contract.",
-      "5. Deferred improvements -- the items from 'unrelated_cleanup_seen' that you noticed but did not touch, each with one sentence on why it stays out of scope.",
-      "6. Targeted verification -- the exact checks you ran, the result of each, and the one thing that would tell you the refactor was not safe to merge.",
-      "7. Out-of-scope items rejected -- drive-by changes the inputs tempted you toward but you did not make, each labelled with the reason.",
+      "3. Investigation before editing -- the evidence you read before opening the diff. Each inspection item must be labelled either 'performed' (with the actual supplied or observed evidence attached) or 'planned, not performed' (with the file, component, command, test, or repository area named and the action that would be taken once access is available). When the inputs do not name the affected files, name the ones you would actually open and what you would look for in each.",
+      "4. Required changes -- the edits that the refactor must make. Each change must trace to the boundary restatement or the behavior contract. Mark each item as either 'performed' (the actual edit, with the file or component and the change made) or 'planned, not performed' (the exact edit that would be made once the boundary is confirmed). Preserve the exact supplied or observed command or tool name when reproducibility requires it. Do not invent commands or tools.",
+      "5. Deferred improvements -- the items from 'unrelated_cleanup_seen' that you noticed but did not touch, each with one sentence on why it stays out of scope. Only items actually supplied or observed belong here; do not invent deferred items from speculation.",
+      "6. Targeted verification -- the exact checks you ran, the result of each, and the one thing that would tell you the refactor was not safe to merge. Mark each check as 'performed' (with the actual result) or 'planned, not performed' (with the check that would be run). Preserve the exact supplied or observed command or tool name when reproducibility requires it.",
+      "7. Out-of-scope items rejected -- drive-by changes the inputs tempted you toward but you did not make, each labelled with the reason. Drawn from 'rejected_scope_expansion' when supplied, and from any item the boundary explicitly forbids.",
+      "8. Human-review gate -- an explicit checklist the reviewer confirms before merge: (a) the refactor boundary matches what was authorized; (b) the changed files are exactly the files named in the diff; (c) the behavior contract is preserved; (d) the verification evidence actually demonstrates the contract is preserved. Each item carries a tick or a 'not confirmed -- [needs decision: <unresolved question>]'.",
       "",
       "Constraints:",
       "- Preserve externally observable behavior unless the inputs explicitly authorize otherwise. When behavior changes are authorized, state each change and the authorization source.",
       "- Separate required changes from unrelated cleanup. Unrelated cleanup belongs in section 5, never in the diff.",
-      "- Investigate before editing. Read the affected files or components, the tests that cover them, and the call sites that depend on them. When the inputs do not name the affected files, list the ones you would actually open and what you would look for in each; do not invent file paths.",
+      "- Investigate before editing. Read the affected files or components, the tests that cover them, and the call sites that depend on them. Every inspection item must carry the 'performed' or 'planned, not performed' label. Do not claim a file, component, command, test, or repository area was inspected unless supplied findings or actual repository access supports the claim.",
+      "- Distinguish actual edits from proposed edits. Section 4 carries the label on every change. Preserve the exact supplied or observed command or tool name when reproducibility requires it; do not invent commands or tools that the inputs did not supply.",
       "- Identify affected files or components only when the inputs supplied them or your investigation actually opened them. Cite the smallest relevant fragment or area when a precise path is not supplied.",
-      "- Require targeted verification before declaring the refactor done. State the checks, the result, and the single signal that would have made you stop and reconsider.",
-      "- Report deferred improvements separately, each labelled with the reason it is deferred.",
+      "- Require targeted verification before declaring the refactor done. Section 6 names the checks, the result, and the single signal that would have made you stop and reconsider. Each check carries the 'performed' or 'planned, not performed' label.",
+      "- Report deferred improvements separately in section 5, each labelled with the reason it is deferred. Section 7 closes the loop on drive-by temptations the writer explicitly rejected, drawn from 'rejected_scope_expansion' or from items the boundary explicitly forbids.",
       "- Stop scope expansion. Reject 'while I am here' changes; they go in section 7, not in section 4.",
-      "- Do not invent file paths, line numbers, call sites, tests, or contracts. When the inputs do not give them, name the area in plain language.",
+      "- Do not invent file paths, line numbers, call sites, tests, or contracts. When the inputs do not give them, name the area in plain language and label the item 'planned, not performed' until the actual evidence is available.",
       "- Use generic wording for tools (for example: 'the test runner', 'the formatter', 'the static analyzer'). Do not name a specific vendor.",
       "- When any input is missing and the missing piece would change the answer, list it under section 1 as an unresolved question rather than guessing.",
+      "- The human-review gate in section 8 is mandatory. The refactor is not safe to merge until every item there is confirmed by an authorized reviewer.",
     ].join("\n"),
     expectedOutput:
-      "A refactor plan with the seven labeled sections. Section 1 restates the boundary and lists open ambiguities. Section 4 contains only the edits that the boundary authorizes. Section 5 lists unrelated cleanup the inputs mentioned, deferred with a reason. Section 6 names the checks actually run and the single signal that would have stopped the refactor. Section 7 names every drive-by change the inputs tempted toward but did not authorize. The output never invents file paths, call sites, tests, or contracts the inputs did not supply.",
+      "A refactor plan with the eight labeled sections. Section 1 restates the boundary and lists open ambiguities. Section 4 lists only the edits the boundary authorizes, each carrying 'performed' or 'planned, not performed' with the actual supplied or observed evidence. Section 5 lists deferred improvements that were supplied or observed. Section 6 names the checks actually run, each carrying 'performed' or 'planned, not performed' with the actual result. Section 7 names every drive-by change rejected, drawn from the rejected scope-expansion input or from items the boundary forbids. Section 8 is the human-review gate: boundary, changed files, behavior contract, verification evidence -- each confirmed or marked unresolved. The output never invents file paths, call sites, tests, or contracts the inputs did not supply; commands and tool names are preserved exactly when supplied.",
     notes: [
       {
         title: "Why the boundary restatement is the first section",
@@ -253,9 +298,9 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "corrective_actions",
         label: "Corrective actions (when supplied)",
         description:
-          "Concrete follow-up actions with an owner and a target date when the inputs supply them. Items without a supplied owner or date are listed as '[needs decision] -- <unresolved question>'.",
+          "Concrete follow-up actions with an owner and a target date when the inputs supply them. Items without a supplied owner or date are listed as '[needs decision: <unresolved question>]'.",
         example:
-          "Add a pre-deploy canary for the checkout path (owner: Alice, target: 2026-08-15). Lower the rollback permission scope (owner: [needs decision], target: [needs decision]).",
+          "Add a pre-deploy canary for the checkout path (owner: Alice, target: 2026-08-15). Lower the rollback permission scope (owner: [needs decision: <unresolved question>], target: [needs decision: <unresolved question>]).",
       },
       {
         name: "open_questions_and_followup_evidence",
@@ -268,7 +313,7 @@ export const pilotBatch2Records: PromptRecord[] = [
     ],
     prompt: [
       "Write a blameless incident postmortem from the inputs below.",
-      "Use only what the inputs supply. Where the inputs do not supply a fact, state that the fact is unconfirmed, unresolved, or missing. Never invent timestamps, causes, owners, metrics, or certainty.",
+      "Use only what the inputs supply. Where the inputs do not supply a fact, state that the fact is 'not supplied'. Never infer 'none' or 'not observed' for impact window, user impact, or data exposure. Every material timestamp, number, impact statement, causal claim, contributing factor, and corrective action must cite a supplied source identifier or say 'source not supplied'. The summary must reflect the evidence available for this draft and must be updated if later review changes the cause state.",
       "",
       "Confirmed incident summary:",
       "{confirmed_incident_summary}",
@@ -298,27 +343,34 @@ export const pilotBatch2Records: PromptRecord[] = [
       "{open_questions_and_followup_evidence}",
       "",
       "Produce the following sections, in this order:",
-      "1. Executive summary -- two or three sentences that stand on their own. State the impact window, the user-visible effect, and the current state of the root cause (confirmed, working theory, or unresolved).",
-      "2. Impact -- who was affected, in which regions or segments, for how long, what they saw, and whether any data was exposed. Mark each number as confirmed or estimated.",
-      "3. Timeline -- the evidence-based timeline, in time order, with each event labelled by its source. Do not invent timestamps. Where timestamps come from different clocks, state the source.",
-      "4. Detection and response -- what fired, who acknowledged, who joined, what mitigations were applied, in time order. Drawn only from the inputs.",
-      "5. Root cause -- either a confirmed cause with the evidence that supports it, or a clear statement that the cause is unresolved, with the working theories and the evidence that would distinguish them.",
-      "6. Contributing factors -- the structural or process factors that made the incident more likely, slower to detect, or harder to resolve. Each factor must be supported by something in the inputs.",
-      "7. What worked and what failed -- the parts of the response that worked and the parts that did not, drawn only from the inputs.",
-      "8. Corrective actions -- concrete follow-up actions. Each action with an owner and a target date when the inputs supplied them; otherwise mark '[needs decision] -- <unresolved question>'.",
+      "1. Executive summary -- two or three sentences that stand on their own. State the impact window, the user-visible effect, and the current state of the root cause (confirmed, working theory, or unresolved). The summary must reflect the evidence available for this draft and must be updated if later review changes the cause state.",
+      "2. Impact -- who was affected, in which regions or segments, for how long, what they saw, and whether any data was exposed. For impact window, user impact, and data exposure, if the inputs do not supply the fact, write 'not supplied' rather than inferring 'none' or 'not observed'. Mark each number as confirmed or estimated, and cite the supplied source identifier for each material claim.",
+      "3. Timeline -- the evidence-based timeline, in time order, with each event labelled by its source. Do not invent timestamps. Where timestamps come from different clocks, state the source. Each event carries the supplied source identifier.",
+      "4. Detection and response -- a summary of who acknowledged, who joined, and what mitigations were applied, in time order. The full chronology lives in section 3; this section summarizes and references timeline events (for example: 'rollback at 13:47 UTC, see timeline entry 3') instead of restating timestamps. Each action carries the supplied source identifier.",
+      "5. Root cause -- either a confirmed cause with the evidence that supports it, or a clear statement that the cause is unresolved, with the working theories and the evidence that would distinguish them. Cite the supplied source identifier for every causal claim.",
+      "6. Contributing factors -- the structural or process factors that made the incident more likely, slower to detect, or harder to resolve. Each factor must be supported by something in the inputs and must cite the supplied source identifier.",
+      "7. What worked and what failed -- the parts of the response that worked and the parts that did not, drawn only from the inputs. Cite the supplied source identifier.",
+      "8. Corrective actions -- concrete follow-up actions. Each action with an owner and a target date when the inputs supplied them; otherwise mark '[needs decision: <unresolved question>]'. Cite the supplied source identifier.",
       "9. Open questions and follow-up evidence -- anything still unresolved, the evidence that would resolve it, and who owns collecting it. When the inputs supply nothing, state explicitly that no open questions were supplied.",
+      "10. Resolution status -- an explicit statement of whether the incident is resolved. Do not describe the incident as resolved unless the inputs supply that status or an authorized incident lead has confirmed it. When the inputs do not supply a resolution status, write 'resolution status: not supplied'.",
       "",
       "Constraints:",
       "- Do not invent timestamps, causes, owners, metrics, regions, customer counts, or certainty. Every number or attribution must trace to a supplied input.",
+      "- For impact window, user impact, and data exposure, write 'not supplied' when the inputs do not give the fact. Never infer 'none' or 'not observed'.",
+      "- Every material timestamp, number, impact statement, causal claim, contributing factor, and corrective action must cite a supplied source identifier or say 'source not supplied'. The summary rule in section 1 binds the executive summary to the same citation discipline.",
+      "- Detection and response (section 4) summarizes and references timeline events; it does not duplicate the chronology from section 3.",
+      "- Individual actions may be causally relevant, but record them factually. Do not claim character, intent, motivation, or judgement about any person or team.",
+      "- Analyze the system conditions that are supported by the inputs (configuration, deployment, telemetry, runbook state). Do not assign cause to personality or intent.",
+      "- Do not describe the incident as resolved unless the inputs supply that status or an authorized incident lead has confirmed it. When unresolved, the document is a draft until confirmation.",
       "- Assign no blame to any individual or team. Describe actions and decisions, not character or intent.",
-      "- Use 'confirmed', 'estimated', 'working theory', or 'unresolved' as the four honest labels for any non-trivial claim. Do not introduce other labels.",
-      "- When a corrective action is listed without a supplied owner or target date, mark it '[needs decision] -- <unresolved question>'. Do not invent dates or assignees.",
+      "- Use 'confirmed', 'estimated', 'working theory', 'unresolved', 'not supplied', and 'source not supplied' as the honest labels. Do not introduce other labels.",
+      "- When a corrective action is listed without a supplied owner or target date, mark it '[needs decision: <unresolved question>]'. Do not invent dates or assignees.",
       "- Distinguish facts from assumptions in the executive summary. The summary must remain accurate when the cause is later confirmed, corrected, or left unresolved.",
       "- Use generic wording for tools (for example: 'the alerting system', 'the deploy log', 'the runbook'). Do not name a specific vendor.",
       "- The postmortem is a draft until an authorized reviewer confirms the evidence and the corrective actions. Treat the output as a proposal for review.",
     ].join("\n"),
     expectedOutput:
-      "A blameless postmortem with the nine labeled sections. The executive summary stands on its own and labels the cause state honestly. The timeline contains only events whose source is in the inputs, with timestamps attached to their source. The root-cause section is either confirmed with supporting evidence or clearly unresolved with the working theories. Corrective actions carry owners and target dates only when the inputs supplied them; missing items are '[needs decision]'. No invented timestamps, causes, owners, metrics, or certainty.",
+      "A blameless postmortem with the ten labeled sections. The executive summary stands on its own, labels the cause state honestly, and reflects the evidence available for this draft. The timeline contains only events whose source is in the inputs, with timestamps attached to their source identifier. The detection-and-response section summarizes and references timeline events instead of duplicating them. The root-cause section is either confirmed with supporting evidence or clearly unresolved with the working theories. Corrective actions carry owners and target dates only when the inputs supplied them; missing items are '[needs decision: <unresolved question>]'. Section 10 states the resolution status as confirmed by the inputs or an authorized incident lead, or as 'not supplied'. No invented timestamps, causes, owners, metrics, certainty, 'none', or 'not observed' for impact window, user impact, or data exposure.",
     notes: [
       {
         title: "Why four honest labels instead of one",
@@ -328,7 +380,7 @@ export const pilotBatch2Records: PromptRecord[] = [
       {
         title: "Why owners and dates belong in the inputs, not in the writer",
         body:
-          "A postmortem that invents owners and target dates produces a follow-up plan that has to be re-checked by every named person. Pulling owners and dates from the inputs keeps the action list attributable, and '[needs decision]' keeps the gap visible until a real owner is named.",
+          "A postmortem that invents owners and target dates produces a follow-up plan that has to be re-checked by every named person. Pulling owners and dates from the inputs keeps the action list attributable, and '[needs decision: <unresolved question>]' keeps the gap visible until a real owner is named.",
       },
     ],
     antiPatterns: [
@@ -432,27 +484,31 @@ export const pilotBatch2Records: PromptRecord[] = [
       "Produce the following sections, in this order:",
       "1. Question restatement -- the research question in one sentence, in your own words, plus the boundaries (population, scope, time window) drawn from the inputs.",
       "2. Claim breakdown -- the candidate claims, numbered, each a single falsifiable statement.",
-      "3. Source register -- a table or list of the supplied sources, each with identifier, type (primary, secondary, meta-analysis, vendor report, blog), year, and a one-line note on recency, authority, directness, and any visible conflict of interest.",
-      "4. Per-claim triangulation -- for each claim, the sources that address it, what each source actually says (paraphrase; do not invent a quote), and the resulting label: supported, partially supported, contested, or unsupported.",
-      "5. Cross-source agreement and disagreement -- where two or more independent sources agree, where they disagree, and where the inputs lack a second source for a claim.",
-      "6. Source-quality assessment -- for each source, a brief read on recency, authority (peer review, institutional, vendor, blog), directness (does the source itself report the evidence, or does it cite another source), and any visible conflict of interest.",
-      "7. Missing evidence and access gaps -- the claims that the inputs cannot support, the access constraints that explain the gap, and the kind of source that would resolve each gap.",
-      "8. Claim-level citations -- for each claim, the source identifiers (for example: 'Source A', 'Source B') that support it. Where no source supports a claim, mark it 'unsupported'.",
-      "9. Honest answer to the research question -- a short answer that reflects the supported, contested, and unsupported parts of the evidence. The answer preserves uncertainty; it does not collapse it.",
+      "3. Source register -- a table or list of the supplied sources, each with identifier, type (primary, secondary, meta-analysis, vendor report, blog), year, and a one-line note on recency, authority, directness, and any visible conflict of interest. For each source, also note the evidence family it belongs to (study, dataset, filing, press release, citation chain, controlled authorship chain, or controlled funding chain). Sources that share an evidence family do not count as independent corroboration.",
+      "4. Per-claim evidence map -- for each claim, the sources that address it and the per-source classification: Supports, Qualifies, Contradicts, or Not assessable. Each classification cites the source identifier and the exact item in the source that supports it (a section, a table, a quote location, or 'unspecified' when the inputs do not give it).",
+      "5. Cross-source independence check -- for each claim with two or more sources, an explicit check on whether the sources are independent. Sources do not count as independent corroboration when they derive from the same study, dataset, filing, press release, citation chain, controlled authorship chain, or controlled funding chain. Compare independent evidence families, not raw document counts.",
+      "6. Per-claim triangulation -- for each claim, the resulting label after the independence check: supported (independent corroboration), partially supported (one source or non-independent family only), contested (independent sources disagree), unsupported (no source supports it), or insufficient evidence (sources address it but the data is thin).",
+      "7. Source-quality assessment -- for each source, a brief read on recency, authority (peer review, institutional, vendor, blog), directness (does the source itself report the evidence, or does it cite another source), and any visible conflict of interest.",
+      "8. Single-family and single-source limitations -- every claim that relies on a single source or a single evidence family, stated honestly with the limitation. Do not paper over the single-source dependency.",
+      "9. Missing evidence and access gaps -- the claims that the inputs cannot support, the access constraints that explain the gap, and the kind of source that would resolve each gap.",
+      "10. Claim-level citations -- for each claim, the source identifiers (for example: 'Source A', 'Source B') that support it, with the per-source classification. Where no source supports a claim, mark it 'unsupported'.",
+      "11. Honest answer to the research question -- a short answer that reflects the supported, contested, and unsupported parts of the evidence. The answer preserves uncertainty and does not collapse it.",
       "",
       "Constraints:",
       "- Prioritize primary sources. Treat secondary and tertiary sources as summaries of primary sources, not as the final word.",
-      "- Compare at least two independent sources when available. Note when only one source is available for a claim.",
+      "- Compare independent evidence families, not raw document counts. Two sources from the same study, dataset, filing, press release, citation chain, controlled authorship chain, or controlled funding chain are not independent corroboration; they are a single family.",
+      "- Document single-family and single-source limitations honestly. When a claim rests on a single source or a single family, say so and reduce the claim's confidence accordingly.",
+      "- Use 'Supports', 'Qualifies', 'Contradicts', or 'Not assessable' as the per-source classification. Do not introduce other classifications.",
       "- Separate agreement, disagreement, and missing evidence into different sections. Do not let 'missing' silently turn into 'contested'.",
       "- Preserve uncertainty. Use 'supported', 'partially supported', 'contested', 'unsupported', and 'insufficient evidence' as the honest labels. Do not collapse them.",
       "- Never fabricate a quotation, citation, publication detail, author affiliation, year, or claim of access to material the inputs do not provide.",
-      "- Where a source itself cites another source, follow the citation only when the primary source is also in the inputs. Otherwise flag the chain as indirect.",
-      "- For each source, note recency, authority, directness, and conflicts of interest. State these even when the source looks reliable; the reader is the one who weighs them.",
+      "- Where a source itself cites another source, follow the citation only when the primary source is also in the inputs. Otherwise flag the chain as indirect and note the citation chain as the evidence family.",
+      "- For each source, note recency, authority, directness, conflicts of interest, and the evidence family it belongs to. State these even when the source looks reliable; the reader is the one who weighs them.",
       "- Use generic wording for tools and databases (for example: 'the search index', 'the citation manager'). Do not name a specific vendor.",
       "- The triangulation is a draft until the researcher verifies the citations and the access constraints. Treat the output as a proposal for review.",
     ].join("\n"),
     expectedOutput:
-      "A triangulation with the nine labeled sections. The claim breakdown is concrete and falsifiable. The source register names each supplied source with type, year, and quality notes. The per-claim section labels every claim as supported, partially supported, contested, or unsupported. The honest answer in section 9 reflects the actual evidence and preserves the gaps. No invented quotation, citation, publication detail, or access to material the inputs did not provide.",
+      "A triangulation with the eleven labeled sections. The claim breakdown is concrete and falsifiable. The source register names each supplied source with type, year, evidence family, and quality notes. The per-claim evidence map classifies every relevant source as Supports, Qualifies, Contradicts, or Not assessable with the supporting item cited. The cross-source independence check explicitly flags sources that share an evidence family and refuses to count them as independent corroboration. Single-family and single-source limitations are stated honestly. The honest answer in section 11 reflects the actual evidence and preserves the gaps. No invented quotation, citation, publication detail, or access to material the inputs did not provide.",
     notes: [
       {
         title: "Why the claim breakdown comes before the source register",
@@ -539,7 +595,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "decision_gates_and_stop_conditions",
         label: "Decision gates and stop conditions (when supplied)",
         description:
-          "Any pre-committed gates at which the decision must be re-evaluated, and any stop conditions that would trigger a halt or rollback. When the input is empty, the prompt must propose candidate gates and stop conditions, each marked '[needs decision]' until confirmed.",
+          "Any pre-committed gates at which the decision must be re-evaluated, and any stop conditions that would trigger a halt or rollback. When the input is empty, the prompt must propose candidate gates and stop conditions, each marked '[needs decision: <unresolved question>]'.",
         example:
           "Gate at 30 days: re-evaluate against the original assumptions. Stop condition: error rate above baseline plus 2 percent for any consecutive 24 hours.",
       },
@@ -567,28 +623,29 @@ export const pilotBatch2Records: PromptRecord[] = [
       "1. Decision restatement -- the proposed decision in one paragraph, in your own words, including scope, timing, and reversibility class.",
       "2. Assumptions to validate -- the assumptions the decision rests on, each labelled confirmed or assumed, with the test that would validate each assumed one.",
       "3. Failure modes -- distinct, plausible failure modes the decision could produce. Each failure mode is a single scenario, not a theme. No duplicate wording. Each failure mode is labelled with reversibility (reversible, partially reversible, irreversible).",
-      "4. Per-failure-mode assessment -- for each failure mode: likelihood (low, medium, high), impact (low, medium, high), detectability (low, medium, high), and time horizon (days, weeks, months, quarters).",
+      "4. Per-failure-mode assessment -- for each failure mode: likelihood (low, medium, high, unknown), impact (low, medium, high, unknown), detectability (low, medium, high, unknown), and time horizon (days, weeks, months, quarters, unknown). Detectability is defined as: high = likely to be detected early; low = likely to remain hidden. When any rating rests on the inputs, mark it 'input-grounded'; when the rating rests on inference or judgement in the absence of input evidence, mark it 'speculative'. 'unknown' is the honest label when evidence is insufficient.",
       "5. Leading indicators -- the signals that would tell you each failure mode is happening, with the supplied instrument that would surface them. When no instrument is supplied, name the signal category to monitor without naming a specific tool.",
-      "6. Mitigations -- proportionate mitigations for each failure mode, matched to reversibility. Reversible risks get fast-detection and rollback-oriented mitigations; irreversible risks get prevention-oriented mitigations.",
-      "7. Reversible vs irreversible -- a short section that names the irreversible risks separately, with the reason each is irreversible and the gate that would still allow the decision to be stopped.",
-      "8. Decision gates -- the gates at which the decision must be re-evaluated, drawn from the inputs when supplied; otherwise proposed candidates, each marked '[needs decision]'.",
-      "9. Stop conditions -- the conditions that would trigger a halt or rollback, drawn from the inputs when supplied; otherwise proposed candidates, each marked '[needs decision]'.",
-      "10. Open assumptions requiring validation -- the assumptions the decision rests on that are not yet confirmed, with the validation step that would confirm each one.",
+      "6. Mitigations -- proportionate mitigations for each failure mode, matched to reversibility. Reversible risks get fast-detection and rollback-oriented mitigations; irreversible risks get prevention-oriented mitigations. Partially reversible risks get a separate treatment per the next section.",
+      "7. Partially reversible and irreversible risks -- for every partially reversible or irreversible risk, three sub-sections: (a) containment -- the actions that limit the blast radius once the failure mode begins; (b) residual harm after rollback -- the part of the harm that survives a successful rollback or stop; (c) prevention -- the actions taken before the point of no return that reduce the irreversible portion. For every partially reversible or irreversible risk, also identify: (d) the point of no return -- the event or commitment after which rollback cannot undo the harm; (e) the last pre-commit decision gate -- the latest moment the decision can be halted before the point of no return.",
+      "8. Reversible vs irreversible -- a short section that names the irreversible risks separately, with the reason each is irreversible and the gate that would still allow the decision to be stopped.",
+      "9. Decision gates -- the gates at which the decision must be re-evaluated, drawn from the inputs when supplied; otherwise proposed candidates, each marked '[needs decision: <unresolved question>]'.",
+      "10. Stop conditions -- the conditions that would trigger a halt or rollback, drawn from the inputs when supplied; otherwise proposed candidates, each marked '[needs decision: <unresolved question>]'.",
+      "11. Open assumptions requiring validation -- the assumptions the decision rests on that are not yet confirmed, with the validation step that would confirm each one.",
       "",
       "Constraints:",
       "- Assume the proposed decision failed. Generate failure modes from that assumption, not from a generic risk template.",
       "- Generate distinct failure modes. Do not phrase the same risk in two different ways. If two failure modes overlap, merge them.",
-      "- Assess likelihood, impact, detectability, and time horizon for each failure mode. Use the same scale for all failure modes.",
+      "- Assess likelihood, impact, detectability, and time horizon for each failure mode. Use the same scale for all failure modes, and use 'unknown' when evidence is insufficient. Distinguish input-grounded ratings from speculative estimates.",
       "- Identify leading indicators for each failure mode. When no instrument is supplied, name the signal category (for example: 'error rate', 'login latency', 'support ticket volume', 'vendor status reports') without naming a specific tool.",
-      "- Distinguish reversible from irreversible risks. Apply the matching mitigation style to each.",
-      "- Identify decision gates and stop conditions. When the inputs supply none, propose candidates and mark each '[needs decision]'.",
+      "- Distinguish reversible from irreversible risks. Apply the matching mitigation style to each. Partially reversible risks require a separate containment / residual harm / prevention treatment plus the point of no return and the last pre-commit decision gate.",
+      "- Identify decision gates and stop conditions. When the inputs supply none, propose candidates and mark each '[needs decision: <unresolved question>]'.",
       "- Avoid presenting speculative risks as facts. Phrase speculative risks as 'this could happen if ...' and tie them to a specific assumption that would have to be true.",
-      "- Do not invent vendor, metric, dashboard, owner, or organizational authority. When something is missing, mark it '[needs decision] -- <unresolved question>'.",
+      "- Do not invent vendor, metric, dashboard, owner, or organizational authority. When something is missing, mark it '[needs decision: <unresolved question>]'.",
       "- Use generic wording for tools (for example: 'the alerting system', 'the deploy pipeline', 'the runbook'). Do not name a specific vendor.",
-      "- The pre-mortem is a draft until the decision maker confirms the gates, the stop conditions, and the assumption-validation steps. Treat the output as a proposal for review.",
+      "- The pre-mortem is a draft until the decision maker confirms the gates, the stop conditions, the point-of-no-return definitions, and the assumption-validation steps. Treat the output as a proposal for review.",
     ].join("\n"),
     expectedOutput:
-      "A pre-mortem with the ten labeled sections. The decision restatement captures scope, timing, and reversibility. Failure modes are distinct and not duplicates; each carries likelihood, impact, detectability, time horizon, and a reversibility label. Leading indicators name signal categories without inventing tools. Decision gates and stop conditions are present and labelled '[needs decision]' when the inputs supplied none. Speculative risks are tied to assumptions. The irreversible risks are separated out with the gates that would still allow stopping.",
+      "A pre-mortem with the eleven labeled sections. The decision restatement captures scope, timing, and reversibility. Failure modes are distinct and not duplicates; each carries likelihood, impact, detectability (defined as 'high = likely detected early; low = likely remains hidden'), time horizon, and a reversibility label. Each rating is marked 'input-grounded' or 'speculative', and 'unknown' is used when evidence is insufficient. Section 7 gives partially reversible and irreversible risks a separate treatment: containment, residual harm after rollback, and prevention, plus the point of no return and the last pre-commit decision gate. Section 8 separates the irreversible risks with the gates that would still allow stopping. Decision gates and stop conditions are present and labelled '[needs decision: <unresolved question>]' when the inputs supplied none. Speculative risks are tied to assumptions. No invented vendor, metric, dashboard, owner, or organizational authority.",
     notes: [
       {
         title: "Why assume the decision failed",
@@ -620,11 +677,12 @@ export const pilotBatch2Records: PromptRecord[] = [
       {
         title: "Inventing gates and stop conditions without flagging them",
         body:
-          "Naming a 30-day gate and a stop condition as if they were committed, when the inputs did not supply them, produces a pre-mortem that looks finalized and is not. Mark uncommitted gates and stop conditions '[needs decision]' so the decision maker owns the commitment.",
+          "Naming a 30-day gate and a stop condition as if they were committed, when the inputs did not supply them, produces a pre-mortem that looks finalized and is not. Mark uncommitted gates and stop conditions '[needs decision: <unresolved question>]' so the decision maker owns the commitment.",
       },
     ],
     collectionIds: ["decision-room"],
-    sourceReferences: provenance("decide-pre-mortem"),
+    sourceType: "openradar-rewrite",
+    sourceReferences: publicFrameworkRewriteProvenance(),
   },
 
   {
@@ -648,6 +706,78 @@ export const pilotBatch2Records: PromptRecord[] = [
           "Deploy of checkout service v3.2.0 to the EU region. Rollback path: revert to v3.1.4 via the deploy tool. Expected rollback time: under 90 seconds from signal.",
       },
       {
+        name: "authorization_scope",
+        label: "Authorization scope",
+        description:
+          "Who is authorized to approve or execute rollback for this change, and the scope of that authorization (single-region, all-regions, partial). When empty or stale, the policy must NOT classify rollback as automatic; automatic rollback requires supplied authorization scope AND supplied rollback feasibility.",
+        example:
+          "Authorized rollback approver: on-call incident commander. Scope: EU region only. Approver must be reachable within the evaluation window. Escalation: VP Engineering after 3 overrides in 24 hours.",
+      },
+      {
+        name: "known_good_rollback_target",
+        label: "Known-good rollback target",
+        description:
+          "The specific version, configuration, or flag state the rollback returns the system to. Must be supplied for the policy to be classifiable as automatic; missing or stale target means the policy is manual-only.",
+        example:
+          "Rollback target: checkout service v3.1.4 with feature flag checkout_v3 disabled. Verified last at 2026-07-15 deployment.",
+      },
+      {
+        name: "schema_and_state_compatibility",
+        label: "Schema and state compatibility",
+        description:
+          "Any schema, migration, or state-compatibility constraint between the current version and the rollback target. New columns, removed columns, irreversible migrations, or one-way data migrations are noted here.",
+        example:
+          "v3.2.0 introduced the 'cart_id_v2' column. v3.1.4 does not read this column; rollback is safe as long as no in-flight writes depend on it. No irreversible migrations between v3.1.4 and v3.2.0.",
+      },
+      {
+        name: "forward_only_or_destructive",
+        label: "Forward-only or destructive operations",
+        description:
+          "Any forward-only or destructive operation that has already run and cannot be reversed by the rollback (data deletion, one-way encryption, third-party side effects).",
+        example:
+          "Forward-only: 1.2 million checkout sessions migrated to the v3 schema. A rollback to v3.1.4 keeps the migrated data but the legacy readers in v3.1.4 will not see it.",
+      },
+      {
+        name: "dependent_changes",
+        label: "Dependent changes",
+        description:
+          "Other services, flags, config maps, or downstream systems that move with this change, and whether each dependent change is included in the rollback path.",
+        example:
+          "Tightly coupled: the payments service reads the same checkout flag. Not coupled: the account-login service.",
+      },
+      {
+        name: "blast_radius_limit",
+        label: "Blast-radius limit",
+        description:
+          "The maximum region, segment, or percentage of traffic that an automatic rollback may touch, beyond which the action must escalate to manual.",
+        example:
+          "Automatic rollback is limited to the EU region and 100 percent of EU traffic. Cross-region rollback requires manual approval.",
+      },
+      {
+        name: "max_automatic_attempts",
+        label: "Maximum automatic attempts",
+        description:
+          "The maximum number of automatic rollback attempts within a defined window, beyond which further automatic action halts and escalation begins. When empty, default to one attempt and mark the default as a `[needs decision: ...]`.",
+        example:
+          "Maximum automatic attempts: 1 per 30 minutes per change. After 1 automatic attempt, further action halts and the on-call is paged.",
+      },
+      {
+        name: "stop_conditions_supplied",
+        label: "Stop conditions (when supplied)",
+        description:
+          "Conditions under which further automatic action halts, including cooldown expiry, max-attempts reached, telemetry-suppression triggered, or rollback verification failed or inconclusive.",
+        example:
+          "Stop after one automatic attempt. Stop when telemetry is missing for more than 2 minutes. Stop when rollback verification is inconclusive.",
+      },
+      {
+        name: "escalation_or_incident_response_path",
+        label: "Escalation or incident-response path",
+        description:
+          "The path that receives the page when automatic rollback halts: who is paged, the channel, and the incident-response procedure that follows.",
+        example:
+          "Page on-call engineer via the paging system. Channel: incident channel. Procedure: declare incident if not already declared; follow the runbook for unresolved rollback.",
+      },
+      {
         name: "monitored_signals_supplied",
         label: "Monitored signals (when supplied)",
         description:
@@ -659,7 +789,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "thresholds_supplied",
         label: "Thresholds (when supplied)",
         description:
-          "Any thresholds the inputs already commit to. When the input is empty, the prompt proposes candidate thresholds and marks each '[needs decision]'.",
+          "Any thresholds the inputs already commit to. When the input is empty, the prompt proposes candidate thresholds and marks each '[needs decision: <unresolved question>]'.",
         example:
           "Error rate above baseline plus 2 percent for two consecutive minutes. Login latency p95 above 1500 ms for two consecutive minutes.",
       },
@@ -667,7 +797,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "evaluation_window_supplied",
         label: "Evaluation window (when supplied)",
         description:
-          "The window over which a signal must breach before triggering, and the minimum sample or traffic required for the signal to be considered meaningful. When the input is empty, the prompt proposes candidate windows and minimum samples, each marked '[needs decision]'.",
+          "The window over which a signal must breach before triggering, and the minimum sample or traffic required for the signal to be considered meaningful. When the input is empty, the prompt proposes candidate windows and minimum samples, each marked '[needs decision: <unresolved question>]'.",
         example:
           "Two consecutive one-minute windows. Minimum traffic: 100 checkouts per minute in the affected region.",
       },
@@ -675,7 +805,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "data_quality_checks_supplied",
         label: "Data-quality checks (when supplied)",
         description:
-          "Conditions under which the signal itself is suspect: missing data, partial collection, deploy in progress, known noisy window. When the input is empty, the prompt proposes candidate checks and marks each '[needs decision]'.",
+          "Conditions under which the signal itself is suspect: missing data, partial collection, deploy in progress, known noisy window. Missing, stale, partial, or unreliable telemetry suspends automatic action and triggers alert or manual escalation. Missing telemetry must never be interpreted as healthy.",
         example:
           "Suppress evaluation when the alerting system reports missing data for the region. Suppress evaluation during a deploy in progress.",
       },
@@ -683,7 +813,7 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "false_positive_safeguards",
         label: "False-positive safeguards (when supplied)",
         description:
-          "Cool-down rules, hysteresis, confirmation steps, or persistence rules the inputs commit to. When the input is empty, the prompt proposes candidates and marks each '[needs decision]'.",
+          "Cool-down rules, hysteresis, confirmation steps, or persistence rules the inputs commit to. When the input is empty, the prompt proposes candidates and marks each '[needs decision: <unresolved question>]'.",
         example:
           "Persist the trigger across two consecutive windows. Cool-down: do not auto-rollback more than once per 30 minutes.",
       },
@@ -691,15 +821,15 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "rollback_verification_steps",
         label: "Rollback verification (when supplied)",
         description:
-          "The checks that confirm the rollback actually fixed the signal. When the input is empty, the prompt proposes candidates and marks each '[needs decision]'.",
+          "The checks that confirm the rollback actually fixed the signal. If verification fails or is inconclusive, halt further automatic attempts and enter the supplied escalation or incident-response path.",
         example:
-          "After rollback, wait 5 minutes, then confirm error rate returned to baseline. If not, escalate.",
+          "After rollback, wait 5 minutes, then confirm error rate returned to baseline. If not, halt and escalate.",
       },
       {
         name: "manual_override_and_escalation",
         label: "Manual override and escalation (when supplied)",
         description:
-          "Who can override the auto-rollback, who must be notified, and the escalation path when the override is used or when auto-rollback is disabled. When the input is empty, the prompt marks each item '[needs decision] -- <unresolved question>'.",
+          "Who can override the auto-rollback, who must be notified, and the escalation path when the override is used or when auto-rollback is disabled.",
         example:
           "Override: on-call engineer. Notification: incident commander and change owner. Escalation: VP Engineering after 3 overrides in 24 hours.",
       },
@@ -707,17 +837,44 @@ export const pilotBatch2Records: PromptRecord[] = [
         name: "audit_trail_and_communication",
         label: "Audit trail and communication (when supplied)",
         description:
-          "What must be recorded when the auto-rollback fires, and who is notified beyond the immediate responders. When the input is empty, the prompt marks each item '[needs decision] -- <unresolved question>'.",
+          "What must be recorded when the auto-rollback fires, and who is notified beyond the immediate responders. Audit and communications describe required future events and recipients; they must not claim notifications were sent or verification was completed.",
         example:
           "Record: trigger signal, threshold breach timestamp, rollback initiation timestamp, verification result. Notify: change owner, incident commander, status page.",
       },
     ],
     prompt: [
       "You are drafting an automatic rollback policy for the change described below.",
-      "Your job is to name the signals, the thresholds, the evaluation window, the data-quality checks, the false-positive safeguards, the boundary between automatic and manual rollback, the override path, and the audit and communication requirements. Use only what the inputs supply. Where a value is required but the inputs do not provide it, write '[needs decision] -- <unresolved question>'. Do not invent dashboards, metrics, thresholds, commands, services, owners, or organizational authority.",
+      "Your job is to name the signals, the thresholds, the evaluation window, the data-quality checks, the false-positive safeguards, the boundary between automatic and manual rollback, the override path, and the audit and communication requirements. Use only what the inputs supply. Where a value is required but the inputs do not provide it, write '[needs decision: <unresolved question>]'. Do not invent dashboards, metrics, thresholds, commands, services, owners, or organizational authority.",
       "",
       "Change under rollback:",
       "{change_under_rollback}",
+      "",
+      "Authorization scope:",
+      "{authorization_scope}",
+      "",
+      "Known-good rollback target:",
+      "{known_good_rollback_target}",
+      "",
+      "Schema and state compatibility:",
+      "{schema_and_state_compatibility}",
+      "",
+      "Forward-only or destructive operations:",
+      "{forward_only_or_destructive}",
+      "",
+      "Dependent changes:",
+      "{dependent_changes}",
+      "",
+      "Blast-radius limit:",
+      "{blast_radius_limit}",
+      "",
+      "Maximum automatic attempts:",
+      "{max_automatic_attempts}",
+      "",
+      "Stop conditions (when supplied):",
+      "{stop_conditions_supplied}",
+      "",
+      "Escalation or incident-response path:",
+      "{escalation_or_incident_response_path}",
       "",
       "Monitored signals (when supplied):",
       "{monitored_signals_supplied}",
@@ -745,39 +902,62 @@ export const pilotBatch2Records: PromptRecord[] = [
       "",
       "Produce the following sections, in this order:",
       "1. Change summary -- the change the policy applies to, including the rollback path and the expected rollback time. One paragraph.",
-      "2. Monitored signals -- the signals the policy watches. Use the supplied names when the inputs supplied them; when the inputs are empty, name the signal categories (for example: 'error rate', 'latency p95', 'support ticket volume', 'synthesized flow success') without inventing specific metric names.",
-      "3. Objective thresholds -- the threshold for each signal. Use supplied values; otherwise '[needs decision] -- <unresolved question>' with the question stated.",
-      "4. Evaluation window -- the time window over which a breach must persist, and the minimum sample or traffic required for the signal to be considered meaningful. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "5. Data-quality checks -- the conditions under which the signal itself is suspect and evaluation should be suppressed. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "6. Confirmation and persistence rules -- the rules that prevent a single bad sample from triggering, including any cool-down or hysteresis. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "7. False-positive safeguards -- the specific protections against needless rollbacks. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "8. Automatic vs manual rollback boundary -- the conditions that trigger automatic rollback without human approval, and the conditions that escalate to manual decision instead. State the boundary in plain language.",
-      "9. Manual override and escalation path -- who can override, who must be notified, and the escalation path. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "10. Rollback verification -- the checks that confirm the rollback actually fixed the signal and the action to take if it did not. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "11. Audit trail and communication -- the records kept when the auto-rollback fires and the notifications sent beyond the immediate responders. Use supplied values; otherwise '[needs decision] -- <unresolved question>'.",
-      "12. Open decisions -- a flat list of every '[needs decision]' item from sections 2 to 11, so the decision maker can resolve them in one place.",
+      "2. Rollback feasibility and authorization -- whether the policy is classifiable as automatic or only as manual. State explicitly whether authorization scope, known-good rollback target, schema and state compatibility, dependent changes, and blast-radius limit were supplied. If any of these is missing, the policy is manual-only and section 8 says so. Do not classify as automatic unless both rollback feasibility and authorization scope are supplied.",
+      "3. Monitored signals -- the signals the policy watches. Use the supplied names when the inputs supplied them; when the inputs are empty, name the signal categories (for example: 'error rate', 'latency p95', 'support ticket volume', 'synthesized flow success') without inventing specific metric names. For each signal, also state: (a) observability alert class, (b) freshness limit, and (c) the lowest-traffic or low-traffic behavior under which the signal is still meaningful.",
+      "4. Objective thresholds -- the threshold for each signal. Every threshold must define: comparator (for example: greater-than, less-than, equal-to), direction (higher-is-worse, lower-is-worse), unit (percent, milliseconds, requests-per-minute, count), scope (region, segment, service), baseline or reference period (for example: 'last 7 days at the same hour-of-day', 'pre-deploy baseline'), and trigger class (observability alert only, or rollback trigger). Use supplied values; otherwise '[needs decision: <unresolved question>]' with the question stated.",
+      "5. Aggregation window and persistence -- the time window over which a breach must persist, and the rule that requires the breach across multiple valid windows before triggering. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "6. Post-change stabilization period -- the window after the change begins during which signals are not yet considered stable and triggers are suppressed or downgraded. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "7. Minimum sample and low-traffic behavior -- the minimum sample or traffic required for the signal to be considered meaningful, and the policy behavior under low traffic. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "8. Data-quality checks and telemetry rules -- the conditions under which the signal itself is suspect and evaluation should be suppressed. State explicitly that missing, stale, partial, or unreliable telemetry suspends automatic action and triggers alert or manual escalation, and that missing telemetry must never be interpreted as healthy. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "9. False-positive safeguards -- the specific protections against needless rollbacks (cool-down, hysteresis, confirmation steps). Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "10. Automatic vs manual rollback boundary -- the conditions that trigger automatic rollback without human approval, and the conditions that escalate to manual decision instead. State the boundary in plain language. If the policy is manual-only, say so explicitly here.",
+      "11. Cooldown, maximum automatic attempts, and stop conditions -- the cool-down window, the maximum number of automatic rollback attempts within a defined window, and the stop conditions. State explicitly that during cooldown or after the maximum automatic attempt count, further automatic action halts and the policy escalates through the supplied path.",
+      "12. Rollback verification and halt-on-failure -- the checks that confirm the rollback actually fixed the signal, the action to take if it did not, and the explicit rule that if verification fails or is inconclusive, further automatic attempts halt and the policy enters the supplied escalation or incident-response path. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "13. Manual override and escalation path -- who can override, who must be notified, and the escalation path. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "14. Audit trail and communication -- the required future events and recipients when the auto-rollback fires, and the records that will be kept. Describe what must happen and to whom; do NOT claim that notifications were sent or verification was completed. Use supplied values; otherwise '[needs decision: <unresolved question>]'.",
+      "15. Open decisions -- a flat list of every '[needs decision: <unresolved question>]' item from sections 2 to 14, including unresolved authority and rollback-path decisions and any conflicting inputs, so the decision maker can resolve them in one place.",
       "",
       "Constraints:",
       "- Do not invent dashboards, metrics, thresholds, commands, services, owners, on-call rotations, team names, or organizational authority. Every value in the policy must trace to a supplied input.",
-      "- When a value is required but the inputs do not supply it, mark '[needs decision] -- <unresolved question>'. Use the same wording in section 12 so nothing is lost.",
-      "- Prefer reversible actions over irreversible ones. When the rollback itself could make things worse, name the risk in section 7 and require a confirmation step.",
-      "- Distinguish automatic rollback from manual rollback clearly. Automatic rollback fires without human approval only for the conditions in section 8; everything else escalates.",
-      "- The verification step in section 10 must close the loop: the rollback is only successful if the signal returns to a defined state. When the inputs do not supply that state, mark it '[needs decision]'.",
+      "- Do not classify rollback as automatic unless rollback feasibility AND authorization scope are supplied. When either is missing, the policy is manual-only and section 10 says so.",
+      "- Missing, stale, partial, or unreliable telemetry suspends automatic action and triggers alert or manual escalation. Missing telemetry must never be interpreted as healthy.",
+      "- Every threshold must define: comparator, direction, unit, scope, baseline or reference period, and trigger class. A threshold that does not carry these six fields is not yet a threshold; mark it '[needs decision: <unresolved question>]'.",
+      "- Distinguish observability alert from rollback trigger. A signal can be an observability alert without being a rollback trigger. The trigger class field in section 4 makes this explicit.",
+      "- During cooldown or after the maximum automatic attempt count, halt further automatic action and escalate through the supplied path.",
+      "- If rollback verification fails or is inconclusive, halt further automatic attempts and enter the supplied escalation or incident-response path.",
+      "- When a value is required but the inputs do not supply it, mark '[needs decision: <unresolved question>]'. Use the same wording in section 15 so nothing is lost. Collect unresolved authority and rollback-path decisions from every section, including conflicting inputs.",
+      "- Prefer reversible actions over irreversible ones. When the rollback itself could make things worse (forward-only operations, schema mismatch), name the risk in section 12 and require a confirmation step.",
+      "- Audit and communications describe required future events and recipients. They must not claim notifications were sent or verification was completed.",
       "- Use generic wording for tools (for example: 'the alerting system', 'the deploy tool', 'the runbook'). Do not name a specific vendor.",
-      "- The policy is a draft until the decision maker confirms every '[needs decision]' item. Treat the output as a proposal for review.",
+      "- The policy is a draft until the decision maker confirms every '[needs decision: <unresolved question>]' item. Treat the output as a proposal for review.",
     ].join("\n"),
     expectedOutput:
-      "An auto-rollback policy proposal with the twelve labeled sections. Every value in sections 2 to 11 traces to a supplied input or is explicitly marked '[needs decision] -- <unresolved question>'. Section 8 distinguishes automatic from manual rollback. Section 10 closes the loop on verification. Section 12 collects every unresolved decision in one place. No invented dashboards, metrics, thresholds, commands, services, owners, or organizational authority.",
+      "An auto-rollback policy proposal with the fifteen labeled sections. Section 2 states whether the policy is automatic or manual-only based on the supplied authorization scope, known-good rollback target, schema and state compatibility, dependent changes, and blast-radius limit. Section 4 defines every threshold with comparator, direction, unit, scope, baseline or reference period, and trigger class. Section 8 enforces the rule that missing, stale, partial, or unreliable telemetry suspends automatic action and is never interpreted as healthy. Section 10 distinguishes automatic rollback from manual rollback. Section 11 halts further automatic action during cooldown or after the maximum automatic attempt count and escalates. Section 12 halts further automatic attempts if rollback verification fails or is inconclusive. Section 14 describes audit and communication as required future events and recipients, never as completed actions. Section 15 collects every unresolved decision, including unresolved authority and rollback-path decisions and conflicting inputs, in one place. No invented dashboards, metrics, thresholds, commands, services, owners, or organizational authority.",
     notes: [
       {
         title: "Why every missing value is marked the same way",
         body:
-          "Auto-rollback policies fail when the missing values are filled in by whoever writes the policy, often without realizing they are inventing an organizational commitment. Marking every missing value '[needs decision]' makes the gap visible at write time, not at incident time.",
+          "Auto-rollback policies fail when the missing values are filled in by whoever writes the policy, often without realizing they are inventing an organizational commitment. Marking every missing value '[needs decision: <unresolved question>]' makes the gap visible at write time, not at incident time.",
       },
       {
         title: "Why verification is its own section",
         body:
           "An auto-rollback that does not verify the rollback actually fixed the signal can silently leave the system in a worse state. The verification step is what closes the loop. Without it, the policy is a trigger, not a recovery.",
+      },
+      {
+        title: "Why authorization scope is a precondition for automatic",
+        body:
+          "An automatic rollback that fires without a supplied authorization scope is a liability, not a safety net. The rollback tool may have the technical capability to act, but acting without authorization crosses an organizational boundary. Treating authorization scope as a precondition forces the policy to fall back to manual when the boundary is missing.",
+      },
+      {
+        title: "Why missing telemetry is not healthy telemetry",
+        body:
+          "An alerting gap is not a green light. Treating missing telemetry as a positive signal lets a real outage ride through the silence. The policy treats missing, stale, partial, or unreliable telemetry as an explicit stop condition: suspend automatic action and trigger alert or manual escalation.",
+      },
+      {
+        title: "Why cooldown and max-attempts halt automatic action",
+        body:
+          "A second automatic rollback inside the cooldown window is almost always a re-trigger of the same signal, often without new information. Halting further automatic action and escalating forces a human to read the evidence and decide whether the system is in a state that justifies another attempt.",
       },
     ],
     antiPatterns: [
@@ -789,7 +969,7 @@ export const pilotBatch2Records: PromptRecord[] = [
       {
         title: "Picking thresholds without authority",
         body:
-          "Setting a threshold value when the inputs did not supply one looks decisive and is not. The threshold is a commitment the system will act on; it must come from the inputs or be marked '[needs decision]'.",
+          "Setting a threshold value when the inputs did not supply one looks decisive and is not. The threshold is a commitment the system will act on; it must come from the inputs or be marked '[needs decision: <unresolved question>]'.",
       },
       {
         title: "Confusing automatic with manual rollback",
@@ -799,7 +979,22 @@ export const pilotBatch2Records: PromptRecord[] = [
       {
         title: "Skipping the verification step",
         body:
-          "A rollback that fires and is not verified can leave the system in a partially-fixed state. Section 10 is what proves the rollback worked. Without it, the policy is half a recovery.",
+          "A rollback that fires and is not verified can leave the system in a partially-fixed state. Section 12 is what proves the rollback worked. Without it, the policy is half a recovery.",
+      },
+      {
+        title: "Treating missing telemetry as healthy",
+        body:
+          "Reading silence as a green light lets a real outage ride through the gap. The policy treats missing, stale, partial, or unreliable telemetry as a stop condition; it is never interpreted as healthy.",
+      },
+      {
+        title: "Looping automatic rollbacks without a halt",
+        body:
+          "Continuing to fire automatic rollback attempts inside the cooldown window or after the max-attempts count is reached produces a policy that fights itself. The halt rule in section 11 forces escalation so a human can read the evidence.",
+      },
+      {
+        title: "Claiming notifications were sent or verification was completed",
+        body:
+          "The audit and communications section is a description of required future events and recipients. Writing 'notified the incident commander' or 'verified the rollback' claims that an action has happened that the policy itself does not perform. Describe what must happen and to whom; let the audit trail record what actually happened.",
       },
     ],
     collectionIds: ["operator-playbook"],
